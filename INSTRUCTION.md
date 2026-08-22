@@ -343,6 +343,43 @@ Deterministic rules are the primary detection mechanism. AI must NOT decide whet
 
 CodeSentinel is a separate local project/tool. It analyzes source code directly. It does NOT test a live domain and requires no authorization step.
 
+It operates conceptually as:
+
+```text
+                    CodeSentinel
+                         |
+        +----------------+----------------+
+        |                |                |
+        v                v                v
+   Bug Analysis      API Analysis    Security Analysis
+        |                |                |
+        v                v                v
+   Type errors       API mismatch      Secrets
+   Null risks        Routes            Injection
+   Dead code         Contracts         Authentication
+   Logic bugs        Request/Response   Authorization
+                                      XSS
+                                      SSRF
+                                      Path traversal
+                                      Unsafe execution
+                                      Crypto issues
+                                      etc.
+        |                |                |
+        +----------------+----------------+
+                         |
+                         v
+                Cross-File Analysis
+                         |
+                         v
+                  Finding Aggregator
+                         |
+                         v
+                Reports / CLI Output
+                         |
+                         v
+                 Optional AI Assist
+```
+
 It should detect:
 
 ### Bugs
@@ -367,9 +404,18 @@ It should detect:
 - Validation-rule inconsistencies.
 - Missing routes/functions, client/server contract mismatches.
 
+### Security Analysis (New Layer)
+- **Secrets:** Hardcoded API keys, passwords, tokens, private keys. Must be conservative (avoid treating every string as a secret).
+- **Injection:** SQL injection, command injection, path traversal, unsafe dynamic queries, dangerous eval/dynamic execution.
+- **Web/API Security:** Missing authentication/authorization checks, IDOR patterns, unsafe CORS, missing input validation, unsafe file upload handling, SSRF-prone URLs.
+- **Authentication / Authorization:** Sensitive routes without auth, inconsistent auth checks, dangerous JWT/session patterns.
+- **Cryptography:** Weak hashing algorithms, hardcoded crypto keys, insecure random generation.
+- **Security Configuration:** Debug mode in prod, insecure settings, exposed debug endpoints, dangerous defaults.
+
 The initial target stack is: **TypeScript, JavaScript, Node.js, React, Express, Next.js.**
 
 Do not add additional programming languages before the TypeScript/JavaScript implementation is reliable and validated against fixtures.
+Note: External security scanners (like eslint-security) may be used if appropriate, provided they integrate seamlessly into the `Finding` model and CodeSentinel acts as the orchestrator.
 
 ---
 
@@ -464,9 +510,10 @@ Every new rule must be tested against known-vulnerable, known-safe, and borderli
 
 Build test fixtures before aggressively expanding rules. Maintain, per engine:
 
-    fixtures/
-      vulnerable/  (or bugs/, api-integration/, illogical/ for CodeSentinel)
-      safe/        (or clean/ for CodeSentinel)
+    sentinel-lab/
+      bugs/          (or api-bugs/, logic-bugs/, type-bugs/ for CodeSentinel)
+      security-bugs/ (vulnerable code, injection, secrets, etc.)
+      safe/          (or clean/ for CodeSentinel)
       borderline/
 
 Every important detection rule needs: a case it should detect, a case it should not detect, and a borderline case where applicable.

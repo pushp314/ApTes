@@ -321,7 +321,7 @@ Shared budget/cost-control system, local-model default, applies to both engines'
 Automatic detection of MCP targets from a website scan. Explicitly deferred — do not start this until Phases 1–7 are stable and the manual-linking flow has real usage.
 
 **Phase 9 — Code Engine Import (post-MVP, independent of Phase 8)**
-Build and ship CodeSentinel as its own standalone tool first (it has no dependency on any of this). Once stable, add the `--export` flag and the `code-scan-import` API endpoint, and extend the aggregator to produce drift findings between imported Code Engine results and live Web Engine findings on the same project. This phase does not require Phase 8 to be done first — they're independent extensions.
+Build and ship CodeSentinel as its own standalone tool first (including its internal phases: Bug Analysis, API Analysis, and Security Analysis). Once stable, add the `--export` flag and the `code-scan-import` API endpoint, and extend the aggregator to produce drift findings between imported Code Engine results and live Web Engine findings on the same project. This phase does not require Phase 8 to be done first — they're independent extensions.
 
 ---
 

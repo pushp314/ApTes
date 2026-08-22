@@ -76,25 +76,29 @@ Phase 4 → CodeSentinel API Analysis
 
 Phase 5 → CodeSentinel Logic & Cross-File Analysis
 
-Phase 6 → CodeSentinel Validation
+Phase 6 → CodeSentinel Security Analysis
 
-Phase 7 → Web Engine Foundation
+Phase 7 → CodeSentinel Fixture / Bug Laboratory Validation
 
-Phase 8 → Web Functional/API Testing
+Phase 8 → CodeSentinel Python Analysis
 
-Phase 9 → Web Security & Reliability
+Phase 9 → Web Engine Foundation
 
-Phase 10 → MCP Engine Foundation
+Phase 10 → Web Functional/API Testing
 
-Phase 11 → MCP Security Rules
+Phase 11 → Web Security & Reliability
 
-Phase 12 → Unified Findings & Correlation
+Phase 12 → MCP Engine Foundation
 
-Phase 13 → Reporting & UX
+Phase 13 → MCP Security Rules
 
-Phase 14 → Optional AI Assist
+Phase 14 → Unified Findings & Correlation
 
-Phase 15 → Final Hardening & Release
+Phase 15 → Reporting & UX
+
+Phase 16 → Optional AI Assist
+
+Phase 17 → Final Hardening & Release
 
 Do not skip phases unless explicitly instructed.
 
@@ -248,6 +252,15 @@ Required categories:
 - Duplicate constants
 - Missing routes/functions
 - Contract mismatches
+
+### Security Analysis
+
+- Secrets (hardcoded API keys, passwords, tokens, private keys)
+- Injection (SQL injection, command injection, path traversal, dangerous eval)
+- Web/API Security (missing auth, IDOR, CORS, unsafe file handling, SSRF)
+- Authentication / Authorization (sensitive routes without auth, dangerous JWT)
+- Cryptography (weak hashing, hardcoded keys, insecure random)
+- Security Configuration (debug mode in prod, insecure defaults)
 
 Rules must be conservative.
 
@@ -496,7 +509,9 @@ Documentation should live close to the implementation where practical.
 
 ---
 
-# 20. SECURITY RULES
+# 20. SECURITY RULES & SECURITY ANALYSIS
+
+## 20A. General Security Practices
 
 Never trust:
 
@@ -519,6 +534,25 @@ Security-sensitive operations must use:
 - SSRF protection where applicable
 
 Never execute source-code strings simply because they were discovered during analysis.
+
+## 20B. Security Analysis Rules
+
+When implementing Security Analysis for CodeSentinel:
+
+- Security rules must be deterministic by default.
+- Security findings must include evidence.
+- Security rules must be conservative.
+- Avoid regex-only security detection when AST/data-flow information is available.
+- Never claim a vulnerability with insufficient evidence.
+- Clearly distinguish "confirmed pattern" from "potential risk".
+- Do not automatically exploit discovered vulnerabilities.
+- Do not automatically modify source code.
+- Security scanning must remain local by default.
+- Security analysis must not require AI.
+- Security rules must have fixtures (vulnerable, safe, borderline).
+- Every security rule must be regression tested.
+- False positives must be tracked and reduced.
+- Existing CodeSentinel functionality must not regress.
 
 ---
 
