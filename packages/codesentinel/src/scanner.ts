@@ -1,0 +1,115 @@
+/**
+ * Scanner — the main orchestrator for CodeSentinel.
+ *
+ * Pipeline:  Walk → Cache → Parse → (future: Analyze → Report)
+ *
+ * For Phase 2, the pipeline stops after parsing.
+ * Detection rules will be added in Phase 3+.
+ */
+
+import * as fs from 'node:fs/promises';
+import type { CodeSentinelConfig } from './config.js';
+import { walkProject, type WalkedFile } from './walker.js';
+import { ContentHashCache } from './cache.js';
+import { parseFiles, type ParseError, type ParseResult } from './parser.js';
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+/** Result of a full CodeSentinel scan. */
+export interface ScanResult {
+  /** Total files discovered matching extension filters. */
+  filesDiscovered: number;
+
+  /** Files that have changed since the last cached scan. */
+  filesChanged: number;
+
+  /** Files that were unchanged (skipped via cache). */
+  filesUnchanged: number;
+
+  /** Files that were successfully parsed. */
+  filesParsed: number;
+
+  /** Parse errors encountered. */
+  parseErrors: ParseError[];
+
+  /** Files skipped by .gitignore or always-excluded dirs. */
+  skippedByGitignore: number;
+
+  /** Files skipped for exceeding maxFileSize. */
+  skippedBySize: number;
+
+  /** True if the walk was truncated by maxFiles. */
+  truncatedByMaxFiles: boolean;
+
+  /** The parse result (for future use by detection rules). */
+  parseResult: ParseResult | null;
+
+  /** Wall-clock duration of the scan in milliseconds. */
+  durationMs: number;
+}
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
+/**
+ * Run a CodeSentinel scan on a project directory.
+ *
+ * @param targetDir - Absolute path to the project root.
+ * @param config - Scanning configuration.
+ * @returns Scan result with statistics and parsed ASTs.
+ */
+export async function scan(
+  targetDir: string,
+  config: CodeSentinelConfig,
+): Promise<ScanResult> {
+  const startTime = Date.now();
+
+  // 1. Walk the project directory
+  const walkResult = await walkProject(targetDir, config);
+
+  // 2. Cache check — identify changed files
+  const cache = config.useCache
+    ? await ContentHashCache.load(targetDir)
+    : null;
+
+  const changedFiles: WalkedFile[] = [];
+  let filesUnchanged = 0;
+
+  for (const file of walkResult.files) {
+    if (cache) {
+      const content = await fs.readFile(file.absolutePath);
+      if (!cache.isChanged(file.relativePath, content)) {
+        filesUnchanged++;
+        continue;
+      }
+    }
+    changedFiles.push(file);
+  }
+
+  // 3. Parse changed files
+  let parseResult: ParseResult | null = null;
+  if (changedFiles.length > 0) {
+    parseResult = parseFiles(changedFiles);
+  }
+
+  // 4. Save updated cache
+  if (cache) {
+    await cache.save();
+  }
+
+  return {
+    filesDiscovered: walkResult.files.length,
+    filesChanged: changedFiles.length,
+    filesUnchanged,
+    filesParsed: parseResult?.sourceFiles.length ?? 0,
+    parseErrors: parseResult?.errors ?? [],
+    skippedByGitignore: walkResult.skippedByGitignore,
+    skippedBySize: walkResult.skippedBySize,
+    truncatedByMaxFiles: walkResult.truncatedByMaxFiles,
+    parseResult,
+    durationMs: Date.now() - startTime,
+  };
+}
