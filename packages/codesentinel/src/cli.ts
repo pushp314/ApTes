@@ -62,6 +62,20 @@ program
 
       console.log(`Files parsed:      ${result.filesParsed}`);
 
+      if (result.findings.length > 0) {
+        console.log(`\n🚨 Findings (${result.findings.length}):`);
+        for (const finding of result.findings) {
+          console.log(`\n  [${finding.severity.toUpperCase()}] ${finding.title}`);
+          console.log(`  Rule:     ${finding.ruleId} (${finding.category})`);
+          console.log(`  Location: ${finding.location}`);
+          console.log(`  Message:  ${finding.message}`);
+          console.log(`  Fix:      ${finding.remediation}`);
+        }
+        console.log('');
+      } else {
+        console.log(`\n✅ No findings detected.\n`);
+      }
+
       if (result.parseErrors.length > 0) {
         console.log(`Parse errors:      ${result.parseErrors.length}`);
         for (const err of result.parseErrors) {
@@ -80,11 +94,10 @@ program
         console.log(`⚠ Scan truncated: reached maximum file limit`);
       }
 
-      console.log();
       console.log(`Scan complete in ${result.durationMs}ms`);
 
-      // Exit with error code if there were parse errors
-      if (result.parseErrors.length > 0) {
+      // Exit with error code if there were findings or parse errors
+      if (result.findings.length > 0 || result.parseErrors.length > 0) {
         process.exit(1);
       }
     } catch (e) {

@@ -89,37 +89,9 @@ export function parseFiles(files: WalkedFile[]): ParseResult {
   for (const file of files) {
     try {
       const sourceFile = project.addSourceFileAtPath(file.absolutePath);
-
-      // Collect syntax diagnostics only (not semantic/type errors).
-      // Semantic analysis happens in the detection rules (Phase 3+).
-      const syntaxDiags = sourceFile.getPreEmitDiagnostics().filter(
-        (d) => d.getCategory() === ts.DiagnosticCategory.Error,
-      );
-
-      for (const diag of syntaxDiags) {
-        const messageText = diag.getMessageText();
-        const message =
-          typeof messageText === 'string'
-            ? messageText
-            : ts.flattenDiagnosticMessageText(messageText.compilerObject, '\n');
-
-        const start = diag.getStart();
-        const diagSourceFile = diag.getSourceFile();
-        let line: number | undefined;
-        let column: number | undefined;
-
-        if (start !== undefined && diagSourceFile) {
-          const pos = diagSourceFile.getLineAndColumnAtPos(start);
-          line = pos.line;
-          column = pos.column;
-        }
-
-        errors.push({ file: file.relativePath, message, line, column });
-      }
-
       sourceFiles.push(sourceFile);
     } catch (e) {
-      // File couldn't be added at all (rare — usually I/O errors)
+      // File couldn't be added at all (rare — usually I/O errors or completely broken files)
       errors.push({
         file: file.relativePath,
         message: e instanceof Error ? e.message : String(e),
