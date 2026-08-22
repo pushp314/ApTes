@@ -1,0 +1,111 @@
+/**
+ * Finding — the shared data contract across all Sentinel engines.
+ *
+ * All three engines (Web, MCP, Code) produce findings in this shape.
+ * This is the single most important shared type in the platform —
+ * it's what makes unified reporting, correlation, and scoring possible
+ * without coupling the engines' internals.
+ *
+ * Defined by: INSTRUCTION.md Section 8, Architecture Spec Section 6.
+ *
+ * CodeSentinel uses this shape for its --export output.
+ * Web and MCP engines write this shape directly to the shared Finding table.
+ * The aggregator reads this shape to correlate findings across engines.
+ */
+
+import type { Severity, Confidence, EngineType } from './types.js';
+
+/**
+ * A single finding produced by any Sentinel engine.
+ *
+ * Every finding must answer four questions:
+ *   WHAT happened, WHERE it happened, WHY it matters, HOW to fix it.
+ *
+ * Evidence must never contain secrets (API keys, tokens, passwords).
+ * Redact sensitive data before writing evidence.
+ */
+export interface Finding {
+  /** Unique identifier for this finding. */
+  id: string;
+
+  /** Project this finding belongs to. */
+  projectId: string;
+
+  /**
+   * TestRun this finding is associated with.
+   * Null for CodeSentinel imports — they are tied to a CodeScanImport
+   * record, not a live TestRun.
+   */
+  runId: string | null;
+
+  /**
+   * Which engine produced this finding.
+   *
+   * Note: INSTRUCTION.md Section 8 uses "engine", Architecture Spec
+   * Section 6 uses "engineType". We follow the explicit TypeScript
+   * interface from INSTRUCTION.md.
+   */
+  engine: EngineType;
+
+  /** Identifier for the detection rule that produced this finding. */
+  ruleId: string;
+
+  /**
+   * Category grouping for this finding.
+   * Examples: "security-headers", "broken-links", "api-integration",
+   *           "schema-rigor", "privilege-analysis", "type-error".
+   */
+  category: string;
+
+  /** Severity of the finding. */
+  severity: Severity;
+
+  /**
+   * Confidence level of the detection.
+   * Low-confidence findings are eligible for optional AI-assisted triage.
+   */
+  confidence: Confidence;
+
+  /** Short, human-readable title summarizing the finding. */
+  title: string;
+
+  /**
+   * Detailed explanation of what was found.
+   * Should be specific and mechanical, not vague.
+   * Good: "fetch() is called without checking response.ok"
+   * Bad:  "This code looks unsafe"
+   */
+  message: string;
+
+  /**
+   * Where the finding was detected.
+   * - Web engine: URL or page path (e.g., "https://example.com/login")
+   * - MCP engine: tool name (e.g., "filesystem_write")
+   * - Code engine: file:line (e.g., "src/api/client.ts:42")
+   */
+  location?: string;
+
+  /**
+   * Structured evidence supporting the finding.
+   * Must NOT contain secrets (API keys, tokens, passwords, credentials).
+   */
+  evidence: Record<string, unknown>;
+
+  /** Actionable remediation guidance. */
+  remediation: string;
+
+  /**
+   * Links a correlated finding across engines.
+   * Examples:
+   * - Web finding linked to the MCP finding it triggered discovery of
+   * - Code finding linked to the Web finding showing API drift
+   *
+   * Set explicitly by the aggregator, never inferred silently.
+   * A drift finding (Code vs. Web) must only be created when both
+   * a Code Engine import and a Web Engine run exist for the same project.
+   */
+  relatedFindingId?: string;
+
+  /** ISO 8601 timestamp of when this finding was created. */
+  timestamp: string;
+}
