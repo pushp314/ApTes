@@ -1,103 +1,89 @@
-# Installation
+# Installing Sentinel (Team & Friend Setup Guide)
 
-## Prerequisites
+Get Sentinel running on your Mac, Windows, or Linux laptop in under 60 seconds.
 
-- **Node.js** ≥ 20.x
-- **npm** ≥ 10.x
-- **Git** (for cloning)
-- **Ollama** (optional, for AI features) — [Install Ollama](https://ollama.com/)
+---
 
-## 🚀 Method 1: 1-Line Universal Installer (Mac, Linux & Windows)
+## ⚡ Quick 60-Second Automated Setup (Recommended)
 
-### 🍎 macOS & 🐧 Linux (Bash / Zsh)
+Run the one-line setup command for your operating system. It automatically checks for Node.js/Python, provisions dependencies, builds all engines, and links the global `sentinel` command:
+
+### 🍎 macOS & 🐧 Linux
+Open Terminal and run:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/pushp314/ApTes/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/pushp314/ApTes/main/setup.sh | bash
 ```
 
 ### 🪟 Windows (PowerShell)
+Open PowerShell as Administrator and run:
 ```powershell
-iwr -useb https://raw.githubusercontent.com/pushp314/ApTes/main/scripts/install.ps1 | iex
+iwr -useb https://raw.githubusercontent.com/pushp314/ApTes/main/setup.ps1 | iex
 ```
 
 ---
 
-## ⚡ Method 2: Zero-Install Instant Run (NPX)
+## 📦 Method 2: Manual Clone & Setup from GitHub
 
-Run Sentinel instantly without installing anything permanently:
+If you prefer to clone the repository manually:
 
 ```bash
-# Launch the Web Mission Control GUI
-npx @sentinel/platform ui
+# 1. Clone the repository
+git clone https://github.com/pushp314/ApTes.git
+cd ApTes
 
-# Launch the Terminal Dashboard
-npx @sentinel/platform dashboard
+# 2. Run the interactive setup doctor
+./setup.sh          # On Mac/Linux
+# .\setup.ps1       # On Windows PowerShell
+```
+
+Or build manually:
+```bash
+npm install
+npm run build
+npm link ./packages/platform
 ```
 
 ---
 
-## 🐍 Method 3: Python Security Toolkit (pip / pipx)
+## 🚀 How to Launch Sentinel on Your Laptop
 
-Install the zero-dependency Python security tools directly:
+Once setup is complete, you can open **any terminal window** from any directory and run:
 
+### 1. Web Mission Control GUI (Browser Interface)
 ```bash
-# Instant run with pipx
-pipx run sentinel-security dashboard
+sentinel ui
+```
+👉 Open **`http://localhost:3333`** to test endpoints, audit headers/CORS/cookies, and view vulnerability findings with one click.
 
-# Or install via pip
-pip install sentinel-security
+### 2. Interactive Terminal Dashboard (TUI Hub)
+```bash
+sentinel dashboard
+```
+👉 Displays a numbered ASCII menu to launch scans and security tools directly inside your terminal.
+
+### 3. Full Tri-Boundary Application Scan
+```bash
+sentinel scan http://localhost:3000 -m "node server.js" -y -c ./src
+```
+
+### 4. Standalone Python Pentest Tools
+```bash
+# Discover API endpoints
+sentinel-py endpoints https://example.com
+
+# Multi-vector vulnerability audit
 sentinel-py audit https://example.com
 ```
 
 ---
 
-## 📦 Method 4: Clone & Build from Source
+## 🧪 Verify Your Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/pushp314/ApTes.git
-cd ApTes
-
-# Install dependencies and build
-npm install
-npm run build
-
-# Link CLI globally
-npm link ./packages/platform
-
-# Verify installation
-sentinel --help
-```
-
-## Setting Up AI Features (Optional)
-
-### Ollama (Local LLM — Recommended)
-
-```bash
-# Install Ollama
-brew install ollama          # macOS
-# curl -fsSL https://ollama.com/install.sh | sh  # Linux
-
-# Pull the model
-ollama pull llama3
-
-# Start the server
-ollama serve
-```
-
-Then add `-A` to any Sentinel command to enable AI features.
-
-### Gemini (Cloud LLM)
-
-No installation needed. When running the interactive wizard, select "Use Gemini AI" and paste your API key when prompted. Get a key at [ai.google.dev](https://ai.google.dev/).
-
-## Verify Installation
-
-```bash
-# Check the CLI is available
+# Verify global CLI is available
 sentinel --help
 
-# Run the test suite
+# Run the automated test suite
 npm test
-
-# Expected output: 13 test files, 105 tests passed
+# (Expected: 18 test files, 138 tests passed)
 ```
