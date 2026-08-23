@@ -23,7 +23,10 @@ describe('SecretRedactor', () => {
       }
     };
 
-    const result = redactor.redactObject(obj) as Record<string, any>;
+    const result = redactor.redactObject(obj) as {
+      message: string;
+      details: { url: string; auth: string };
+    };
     expect(result.details.url).toBe('https://[REDACTED_URL_AUTH]api.example.com/v1/data');
     expect(result.details.auth).toBe('[REDACTED_BEARER_TOKEN]');
   });

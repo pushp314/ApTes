@@ -71,7 +71,7 @@ program
       if (options.ai) {
         console.log(`\n[Sentinel AI] Running AI analysis on low-confidence findings (Budget: ${options.budget})...`);
         try {
-          // @ts-ignore: Platform may not be linked; we load it dynamically
+          // @ts-expect-error: Platform may not be linked; we load it dynamically
           const { AiReviewer } = await import('@sentinel/platform');
           const reviewer = new AiReviewer({
             enabled: true,
