@@ -20,6 +20,7 @@ export const InjectionRule: CodeRule = {
     for (const callExpr of callExpressions) {
       const expr = callExpr.getExpression();
       const text = expr.getText();
+      // console.log(`[Injection Debug] Checking call: ${text} in ${context.relativePath}`);
       
       const isDbCall = text.includes('db.query') || text.includes('db.execute') || text === 'query' ||
         /\.(find|findOne|create|update|delete|destroy|findAll)$/.test(text) || text.includes('$where');

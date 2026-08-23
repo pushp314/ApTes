@@ -18,6 +18,7 @@ import { InjectionRule } from './detectors/injection.js';
 import { AuthRule } from './detectors/auth.js';
 import { DependencyCveRule } from './detectors/dependency-cve.js';
 import { IdorRule } from './detectors/idor.js';
+import { McpExposureRule } from './detectors/mcp-exposure.js';
 
 export const ACTIVE_RULES: CodeRule[] = [
   TypeErrorRule,
@@ -30,5 +31,6 @@ export const ACTIVE_RULES: CodeRule[] = [
   InjectionRule,
   AuthRule,
   DependencyCveRule,
-  IdorRule
+  IdorRule,
+  McpExposureRule
 ];

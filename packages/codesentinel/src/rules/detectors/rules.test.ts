@@ -29,8 +29,37 @@ describe('CodeSentinel Rules', () => {
     return {
       project,
       sourceFile,
-      projectId: 'test-project',
       relativePath: 'test.ts',
+      projectId: 'test-project',
+      runId: 'run-1',
+    };
+  }
+
+  function createContext(filePath: string): CodeRuleContext {
+    const fs = require('fs');
+    const project = new Project({
+      useInMemoryFileSystem: true,
+      compilerOptions: { allowJs: true, checkJs: true, esModuleInterop: true },
+    });
+    
+    // Read and create in-memory files for cross-file tests
+    const files = [
+      'packages/codesentinel/fixtures/sample-project/src/vulnerable/cross-file-db.js',
+      'packages/codesentinel/fixtures/sample-project/src/vulnerable/cross-file-import.js',
+      'packages/codesentinel/fixtures/sample-project/src/vulnerable/nosql-injection.js'
+    ];
+    
+    for (const file of files) {
+      project.createSourceFile(file, fs.readFileSync(file, 'utf8'));
+    }
+    
+    const sourceFile = project.getSourceFileOrThrow(filePath);
+    return {
+      project,
+      sourceFile,
+      relativePath: filePath,
+      projectId: 'test-project',
+      runId: 'run-1',
     };
   }
 
@@ -238,9 +267,21 @@ describe('CodeSentinel Rules', () => {
       expect(findings.length).toBe(1);
     });
     it('detects NoSQL direct object injection', () => {
-      const context = createTestContext(`User.create(req.body);`);
+      const context = createContext('packages/codesentinel/fixtures/sample-project/src/vulnerable/nosql-injection.js');
       const findings = InjectionRule.analyze(context);
-      expect(findings.length).toBe(1);
+      
+      const nosqlObjectFindings = findings.filter(f => f.evidence?.code.includes('findOne('));
+      expect(nosqlObjectFindings.length).toBe(1);
+    });
+
+    it('detects NoSQL injection across file boundaries (Phase 18)', () => {
+      // The injection happens in cross-file-db.js, but the taint source is in cross-file-import.js
+      // CodeSentinel evaluates files independently, but resolveExpression jumps across files!
+      const context = createContext('packages/codesentinel/fixtures/sample-project/src/vulnerable/cross-file-db.js');
+      const findings = InjectionRule.analyze(context);
+      
+      const crossFileFindings = findings.filter(f => f.evidence?.code.includes('execute('));
+      expect(crossFileFindings.length).toBe(1);
     });
   });
 

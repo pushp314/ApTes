@@ -29,6 +29,22 @@ export const AiWidgetRule: EngineRule = {
     }
     const page = context.webContext.page as unknown as Page;
     const findings: Finding[] = [];
+    
+    // Phase 17: Cross-Engine Risk Path Mapping (Network Interception)
+    // We capture all API requests made by the page to map Frontend -> API Route.
+    const interceptedApiRoutes = new Set<string>();
+    page.on('request', (request) => {
+      const type = request.resourceType();
+      if (type === 'fetch' || type === 'xhr') {
+        try {
+          const parsed = new URL(request.url());
+          // Keep the path to correlate with the backend route
+          interceptedApiRoutes.add(parsed.pathname);
+        } catch {
+          // ignore
+        }
+      }
+    });
 
     await page.waitForLoadState('networkidle').catch(() => {});
     const url = page.url();
@@ -129,6 +145,7 @@ export const AiWidgetRule: EngineRule = {
             matchedValue: signal.matchedValue,
             ...(signal.vendor ? { vendor: signal.vendor } : {}),
             ...(signal.targetName ? { targetName: signal.targetName } : {}),
+            interceptedApiRoutes: Array.from(interceptedApiRoutes),
           },
           remediation: hasExplicitTarget
             ? 'Ensure the connected target is authorized, secured, and does not expose sensitive operations without authentication.'

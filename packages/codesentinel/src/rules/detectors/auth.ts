@@ -73,6 +73,7 @@ export const AuthRule: CodeRule = {
                         line: pos.line,
                         column: pos.column,
                         code: callExpr.getText(),
+                        route: routeText,
                       },
                       remediation: 'Apply authentication/authorization middleware to this route.',
                       timestamp: new Date().toISOString(),

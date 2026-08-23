@@ -25,7 +25,13 @@ export function resolveExpression(node: Node, maxDepth = 3): Node[] {
 
   // If it's an Identifier (variable reference), trace its definition
   if (Node.isIdentifier(node)) {
-    const defs = node.getDefinitionNodes();
+    let defs: Node[] = [];
+    try {
+      defs = node.getDefinitionNodes();
+    } catch (e) {
+      // Language Service may crash on malformed projects
+    }
+    
     if (defs.length === 0) {
       return [node]; // Could not resolve further
     }
@@ -33,30 +39,143 @@ export function resolveExpression(node: Node, maxDepth = 3): Node[] {
     const resolvedNodes: Node[] = [];
 
     for (const def of defs) {
-      let initializer: Node | undefined;
+      if (def.isKind(SyntaxKind.Parameter)) {
+        // Phase 18: Cross-Function/Cross-File Data Flow
+        // If the variable is a parameter, find where this function is called!
+        const param = def;
+        const func = param.getFirstAncestorByKind(SyntaxKind.FunctionDeclaration) ||
+                     param.getFirstAncestorByKind(SyntaxKind.MethodDeclaration) ||
+                     param.getFirstAncestorByKind(SyntaxKind.ArrowFunction) ||
+                     param.getFirstAncestorByKind(SyntaxKind.FunctionExpression);
 
-      if (def.isKind(SyntaxKind.VariableDeclaration)) {
-        initializer = def.getInitializer();
-      } else {
-        const varDecl = def.getFirstAncestorByKind(SyntaxKind.VariableDeclaration);
-        if (varDecl) {
-          initializer = varDecl.getInitializer();
+        if (func) {
+          const index = func.getParameters().findIndex(p => p === param);
+
+          if (index !== -1) {
+            // Find all references to this function
+            const functionNameNode = func.isKind(SyntaxKind.FunctionDeclaration) || func.isKind(SyntaxKind.MethodDeclaration) ? func.getNameNode() : null;
+            
+            // If it's an arrow function assigned to a variable, find references to the variable
+            let refNode: Node | undefined = functionNameNode;
+            if (!refNode && (func.isKind(SyntaxKind.ArrowFunction) || func.isKind(SyntaxKind.FunctionExpression))) {
+               const varDecl = func.getFirstAncestorByKind(SyntaxKind.VariableDeclaration);
+               if (varDecl) {
+                 refNode = varDecl.getNameNode();
+               } else {
+                 const binExpr = func.getFirstAncestorByKind(SyntaxKind.BinaryExpression);
+                 if (binExpr) {
+                   const left = binExpr.getLeft();
+                   if (Node.isPropertyAccessExpression(left)) {
+                     refNode = left.getNameNode();
+                   } else if (Node.isIdentifier(left)) {
+                     refNode = left;
+                   }
+                 }
+               }
+            }
+
+            if (refNode && Node.isIdentifier(refNode)) {
+              let refs: Node[] = [];
+              try {
+                refs = refNode.findReferencesAsNodes();
+              } catch (e) {
+                // Ignore Language Service crashes
+              }
+              for (const ref of refs) {
+                const callExpr = ref.getFirstAncestorByKind(SyntaxKind.CallExpression);
+                if (callExpr && callExpr.getExpression().getText().endsWith(ref.getText())) {
+                  const args = callExpr.getArguments();
+                  if (args.length > index) {
+                    resolvedNodes.push(...resolveExpression(args[index], maxDepth - 1));
+                  }
+                }
+              }
+            } else {
+              resolvedNodes.push(def);
+            }
+          } else {
+            resolvedNodes.push(def);
+          }
+        } else {
+          resolvedNodes.push(def);
         }
-      }
-
-      if (initializer) {
-        // Recursively resolve the initializer
-        resolvedNodes.push(...resolveExpression(initializer, maxDepth - 1));
       } else {
-        resolvedNodes.push(def);
+        let initializer: Node | undefined;
+
+        if (def.isKind(SyntaxKind.VariableDeclaration)) {
+          initializer = def.getInitializer();
+        } else {
+          const varDecl = def.getFirstAncestorByKind(SyntaxKind.VariableDeclaration);
+          if (varDecl) {
+            initializer = varDecl.getInitializer();
+          }
+        }
+
+        if (initializer) {
+          // Phase 18: Cross-File CommonJS require() Tracking
+          if (Node.isCallExpression(initializer) && initializer.getExpression().getText() === 'require') {
+            const arg = initializer.getArguments()[0];
+            if (Node.isStringLiteral(arg)) {
+              const modulePath = arg.getLiteralText();
+              const sourceFile = node.getSourceFile();
+              const dir = sourceFile.getDirectory();
+              // Try to find the required file in the project
+              const targetFile = dir.getSourceFile(modulePath + '.js') || 
+                                 dir.getSourceFile(modulePath + '.ts') ||
+                                 dir.getSourceFile(modulePath + '/index.js');
+                                 
+              if (targetFile) {
+                 // Find module.exports or exports assignments
+                 const assignments = targetFile.getDescendantsOfKind(SyntaxKind.BinaryExpression).filter(exp => {
+                   const left = exp.getLeft().getText();
+                   return left.startsWith('module.exports') || left.startsWith('exports.');
+                 });
+                 
+                 if (assignments.length > 0) {
+                   for (const assign of assignments) {
+                     resolvedNodes.push(...resolveExpression(assign.getRight(), maxDepth - 1));
+                   }
+                   return resolvedNodes;
+                 }
+              }
+            }
+          }
+          // Recursively resolve the initializer
+          resolvedNodes.push(...resolveExpression(initializer, maxDepth - 1));
+        } else if (def.isKind(SyntaxKind.ImportSpecifier)) {
+          // Phase 18: Cross-File Data Flow via ES6 Imports
+          const importSpecifier = def;
+          const nameNode = importSpecifier.getNameNode();
+          const importDecl = importSpecifier.getFirstAncestorByKind(SyntaxKind.ImportDeclaration);
+          
+          if (importDecl && Node.isIdentifier(nameNode)) {
+            let exportDefs: Node[] = [];
+            try {
+              exportDefs = nameNode.getDefinitionNodes();
+            } catch {
+              // Ignore
+            }
+            // Filter out the ImportSpecifier itself to prevent infinite loops
+            const externalDefs = exportDefs.filter(d => !d.isKind(SyntaxKind.ImportSpecifier));
+            if (externalDefs.length > 0) {
+              for (const edef of externalDefs) {
+                resolvedNodes.push(...resolveExpression(edef, maxDepth - 1));
+              }
+            } else {
+              resolvedNodes.push(def);
+            }
+          } else {
+            resolvedNodes.push(def);
+          }
+        } else {
+          resolvedNodes.push(def);
+        }
       }
     }
 
     return resolvedNodes.length > 0 ? resolvedNodes : [node];
   }
 
-  // If it's a CallExpression, we might be dealing with the return value of a function.
-  // For MVP data-flow tracking, we stop at function boundaries and return the call expression.
   return [node];
 }
 

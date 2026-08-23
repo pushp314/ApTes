@@ -202,30 +202,49 @@ export async function runUnifiedPlatform(project: ProjectDefinition, timeoutMs: 
       }
 
       // 3-Way Correlation: P0 Attack Path
-      // Web (AI Widget) + Code (Missing Auth) + MCP (Critical/High)
-      const missingAuthFindings = allFindings.filter(f => f.engine === 'code' && f.ruleId === 'missing-auth');
+      // Phase 17: Exact Path Correlation
+      // 1. Web Widget makes network request to an API route (interceptedApiRoutes)
+      // 2. CodeSentinel flags that exact API route as missing-auth
+      // 3. CodeSentinel flags that exact API route as exposing an MCP client
+      // 4. MCPSentinel flags that connected MCP client has critical vulnerabilities
       
-      if (specificMcpVulnerabilities.length > 0 && missingAuthFindings.length > 0) {
-        allFindings.push({
-          id: randomUUID(),
-          projectId: project.id,
-          runId: widget.runId,
-          engine: 'platform', // Platform-level synthesized finding
-          ruleId: 'platform-p0-attack-path',
-          category: 'correlation',
-          severity: 'critical',
-          confidence: 'high',
-          title: 'P0 Attack Path: Unauthenticated Backend Route Exposes Vulnerable MCP Tool to Frontend',
-          message: `A complete risk path was detected: Frontend AI widget connects to a backend route lacking authentication, which exposes an MCP target with critical/high vulnerabilities.`,
-          location: 'Cross-Engine Context',
-          evidence: {
-            webFindingId: widget.id,
-            codeFindingIds: missingAuthFindings.map(a => a.id),
-            mcpFindingIds: specificMcpVulnerabilities.map(v => v.id),
-          },
-          remediation: 'Apply authentication to backend routes and secure MCP tools immediately.',
-          timestamp: new Date().toISOString(),
-        });
+      const interceptedRoutes = widget.evidence?.interceptedApiRoutes as string[] | undefined;
+      if (interceptedRoutes && specificMcpVulnerabilities.length > 0) {
+        for (const route of interceptedRoutes) {
+          // Does CodeSentinel know about this route?
+          const missingAuthFinding = allFindings.find(f => 
+            f.engine === 'code' && f.ruleId === 'missing-auth' && f.evidence?.route === route
+          );
+          
+          const mcpExposureFinding = allFindings.find(f => 
+            f.engine === 'code' && f.ruleId === 'mcp-exposure' && f.evidence?.route === route
+          );
+
+          if (missingAuthFinding && mcpExposureFinding) {
+            allFindings.push({
+              id: randomUUID(),
+              projectId: project.id,
+              runId: widget.runId,
+              engine: 'platform',
+              ruleId: 'platform-p0-attack-path',
+              category: 'correlation',
+              severity: 'critical',
+              confidence: 'high',
+              title: 'P0 Attack Path: Unauthenticated Backend Route Exposes Vulnerable MCP Tool to Frontend',
+              message: `A complete risk path was detected: Frontend AI widget connects to backend route '${route}'. This route lacks authentication and exposes an MCP target with critical/high vulnerabilities.`,
+              location: 'Cross-Engine Context',
+              evidence: {
+                webFindingId: widget.id,
+                codeFindingIds: [missingAuthFinding.id, mcpExposureFinding.id],
+                mcpFindingIds: specificMcpVulnerabilities.map(v => v.id),
+                verifiedRoute: route
+              },
+              remediation: `Apply authentication to backend route '${route}' and secure MCP tools immediately.`,
+              timestamp: new Date().toISOString(),
+            });
+            break; // Stop at first exact path match for this widget
+          }
+        }
       }
     }
 

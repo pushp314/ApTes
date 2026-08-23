@@ -71,16 +71,14 @@ export function parseFiles(files: WalkedFile[]): ParseResult {
       strict: true,
       noEmit: true,
       allowJs: true,
-      checkJs: false,
+      checkJs: true,
       skipLibCheck: true,
       esModuleInterop: true,
     },
-    // Don't load the target project's tsconfig — we use our own defaults.
-    // The target project's tsconfig will be considered in future phases
-    // for more accurate type information.
+    // Skip adding files from tsconfig — we manually inject all discovered files.
     skipAddingFilesFromTsConfig: true,
-    // Skip resolving dependencies — we only analyze the project's own files.
-    skipFileDependencyResolution: true,
+    // Enable dependency resolution to allow cross-file data tracking via imports
+    skipFileDependencyResolution: false,
   });
 
   const sourceFiles: SourceFile[] = [];
