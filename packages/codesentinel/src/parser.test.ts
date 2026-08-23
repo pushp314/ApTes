@@ -83,7 +83,7 @@ describe('parseFiles', () => {
     // Should not throw on any fixture file
     const result = parseFiles(walkResult.files);
 
-    expect(result.sourceFiles.length).toBe(walkResult.files.length);
+    expect(result.sourceFiles.length + result.pythonFiles.length).toBe(walkResult.files.length);
   });
 
   it('returns an empty result for no files', () => {

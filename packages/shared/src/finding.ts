@@ -28,6 +28,7 @@ export interface AiAssessment {
   remediation?: string;
   additionalEvidenceNeeded?: string[];
   patch?: string;
+  poc?: string;
 }
 
 /**

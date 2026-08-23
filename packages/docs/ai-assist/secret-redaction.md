@@ -1,13 +1,38 @@
 # Secret Redaction
 
-Sending context to an LLM (even a local one) carries the risk of embedding sensitive data into the model's chat history or logs.
+Before any finding data is sent to an LLM (Ollama or Gemini), Sentinel's `SecretRedactor` strips all sensitive information.
 
-## Mechanism
+## Why Redaction Matters
 
-Before any context string is sent to Ollama, the `SecretRedactor` (`packages/platform/src/ai/secret-redactor.ts`) intercepts it.
+Security scan results inherently contain sensitive data: API keys, database credentials, tokens, and passwords discovered in the codebase. Sending this raw data to an LLM — even a local one — creates unnecessary risk. Sentinel eliminates this risk entirely.
 
-1. It applies high-entropy regex patterns matching AWS Keys, JWTs, Stripe tokens, and generic secrets.
-2. It replaces the sensitive string entirely with a placeholder (e.g., `[REDACTED_SECRET]`).
-3. The LLM evaluates the *redacted* context.
+## How It Works
 
-This ensures zero secrets leave the boundary of the deterministic engine execution.
+The `SecretRedactor` operates on the `evidence` field of each `Finding` before it is sent to the AI provider:
+
+```typescript
+// Before Redaction
+{
+  evidence: 'const API_KEY = "sk-abc123xyz456";'
+}
+
+// After Redaction
+{
+  evidence: 'const API_KEY = "[REDACTED]";'
+}
+```
+
+### Redaction Patterns
+
+| Pattern | Example | Redacted To |
+| --- | --- | --- |
+| AWS Access Keys | `AKIAIOSFODNN7EXAMPLE` | `[REDACTED]` |
+| API Keys | `sk-abc123xyz456...` | `[REDACTED]` |
+| Passwords in strings | `"myP@ssw0rd!"` | `[REDACTED]` |
+| Bearer Tokens | `Bearer eyJhbGci...` | `[REDACTED]` |
+| Connection Strings | `mongodb://user:pass@host` | `[REDACTED]` |
+| Generic Secrets | Any value assigned to `password`, `secret`, `token`, `key` variables | `[REDACTED]` |
+
+## Implementation
+
+The redactor is implemented in `packages/platform/src/redactor.ts` and is automatically invoked by the `AiReviewer` before batching findings for LLM analysis. It is covered by 3 dedicated unit tests.

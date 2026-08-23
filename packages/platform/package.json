@@ -14,9 +14,12 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@clack/prompts": "^1.7.0",
+    "@google/genai": "^2.18.0",
+    "@sentinel/mcp": "*",
     "@sentinel/shared": "*",
     "@sentinel/web": "*",
-    "@sentinel/mcp": "*",
-    "commander": "^12.0.0"
+    "commander": "^12.0.0",
+    "picocolors": "^1.1.1"
   }
 }

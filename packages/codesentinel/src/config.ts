@@ -39,8 +39,8 @@ const DEFAULT_MAX_FILE_SIZE = 1_048_576;
 /** Default maximum number of files */
 const DEFAULT_MAX_FILES = 10_000;
 
-/** Default file extensions for TypeScript/JavaScript projects */
-const DEFAULT_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx'];
+/** Default file extensions for TypeScript/JavaScript/Python projects */
+const DEFAULT_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.mts', '.mjs', '.cjs', '.cts', '.py'];
 
 // ---------------------------------------------------------------------------
 // Factory

@@ -42,20 +42,20 @@ export const ConfigDriftRule: CodeRule = {
       const interpolatePattern = /\$\{([A-Z0-9_]+)\}/g;
       let match;
       while ((match = interpolatePattern.exec(composeContent)) !== null) {
-        composeVars.add(match[1]);
+        if (match[1]) composeVars.add(match[1]);
       }
       
       // Also match plain KEY=value pairs if needed, but standard practice is interpolation
       const envPattern = /\b([A-Z0-9_]+)=/g;
       while ((match = envPattern.exec(composeContent)) !== null) {
-        composeVars.add(match[1]);
+        if (match[1]) composeVars.add(match[1]);
       }
 
       // Extract vars from .env.example
       const envExampleVars = new Set<string>();
       const envExamplePattern = /^\s*([A-Z0-9_]+)=/gm;
       while ((match = envExamplePattern.exec(envExampleContent)) !== null) {
-        envExampleVars.add(match[1]);
+        if (match[1]) envExampleVars.add(match[1]);
       }
 
       // Find drift

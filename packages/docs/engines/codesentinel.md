@@ -1,62 +1,196 @@
-# CodeSentinel
+# CodeSentinel — Static Analysis Engine
 
-CodeSentinel is the static analysis engine of the Sentinel platform. It parses TypeScript/JavaScript codebases into an Abstract Syntax Tree (AST) using `ts-morph` to identify security and logic flaws.
+CodeSentinel is the deterministic static analysis engine of the Sentinel platform. It parses TypeScript, JavaScript, and Python codebases into Abstract Syntax Trees (ASTs) to identify security vulnerabilities, logic flaws, and configuration drift — **without executing a single line of your code**.
 
-## Mechanism
+## How It Works
 
-- **Input:** A local directory path.
-- **Parsing:** `ts-morph` loads all `.ts` and `.js` files and builds an AST.
-- **Execution:** CodeSentinel **does not execute** the target code. It purely inspects it statically.
-- **Output:** A `Finding[]` array.
+```mermaid
+flowchart LR
+    subgraph Input
+        FS[File System Walker]
+    end
+    subgraph Parsing
+        FS --> TSM[ts-morph Parser for TS/JS]
+        FS --> TRS[tree-sitter Parser for Python]
+    end
+    subgraph Analysis
+        TSM --> RE[Rule Engine - 15+ Rules]
+        TRS --> RE
+        RE --> DFT[Data Flow Taint Tracker]
+    end
+    subgraph Output
+        RE --> F["Finding[]"]
+    end
+```
 
-## Core Capabilities
+### Step-by-Step Scan Pipeline
 
-### Structural Data-Flow Taint Tracking (Phase 16-18)
-Unlike simple regex matching, CodeSentinel uses advanced backwards AST traversal to track data flow from sensitive "sinks" back to user-controllable "sources".
+1. **File Discovery (`walker.ts`):** Recursively traverses the target directory. Automatically excludes `node_modules`, `dist`, `.git`, `build`, `.next`, `.cache`. Respects `.gitignore` patterns. Enforces hard limits: max 5,000 files, max 1 MB per file.
+2. **AST Parsing (`parser.ts`):** Routes `.ts` and `.js` files to `ts-morph` (TypeScript Compiler API). Routes `.py` files to `tree-sitter` (Python grammar). Both produce full ASTs with type information.
+3. **Incremental Caching (`cache.ts`):** Computes SHA-256 content hashes per file. If a file hasn't changed since the last scan, its findings are loaded from cache instead of re-analyzing. This makes CI/CD re-scans near-instant.
+4. **Rule Execution (`engine.ts`):** Iterates all registered `CodeRule` implementations over every parsed source file. Each rule receives a `CodeRuleContext` containing the AST node, the full project, and the global `ParseResult`.
+5. **Data-Flow Taint Tracking (`data-flow.ts`):** Rules can invoke the taint tracker to perform backwards AST traversal from a sink to a source across function boundaries and file boundaries.
 
-**Algorithms & Logic:**
-1. **Sink Identification:** Rules define sensitive sinks (e.g., `db.execute()`, `spawn()`). When a sink is found, CodeSentinel identifies the arguments passed to it.
-2. **Backwards AST Propagation:** The engine recursively traverses `Identifier` assignments backwards. If a variable traces to a `VariableDeclaration`, it recursively inspects its initializer.
-3. **Cross-Function Parameter Tracing:** If a variable traces to a function parameter, the engine finds all references to that function (its Call Expressions) and inspects the argument passed at that parameter index.
-4. **Cross-File Tracing via ES6 / CommonJS:** Data flow is preserved across file boundaries.
-   - For ES6 `import { x } from './y'`, CodeSentinel maps the `ImportSpecifier` to its definition in the target file and continues backwards traversal.
-   - For CommonJS `require()`, CodeSentinel manually resolves the module path, locates the target file in the AST project, and analyzes `module.exports` assignments.
-5. **Taint Source Detection:** The recursive traversal stops when it hits a known Taint Source (e.g., `req.body`, `req.query`, or AWS Lambda `event.queryStringParameters`).
+---
 
-## Implemented Rules
+## Supported Languages
 
-### 1. Hardcoded Secrets (`hardcoded-secret`)
-- **Purpose:** Detects secrets hardcoded in source files.
-- **Detection:** Regex matching on variable declarations and string literals.
+| Language | Parser | Extensions | Status |
+| --- | --- | --- | --- |
+| TypeScript | `ts-morph` (TypeScript Compiler API) | `.ts`, `.tsx` | ✅ Full Support |
+| JavaScript | `ts-morph` with `allowJs` | `.js`, `.jsx` | ✅ Full Support |
+| Python | `tree-sitter` + `tree-sitter-python` | `.py` | ✅ Full Support |
+
+---
+
+## Structural Data-Flow Taint Tracking
+
+Unlike simple regex matching (like `grep` or Semgrep), CodeSentinel uses advanced **backwards AST traversal** to mathematically trace data flow from sensitive "sinks" back to user-controllable "sources."
+
+### Algorithm Deep-Dive
+
+1. **Sink Identification:** Each rule defines sensitive sinks (e.g., `db.execute()`, `spawn()`, `User.findOne()`). When a sink is found in the AST, CodeSentinel identifies the arguments passed to it.
+2. **Backwards AST Propagation:** The engine recursively traverses `Identifier` assignments backwards. If a variable traces to a `VariableDeclaration`, it recursively inspects its initializer expression.
+3. **Cross-Function Parameter Tracing:** If a variable traces back to a function parameter (e.g., `function handleRequest(req)`), the engine finds **all call sites** of that function (its `CallExpression` nodes) and inspects the argument passed at that parameter index.
+4. **Cross-File Tracing (ES6 Imports):** For `import { x } from './y'`, CodeSentinel maps the `ImportSpecifier` to its exported definition in the target file using the `ts-morph` Language Service and continues backwards traversal seamlessly.
+5. **Cross-File Tracing (CommonJS `require`):** For `const x = require('./y')`, CodeSentinel manually resolves the module path, locates the target file in the AST project, and analyzes `module.exports` assignments.
+6. **Taint Source Detection:** The recursive traversal terminates when it encounters a known Taint Source:
+   - `req.body`, `req.query`, `req.params` (Express.js)
+   - `event.queryStringParameters` (AWS Lambda)
+   - `process.env` (Environment variables)
+   - Function parameters named `input`, `data`, `payload`
+
+### Example: Cross-File NoSQL Injection Detection
+```
+// File: routes/user.js
+const { findUser } = require('../helpers/db');
+router.get('/user', (req, res) => {
+  const user = findUser(req.body);  // ← Taint source
+  res.json(user);
+});
+
+// File: helpers/db.js
+module.exports.findUser = (filter) => {
+  return User.findOne(filter);  // ← Sink: Direct Object Injection!
+};
+```
+CodeSentinel traces `req.body` → function arg → `filter` parameter → `User.findOne(filter)` across two files and correctly flags this as a **NoSQL Object Injection**.
+
+---
+
+## Complete Rule Reference
+
+### 1. TypeScript Type Errors (`ts-type-error`)
+- **Purpose:** Surfaces TypeScript compiler diagnostics as security-relevant findings.
+- **How:** Reads `ts.DiagnosticCategory.Error` from the `ts-morph` project's pre-emit diagnostics.
+- **Severity:** HIGH
 - **Confidence:** HIGH
 
-### 2. Injection Risk (`injection-risk`)
-- **Purpose:** Detects string concatenation and object-injection in sensitive functions like SQL queries, NoSQL queries, and system commands.
-- **Detection:** Uses **Structural Data-Flow Taint Tracking** to check if a known taint source (like `req.body`) reaches `db.execute` (SQL), `User.findOne` (NoSQL), or `exec` (Command).
-- **Vulnerabilities Covered:**
-  - **SQL Injection:** Unparameterized string concatenation.
-  - **NoSQL Injection:** Direct Object Injection where `req.body` is passed directly into an ODM (e.g., Mongoose `findOne`).
-  - **Command Injection:** Passing unsanitized input to `child_process.exec`.
-- **Confidence:** HIGH (Command) / MEDIUM (SQL/NoSQL)
-
-### 3. Logic Contradictions (`logic-contradictions`)
-- **Purpose:** Detects always-true or always-false logic.
-- **Detection:** AST analysis of `IfStatement` conditions.
-- **Confidence:** MEDIUM
-
-### 4. Missing Authentication (`missing-auth`)
-- **Purpose:** Flags sensitive routes that lack middleware.
-- **Detection:** Checks Express.js route declarations (e.g., `/api/admin/`) for the presence of middleware functions.
+### 2. Hardcoded Secrets (`hardcoded-secret`)
+- **Purpose:** Detects API keys, passwords, and tokens hardcoded in source code.
+- **How:** Regex matching on variable names (`password`, `secret`, `api_key`, `token`) combined with string literal value analysis. Ignores empty strings, placeholders, and `process.env` references.
+- **Severity:** CRITICAL
 - **Confidence:** HIGH
 
-### 5. API Integration & Contract Mismatch (`api-integration`, `contract-mismatch`)
-- **Purpose:** Detects missing error handling in `fetch` calls and hardcoded frontend routes that do not exist on the backend.
-- **Confidence:** LOW (API Error Handling) / HIGH (Contract Mismatch)
+### 3. Injection Risk (`injection-risk`)
+- **Purpose:** Detects SQL injection, NoSQL injection, and command injection.
+- **How:** Uses **Structural Data-Flow Taint Tracking** to prove that user input (`req.body`) reaches a dangerous sink (`db.execute`, `User.findOne`, `exec`).
+- **Sub-types:**
+  - **SQL Injection:** Unparameterized string concatenation in `db.query()` or `db.execute()`.
+  - **NoSQL Injection:** Direct Object Injection where `req.body` is passed into Mongoose `findOne()`.
+  - **Command Injection:** Unsanitized input reaching `child_process.exec()` or `child_process.spawn()`.
+- **Severity:** CRITICAL (Command) / HIGH (SQL/NoSQL)
+- **Confidence:** HIGH
 
-### 6. IDOR Risk (`idor-risk`)
-- **Purpose:** Detects insecure database queries using unvalidated user input.
-- **Detection:** Checks if query parameters are used without correlating against an authenticated session ID.
+### 4. Python Injection (`python-injection`)
+- **Purpose:** Detects dangerous uses of `eval()`, `exec()`, and f-string interpolations in Python.
+- **How:** Uses `tree-sitter` to parse Python ASTs and identify `call_expression` nodes targeting `eval` or `exec` with non-literal arguments.
+- **Severity:** CRITICAL
+- **Confidence:** HIGH
+
+### 5. Logic Contradictions (`logic-contradictions`)
+- **Purpose:** Detects always-true, always-false, or contradictory conditions.
+- **How:** AST analysis of `IfStatement` conditions. Detects patterns like `if (true)`, `if (x && !x)`, numeric comparisons that are logically impossible.
+- **Severity:** HIGH
 - **Confidence:** MEDIUM
+
+### 6. Missing Authentication (`missing-auth`)
+- **Purpose:** Flags sensitive Express.js routes that lack middleware.
+- **How:** Inspects `app.get()`, `app.post()`, `router.get()` etc. for routes containing `/admin`, `/user`, `/account`, `/settings`. Checks if the route handler has middleware arguments before the final callback.
+- **Severity:** HIGH
+- **Confidence:** HIGH
+
+### 7. Unreachable Code (`unreachable-code`)
+- **Purpose:** Detects dead code after `return`, `throw`, `break`, or `continue` statements.
+- **How:** Inspects `Block` children after terminal statements.
+- **Severity:** LOW
+- **Confidence:** HIGH
+
+### 8. Unhandled Promises (`unhandled-promise`)
+- **Purpose:** Detects floating promises that are not `await`-ed, returned, or `.catch()`-ed.
+- **How:** Inspects `CallExpression` nodes whose return type is `Promise<T>` and checks parent context.
+- **Severity:** MEDIUM
+- **Confidence:** MEDIUM
+
+### 9. IDOR Risk (`idor-risk`)
+- **Purpose:** Detects Insecure Direct Object References in route handlers.
+- **How:** Checks if database queries use `req.params.id` without correlating against `req.user.id` or session data.
+- **Severity:** HIGH
+- **Confidence:** MEDIUM
+
+### 10. API Integration (`api-integration`)
+- **Purpose:** Detects missing error handling on `fetch()` calls.
+- **How:** Checks if `response.ok` is verified after a `fetch()` call.
+- **Severity:** HIGH
+- **Confidence:** LOW
+
+### 11. Contract Mismatch (`contract-mismatch`)
+- **Purpose:** Detects frontend `fetch()` calls to routes that don't exist in the backend.
+- **How:** Collects all Express route definitions, then compares them against all frontend `fetch()` URL strings.
+- **Severity:** HIGH
+- **Confidence:** HIGH
+
+### 12. Payload Mismatch (`payload-mismatch`)
+- **Purpose:** Detects when a frontend sends a JSON payload that is missing fields expected by the backend.
+- **How:** Traverses backend Express route handlers to find all `req.body.X` property accesses (building an "Expected Schema"). Traverses frontend `fetch()` calls to inspect `JSON.stringify` objects (building a "Provided Schema"). Cross-references them to detect missing keys.
+- **Severity:** HIGH
+- **Confidence:** HIGH
+
+### 13. MCP Exposure (`mcp-exposure`)
+- **Purpose:** Flags API routes that directly invoke MCP clients.
+- **How:** Checks if route handlers contain calls to `mcpClient`, `callTool`, or `mcp.send`.
+- **Severity:** LOW
+- **Confidence:** LOW
+
+### 14. Configuration Drift (`config-drift`)
+- **Purpose:** Detects environment variables required by `docker-compose.yml` but missing from `.env.example`.
+- **How:** Parses `docker-compose.yml` to extract `environment:` keys. Parses `.env.example` to extract defined keys. Cross-references to find missing variables.
+- **Severity:** HIGH
+- **Confidence:** HIGH
+
+### 15. Business Logic AI (`business-logic-ai`)
+- **Purpose:** Flags complex Express route handlers (>10 lines) for deep semantic analysis by the local LLM.
+- **How:** Measures handler complexity and emits LOW-confidence findings that the Platform AI Reviewer picks up for analysis of race conditions, coupon abuse, and logic flaws.
+- **Severity:** MEDIUM
+- **Confidence:** LOW
+
+---
+
+## Configuration
+
+CodeSentinel is configured via the `CodeSentinelConfig` interface:
+
+```typescript
+interface CodeSentinelConfig {
+  extensions: string[];     // ['.ts', '.js', '.tsx', '.jsx', '.py']
+  maxFiles: number;         // Default: 5000
+  maxFileSize: number;      // Default: 1MB (1_048_576 bytes)
+  respectGitignore: boolean; // Default: true
+}
+```
 
 ## False Positives & Negatives
-Because CodeSentinel utilizes data-flow tracking, its accuracy is significantly higher than grep-based tools. However, complex inversion of control or dynamic require paths can result in false negatives. AI triage handles the remaining noise generated by `MEDIUM` and `LOW` confidence rules.
+
+Because CodeSentinel utilizes cross-file data-flow tracking and type-aware AST analysis, its accuracy is significantly higher than grep-based tools (like Semgrep or CodeQL for simple patterns). However:
+- **Potential False Negatives:** Complex inversion of control, dynamic `require()` paths, or heavily metaprogrammed code may not be fully traced.
+- **Noise Reduction:** `MEDIUM` and `LOW` confidence findings are automatically routed to the AI Reviewer for triage, keeping the developer-facing report clean.

@@ -40,8 +40,10 @@ export const PayloadMismatchRule: CodeRule = {
                 const handler = args[args.length - 1];
                 if (Node.isArrowFunction(handler) || Node.isFunctionExpression(handler)) {
                   const params = handler.getParameters();
-                  if (params.length > 0) {
-                    const reqParamName = params[0].getName();
+                  if (params.length > 0 && params[0]) {
+                    const reqParamNode = params[0].getNameNode();
+                    if (!Node.isIdentifier(reqParamNode)) continue;
+                    const reqParamName = reqParamNode.getText();
                     
                     // Now find all accesses like `req.body.X`
                     const expectedKeys = new Set<string>();

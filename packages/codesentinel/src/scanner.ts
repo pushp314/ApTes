@@ -99,7 +99,7 @@ export async function scan(
   // 3. Parse changed files
   let parseResult: ParseResult | null = null;
   if (changedFiles.length > 0) {
-    parseResult = parseFiles(changedFiles);
+    parseResult = parseFiles(changedFiles, targetDir);
   }
   
   // 4. Run rules

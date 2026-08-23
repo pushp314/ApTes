@@ -5,6 +5,7 @@ import { IdorRule } from './idor.js';
 import { McpExposureRule } from './mcp-exposure.js';
 import { ConfigDriftRule } from './config-drift.js';
 import { PayloadMismatchRule } from './payload-mismatch.js';
+import { PythonInjectionRule } from './python-injection.js';
 import { UnhandledPromiseRule } from './unhandled-promises.js';
 import { UnreachableCodeRule } from './unreachable-code.js';
 import { ApiIntegrationRule } from './api-integration.js';
@@ -35,7 +36,7 @@ describe('CodeSentinel Rules', () => {
       sourceFile,
       relativePath: 'test.ts',
       projectId: 'test-project',
-      runId: 'run-1',
+      targetDir: __dirname,
     };
   }
 
@@ -63,7 +64,7 @@ describe('CodeSentinel Rules', () => {
       sourceFile,
       relativePath: filePath,
       projectId: 'test-project',
-      runId: 'run-1',
+      targetDir: __dirname,
     };
   }
 
@@ -364,5 +365,30 @@ describe('CodeSentinel Rules', () => {
     expect(findings[0].title).toBe('Request/Response Payload Mismatch');
     expect(findings[0].message).toContain('email');
     expect(findings[0].message).toContain('age');
+  });
+
+  it('detects python injection vulnerabilities (PythonInjectionRule)', async () => {
+    // createTestContext only supports TS/JS using ts-morph. 
+    // We need to construct a context with a python parser result.
+    // We need to construct a context with a python parser result.
+    const path = await import('node:path');
+    const { PythonParser } = await import('../../parser/python.js');
+    const parser = new PythonParser();
+    const fixturePath = path.resolve(__dirname, '../../../fixtures/sample-project/src/vulnerable.py');
+    const pyResult = parser.parseFile(fixturePath, path.dirname(fixturePath));
+    
+    const context = createTestContext('');
+    context.parseResult = {
+      project: context.project,
+      sourceFiles: [],
+      pythonFiles: [pyResult],
+      errors: []
+    };
+    
+    const findings = PythonInjectionRule.analyze(context);
+    expect(findings.length).toBe(2);
+    expect(findings[0].title).toBe('Unsafe Python Code Execution');
+    expect(findings[0].evidence.function).toBe('eval');
+    expect(findings[1].evidence.function).toBe('exec');
   });
 });

@@ -36,10 +36,14 @@ export const AuthRule: CodeRule = {
                 const routeText = origin.getLiteralText();
                 
                 const isSensitive = routeText.includes('admin') || 
-                                    routeText.includes('user') || 
                                     routeText.includes('settings') || 
                                     routeText.includes('dashboard') ||
-                                    routeText.includes('billing');
+                                    routeText.includes('billing') ||
+                                    routeText.includes('delete') ||
+                                    routeText.includes('account') ||
+                                    routeText.includes('password') ||
+                                    routeText.includes('secret') ||
+                                    (routeText.includes('user') && (routeText.includes('delete') || routeText.includes('update') || routeText.includes('edit') || routeText.includes('create')));
 
                 if (isSensitive) {
                   let isMissingAuth = false;

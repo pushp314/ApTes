@@ -56,7 +56,7 @@ export function resolveExpression(node: Node, maxDepth = 3): Node[] {
             const functionNameNode = func.isKind(SyntaxKind.FunctionDeclaration) || func.isKind(SyntaxKind.MethodDeclaration) ? func.getNameNode() : null;
             
             // If it's an arrow function assigned to a variable, find references to the variable
-            let refNode: Node | undefined = functionNameNode;
+            let refNode: Node | null | undefined = functionNameNode as Node | null | undefined;
             if (!refNode && (func.isKind(SyntaxKind.ArrowFunction) || func.isKind(SyntaxKind.FunctionExpression))) {
                const varDecl = func.getFirstAncestorByKind(SyntaxKind.VariableDeclaration);
                if (varDecl) {
@@ -85,8 +85,8 @@ export function resolveExpression(node: Node, maxDepth = 3): Node[] {
                 const callExpr = ref.getFirstAncestorByKind(SyntaxKind.CallExpression);
                 if (callExpr && callExpr.getExpression().getText().endsWith(ref.getText())) {
                   const args = callExpr.getArguments();
-                  if (args.length > index) {
-                    resolvedNodes.push(...resolveExpression(args[index], maxDepth - 1));
+                  if (args.length > index && args[index]) {
+                    resolvedNodes.push(...resolveExpression(args[index] as Node, maxDepth - 1));
                   }
                 }
               }

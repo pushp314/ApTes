@@ -23,6 +23,7 @@ export const InjectionRule: CodeRule = {
       // console.log(`[Injection Debug] Checking call: ${text} in ${context.relativePath}`);
       
       const isDbCall = text.includes('db.query') || text.includes('db.execute') || text === 'query' ||
+        text.includes('sequelize.query') || text.includes('knex.raw') || text.includes('pool.query') ||
         /\.(find|findOne|create|update|delete|destroy|findAll)$/.test(text) || text.includes('$where');
       const isExecCall = text === 'exec' || text === 'execSync' || text === 'spawn';
 

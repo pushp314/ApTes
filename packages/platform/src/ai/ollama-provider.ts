@@ -77,7 +77,8 @@ Respond ONLY with a JSON object matching this schema exactly:
         "impact": "string (optional)",
         "remediation": "string (optional)",
         "additionalEvidenceNeeded": ["string"] (optional),
-        "patch": "string (unified diff .patch format to fix the vulnerability, or omit if not applicable)"
+        "patch": "string (unified diff .patch format to fix the vulnerability, or omit if not applicable)",
+        "poc": "string (executable curl command or python script proving the exploit, or omit if not applicable)"
       }
     }
   ]
@@ -117,7 +118,8 @@ ${JSON.stringify(payload, null, 2)}`;
             additionalEvidenceNeeded: Array.isArray(item.assessment.additionalEvidenceNeeded) 
               ? item.assessment.additionalEvidenceNeeded 
               : undefined,
-            patch: item.assessment.patch
+            patch: item.assessment.patch,
+            poc: item.assessment.poc
           }
         });
       }

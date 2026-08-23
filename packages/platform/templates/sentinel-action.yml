@@ -1,0 +1,44 @@
+name: "Sentinel Security Audit"
+description: "Run Sentinel Tri-Boundary Orchestrator on your repository"
+author: "Sentinel"
+
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  config-file:
+    description: 'Path to sentinel.config.json'
+    required: false
+    default: 'sentinel.config.json'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        
+    - name: Install Sentinel
+      shell: bash
+      run: npm install -g @sentinel/platform
+      
+    - name: Run Sentinel Audit
+      id: sentinel
+      shell: bash
+      run: |
+        echo "Running Sentinel Security Audit..."
+        # We assume the user has a local instance running or config is pointing to CI-friendly endpoints
+        sentinel run ${{ inputs.config-file }} --format md > sentinel-report.md
+        
+    - name: Post PR Comment
+      if: github.event_name == 'pull_request'
+      uses: mshick/add-pr-comment@v2
+      with:
+        message-path: sentinel-report.md
+        repo-token: ${{ github.token }}
+        
+    - name: Add to Job Summary
+      shell: bash
+      run: cat sentinel-report.md >> $GITHUB_STEP_SUMMARY

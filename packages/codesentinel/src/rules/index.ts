@@ -22,6 +22,8 @@ import { McpExposureRule } from './detectors/mcp-exposure.js';
 
 import { ConfigDriftRule } from './detectors/config-drift.js';
 import { PayloadMismatchRule } from './detectors/payload-mismatch.js';
+import { PythonInjectionRule } from './detectors/python-injection.js';
+import { BusinessLogicAiRule } from './detectors/business-logic-ai.js';
 
 export const ACTIVE_RULES: CodeRule[] = [
   TypeErrorRule,
@@ -37,5 +39,7 @@ export const ACTIVE_RULES: CodeRule[] = [
   IdorRule,
   McpExposureRule,
   ConfigDriftRule,
-  PayloadMismatchRule
+  PayloadMismatchRule,
+  PythonInjectionRule,
+  BusinessLogicAiRule
 ];

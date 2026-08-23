@@ -16,6 +16,7 @@
 
 import { Project, type SourceFile, ts } from 'ts-morph';
 import type { WalkedFile } from './walker.js';
+import { PythonParser, type PythonParseResult } from './parser/python.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -28,6 +29,9 @@ export interface ParseResult {
 
   /** Successfully parsed source files. */
   sourceFiles: SourceFile[];
+  
+  /** Successfully parsed Python files via tree-sitter. */
+  pythonFiles: PythonParseResult[];
 
   /** Errors encountered during parsing. */
   errors: ParseError[];
@@ -53,16 +57,14 @@ export interface ParseError {
 // ---------------------------------------------------------------------------
 
 /**
- * Parse a set of TypeScript/JavaScript files into ASTs.
- *
- * Creates a ts-morph Project with sensible defaults and adds all
- * provided files. Collects syntax errors but does not fail on them
- * (malformed files produce warnings, not crashes).
+ * Parse a set of files into ASTs.
+ * Routes TypeScript/JavaScript to ts-morph, and Python to tree-sitter.
  *
  * @param files - Files discovered by the walker.
+ * @param targetDir - Root directory (used by Python parser for relative paths). Defaults to process.cwd().
  * @returns Parse result with ASTs and any errors.
  */
-export function parseFiles(files: WalkedFile[]): ParseResult {
+export function parseFiles(files: WalkedFile[], targetDir: string = process.cwd()): ParseResult {
   const project = new Project({
     compilerOptions: {
       target: ts.ScriptTarget.ES2022,
@@ -75,21 +77,29 @@ export function parseFiles(files: WalkedFile[]): ParseResult {
       skipLibCheck: true,
       esModuleInterop: true,
     },
-    // Skip adding files from tsconfig — we manually inject all discovered files.
     skipAddingFilesFromTsConfig: true,
-    // Enable dependency resolution to allow cross-file data tracking via imports
     skipFileDependencyResolution: false,
   });
 
   const sourceFiles: SourceFile[] = [];
+  const pythonFiles: PythonParseResult[] = [];
   const errors: ParseError[] = [];
+  
+  let pythonParser: PythonParser | null = null;
 
   for (const file of files) {
     try {
-      const sourceFile = project.addSourceFileAtPath(file.absolutePath);
-      sourceFiles.push(sourceFile);
+      if (file.absolutePath.endsWith('.py')) {
+        if (!pythonParser) {
+          pythonParser = new PythonParser();
+        }
+        const pyResult = pythonParser.parseFile(file.absolutePath, targetDir);
+        pythonFiles.push(pyResult);
+      } else {
+        const sourceFile = project.addSourceFileAtPath(file.absolutePath);
+        sourceFiles.push(sourceFile);
+      }
     } catch (e) {
-      // File couldn't be added at all (rare — usually I/O errors or completely broken files)
       errors.push({
         file: file.relativePath,
         message: e instanceof Error ? e.message : String(e),
@@ -97,5 +107,5 @@ export function parseFiles(files: WalkedFile[]): ParseResult {
     }
   }
 
-  return { project, sourceFiles, errors };
+  return { project, sourceFiles, pythonFiles, errors };
 }

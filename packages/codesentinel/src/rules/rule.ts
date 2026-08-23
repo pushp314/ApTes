@@ -27,6 +27,9 @@ export interface CodeRuleContext {
 
   /** The absolute path to the project root directory. */
   targetDir: string;
+
+  /** The full parse result containing all source files and python files. */
+  parseResult?: import('../parser.js').ParseResult;
 }
 
 /**
