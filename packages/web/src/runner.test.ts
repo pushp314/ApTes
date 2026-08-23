@@ -109,7 +109,16 @@ describe('Web Engine Runner', () => {
     const vendorWidget = findings.find(f => f.ruleId === 'web-ai-widget' && f.evidence.vendor === 'Botpress');
     expect(vendorWidget).toBeDefined();
     expect(vendorWidget?.confidence).toBe('low');
-  }, 15000);
+
+    // Phase 19: DOM Context Correlation
+    const customWidget = findings.find(f => f.ruleId === 'web-ai-widget' && f.evidence.domSelector === '#ai-chat-widget');
+    expect(customWidget).toBeDefined();
+    expect(customWidget?.evidence.domInteractionCorrelated).toBe(true);
+    expect(customWidget?.evidence.interceptedApiRoutes).toContain('/api/mock-chat');
+    expect(customWidget?.evidence.screenshot).toBeDefined();
+    // The screenshot should be a base64 string
+    expect(typeof customWidget?.evidence.screenshot).toBe('string');
+  }, 30000); // Extended timeout because Playwright interactions take time
 
   it('fails safely if SSRF protection triggers after authorization is confirmed', async () => {
     const rules = [ConsoleErrorsRule];

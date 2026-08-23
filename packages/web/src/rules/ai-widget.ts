@@ -7,6 +7,7 @@ interface WidgetSignal {
   matchedValue: string;
   vendor?: string;
   targetName?: string;
+  selector?: string;
 }
 
 /**
@@ -113,7 +114,15 @@ export const AiWidgetRule: EngineRule = {
           const marker = [element.className, element.id, element.dataset.testid, element.getAttribute('aria-label'), element.title]
             .filter((value): value is string => typeof value === 'string' && value.length > 0)
             .join(' ');
-          if (widgetMarker.test(marker)) add({ detectionMethod: 'widget-dom-marker', matchedValue: marker.slice(0, 200) });
+          if (widgetMarker.test(marker)) {
+            // Generate a selector
+            let selector = element.tagName.toLowerCase();
+            if (element.id) selector = `#${element.id}`;
+            else if (element.dataset.testid) selector = `[data-testid="${element.dataset.testid}"]`;
+            else if (element.className && typeof element.className === 'string') selector = `.${element.className.trim().split(/\\s+/).join('.')}`;
+            
+            add({ detectionMethod: 'widget-dom-marker', matchedValue: marker.slice(0, 200), selector });
+          }
         }
 
         return discovered;
@@ -126,6 +135,51 @@ export const AiWidgetRule: EngineRule = {
           : signal.detectionMethod === 'mcp-endpoint'
             ? 'MCP-like endpoint'
             : 'chat/AI widget';
+            
+        let screenshot: string | undefined;
+        let correlatedApiRoutes: string[] = [];
+        
+        // Phase 19: Web Engine DOM Context Correlation
+        if (signal.selector) {
+          try {
+            const locator = page.locator(signal.selector).first();
+            if (await locator.isVisible()) {
+              // 1. Visual Context (Screenshot)
+              const buffer = await locator.screenshot({ timeout: 2000 });
+              screenshot = buffer.toString('base64');
+              
+              // 2. Interactive Fuzzing
+              let input = locator.locator('input[type="text"], textarea').first();
+              
+              // If input is not visible, maybe the widget is a launcher. Try clicking it.
+              if (!(await input.isVisible())) {
+                await locator.click({ timeout: 1000 }).catch(() => {});
+                await page.waitForTimeout(500); // Wait for open animation
+                // Try finding input again, maybe globally since the chat box might be appended to body
+                input = page.locator('input[type="text"], textarea').filter({ hasText: '' }).first();
+              }
+              
+              if (await input.isVisible()) {
+                interceptedApiRoutes.clear();
+                await input.fill('[SENTINEL-TRACKING-ID]', { timeout: 1000 }).catch(() => {});
+                await input.press('Enter', { timeout: 1000 }).catch(() => {});
+                
+                // Also try to find a submit/send button and click it
+                const button = locator.locator('button, [type="submit"], [role="button"], svg').last();
+                if (await button.isVisible()) {
+                  await button.click({ timeout: 1000 }).catch(() => {});
+                }
+                
+                // Wait for network requests triggered by this interaction
+                await page.waitForTimeout(1000);
+                correlatedApiRoutes = Array.from(interceptedApiRoutes);
+              }
+            }
+          } catch {
+            // Ignore interaction errors
+          }
+        }
+
         findings.push({
           id: randomUUID(),
           projectId: context.projectId,
@@ -145,7 +199,10 @@ export const AiWidgetRule: EngineRule = {
             matchedValue: signal.matchedValue,
             ...(signal.vendor ? { vendor: signal.vendor } : {}),
             ...(signal.targetName ? { targetName: signal.targetName } : {}),
-            interceptedApiRoutes: Array.from(interceptedApiRoutes),
+            ...(signal.selector ? { domSelector: signal.selector } : {}),
+            ...(screenshot ? { screenshot } : {}),
+            interceptedApiRoutes: correlatedApiRoutes.length > 0 ? correlatedApiRoutes : Array.from(interceptedApiRoutes),
+            domInteractionCorrelated: correlatedApiRoutes.length > 0,
           },
           remediation: hasExplicitTarget
             ? 'Ensure the connected target is authorized, secured, and does not expose sensitive operations without authentication.'

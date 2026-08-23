@@ -17,9 +17,13 @@ WebSentinel actively enforces Server-Side Request Forgery (SSRF) protection.
 
 ## Implemented Rules
 
-### 1. AI Widget Detection (`ai-widget`)
-- **Purpose:** Detects the presence of third-party AI chat widgets.
-- **Detection:** Real-world vendor domains (e.g., Intercom, Zendesk), DOM classes (`chat-widget`), and explicit fixture markers (`data-sentinel-marker="fixture-only"`).
+### 1. AI Widget Detection & DOM Correlation (`ai-widget`) (Phase 19)
+- **Purpose:** Detects the presence of third-party AI chat widgets and interactively probes them to trace their exact network footprint.
+- **Detection:** Real-world vendor domains (e.g., Intercom, Zendesk) and DOM classes (`chat-widget`).
+- **DOM Context Correlation:**
+  - **Visual Capture:** Automatically captures high-resolution bounding-box screenshots of the detected widget.
+  - **Interactive Fuzzing:** Instructs Playwright to locate the chat input, type a tracking payload (`[SENTINEL-TRACKING-ID]`), and click the submit button.
+  - **Network Correlation:** Monitors the exact `fetch`/`xhr` API requests that fire immediately following the interaction to mathematically prove which backend route is responsible for serving the widget.
 
 ### 2. Console Errors (`web-console-errors`)
 - **Purpose:** Catches unhandled JavaScript exceptions.

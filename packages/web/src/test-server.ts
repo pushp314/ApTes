@@ -40,6 +40,12 @@ const HTML_CONTENT = `
 
   <!-- Link for crawler to discover -->
   <a href="/page2">Go to Page 2</a>
+
+  <!-- Phase 19: DOM Context Correlation Widget -->
+  <div id="ai-chat-widget" data-testid="chat-bot" style="position: fixed; bottom: 10px; right: 10px;">
+    <input type="text" id="chat-input" />
+    <button id="chat-submit" onclick="fetch('/api/mock-chat', { method: 'POST', body: document.getElementById('chat-input').value })">Send</button>
+  </div>
 </body>
 </html>
 `;
@@ -83,6 +89,9 @@ export function startTestServer(): Promise<http.Server> {
       } else if (req.url === '/assets/botpress-webchat.js') {
         res.writeHead(200, { 'Content-Type': 'application/javascript' });
         res.end('// Fixture-only placeholder for a known chat-widget asset.');
+      } else if (req.url === '/api/mock-chat' && req.method === 'POST') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ response: 'Mock AI response' }));
       } else {
         res.writeHead(404, { 'Content-Type': 'text/plain' });
         res.end('Not Found');
