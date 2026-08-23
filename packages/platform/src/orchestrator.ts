@@ -1,23 +1,60 @@
 import { runWebEngine, ConsoleErrorsRule, FailedRequestsRule, FormsRule, PageStructureRule, PerformanceRule, SecurityHeadersRule, CookieSecurityRule, MixedContentRule, AiWidgetRule } from '@sentinel/web';
 import { runMcpEngine, ToolCountRule, SchemaRigorRule, PrivilegeAnalysisRule, TransportSecurityRule, CveMatchingRule } from '@sentinel/mcp';
+import { scan as runCodeEngine, createConfig as createCodeConfig } from '@sentinel/codesentinel';
 import type { Finding } from '@sentinel/shared';
 import { randomUUID } from 'node:crypto';
 
 import { AiReviewer } from './ai-reviewer.js';
 
 export interface McpTarget {
+  /** Stable name used for explicit Web ↔ MCP correlation. */
+  name?: string;
   command: string;
   args: string[];
+  /** Authorization is per MCP target; it is never inherited from the project. */
+  authorizationConfirmed: boolean;
+  authorizationConfirmedAt: string;
 }
 
 export interface ProjectDefinition {
   id: string;
   webUrl: string;
   mcpTargets: McpTarget[];
+  codePath?: string;
+  /** Explicit attestation that the operator may scan this web target. */
+  authorizationConfirmed: boolean;
+  /** ISO-8601 timestamp at which the web-target attestation was made. */
+  authorizationConfirmedAt?: string;
+  /** Local/private targets are blocked unless this testing-only opt-in is set. */
+  allowLocalTargets?: boolean;
   aiEnabled?: boolean;
   aiBudget?: number;
   aiModel?: string;
   aiUrl?: string;
+  aiProvider?: string;
+}
+
+function hasValidAuthorization(confirmed: boolean, confirmedAt?: string): boolean {
+  return confirmed && typeof confirmedAt === 'string' && !Number.isNaN(Date.parse(confirmedAt));
+}
+
+/**
+ * Enforce authorization before either live-target engine is started. Keeping
+ * this at the orchestration boundary prevents a UI or CLI from bypassing it.
+ */
+function getProjectAuthorizationError(project: ProjectDefinition): string | undefined {
+  if (!hasValidAuthorization(project.authorizationConfirmed, project.authorizationConfirmedAt)) {
+    return 'Web scan refused: explicit authorization confirmation with a valid timestamp is required.';
+  }
+
+  for (const target of project.mcpTargets) {
+    if (!hasValidAuthorization(target.authorizationConfirmed, target.authorizationConfirmedAt)) {
+      const name = target.name ?? target.command;
+      return `MCP scan refused for '${name}': explicit per-target authorization confirmation with a valid timestamp is required.`;
+    }
+  }
+
+  return undefined;
 }
 
 export interface UnifiedReport {
@@ -30,6 +67,17 @@ export interface UnifiedReport {
 
 export async function runUnifiedPlatform(project: ProjectDefinition, timeoutMs: number = 30000): Promise<UnifiedReport> {
   const startTime = Date.now();
+  const authorizationError = getProjectAuthorizationError(project);
+  if (authorizationError) {
+    return {
+      projectId: project.id,
+      durationMs: Date.now() - startTime,
+      overallScore: 100,
+      findings: [],
+      errors: [authorizationError],
+    };
+  }
+
   const errors: string[] = [];
   let allFindings: Finding[] = [];
   
@@ -38,6 +86,7 @@ export async function runUnifiedPlatform(project: ProjectDefinition, timeoutMs: 
     budget: project.aiBudget,
     model: project.aiModel,
     url: project.aiUrl,
+    provider: project.aiProvider as 'ollama' | 'mock',
     projectId: project.id
   });
 
@@ -63,7 +112,12 @@ export async function runUnifiedPlatform(project: ProjectDefinition, timeoutMs: 
 
   try {
     // 1. Run Web Engine
-    const webResult = await runWebEngine(project.webUrl, webRules, project.id, { scanTimeoutMs: timeoutMs, allowLocal: true });
+    const webResult = await runWebEngine(project.webUrl, webRules, project.id, {
+      scanTimeoutMs: timeoutMs,
+      allowLocal: project.allowLocalTargets ?? false,
+      authorizationConfirmed: project.authorizationConfirmed,
+      authorizationConfirmedAt: project.authorizationConfirmedAt,
+    });
     if (webResult.error) {
       errors.push(`Web Engine Error: ${webResult.error}`);
     } else {
@@ -75,21 +129,38 @@ export async function runUnifiedPlatform(project: ProjectDefinition, timeoutMs: 
       const mcpResult = await runMcpEngine(mcpRules, project.id, {
         command: target.command,
         args: target.args,
-        scanTimeoutMs: timeoutMs
+        scanTimeoutMs: timeoutMs,
+        authorizationConfirmed: target.authorizationConfirmed,
+        authorizationConfirmedAt: target.authorizationConfirmedAt,
       });
       if (mcpResult.error) {
         errors.push(`MCP Engine Error (${target.command}): ${mcpResult.error}`);
       } else {
         // Tag MCP findings with the target command so they can be correlated precisely
         const targetString = `${target.command} ${target.args.join(' ')}`;
+        const targetName = target.name ?? targetString;
         const taggedFindings = mcpResult.findings.map(f => ({
           ...f,
           evidence: {
             ...f.evidence,
-            mcpTargetCommand: targetString
+            mcpTargetCommand: targetString,
+            mcpTargetName: targetName,
           }
         }));
         allFindings = allFindings.concat(taggedFindings);
+      }
+    }
+
+    // 2.5 Run Code Engine
+    if (project.codePath) {
+      try {
+        const codeResult = await runCodeEngine(project.codePath, createCodeConfig({
+          maxFiles: 1000,
+          useCache: false
+        }));
+        allFindings = allFindings.concat(codeResult.findings);
+      } catch (err) {
+        errors.push(`Code Engine Error: ${err instanceof Error ? err.message : String(err)}`);
       }
     }
 
@@ -100,12 +171,12 @@ export async function runUnifiedPlatform(project: ProjectDefinition, timeoutMs: 
     const mcpVulnerabilities = allFindings.filter(f => f.engine === 'mcp' && (f.severity === 'high' || f.severity === 'critical'));
 
     for (const widget of webWidgets) {
-      const connectedTarget = widget.evidence?.targetName as string || 'unknown-target';
+      const connectedTarget = widget.evidence?.targetName as string | undefined;
+      if (!connectedTarget) continue;
       
       // Only correlate if the MCP vulnerability actually came from the connected target
       const specificMcpVulnerabilities = mcpVulnerabilities.filter(
-        v => typeof v.evidence?.mcpTargetCommand === 'string' && 
-             v.evidence.mcpTargetCommand.includes(connectedTarget)
+        v => v.evidence?.mcpTargetName === connectedTarget
       );
 
       if (specificMcpVulnerabilities.length > 0) {
@@ -126,6 +197,33 @@ export async function runUnifiedPlatform(project: ProjectDefinition, timeoutMs: 
             mcpFindingIds: specificMcpVulnerabilities.map(v => v.id),
           },
           remediation: 'Address the underlying MCP vulnerabilities immediately or disconnect the agent from the frontend.',
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      // 3-Way Correlation: P0 Attack Path
+      // Web (AI Widget) + Code (Missing Auth) + MCP (Critical/High)
+      const missingAuthFindings = allFindings.filter(f => f.engine === 'code' && f.ruleId === 'missing-auth');
+      
+      if (specificMcpVulnerabilities.length > 0 && missingAuthFindings.length > 0) {
+        allFindings.push({
+          id: randomUUID(),
+          projectId: project.id,
+          runId: widget.runId,
+          engine: 'platform', // Platform-level synthesized finding
+          ruleId: 'platform-p0-attack-path',
+          category: 'correlation',
+          severity: 'critical',
+          confidence: 'high',
+          title: 'P0 Attack Path: Unauthenticated Backend Route Exposes Vulnerable MCP Tool to Frontend',
+          message: `A complete risk path was detected: Frontend AI widget connects to a backend route lacking authentication, which exposes an MCP target with critical/high vulnerabilities.`,
+          location: 'Cross-Engine Context',
+          evidence: {
+            webFindingId: widget.id,
+            codeFindingIds: missingAuthFindings.map(a => a.id),
+            mcpFindingIds: specificMcpVulnerabilities.map(v => v.id),
+          },
+          remediation: 'Apply authentication to backend routes and secure MCP tools immediately.',
           timestamp: new Date().toISOString(),
         });
       }

@@ -6,6 +6,14 @@ import { randomUUID } from 'node:crypto';
 export interface McpRunOptions {
   command: string;
   args?: string[];
+  /** Explicit operator attestation required before starting the target. */
+  authorizationConfirmed?: boolean;
+  /** ISO-8601 timestamp for the operator attestation. */
+  authorizationConfirmedAt?: string;
+  /**
+   * Deliberately supplied environment values for the subprocess. These are
+   * merged into a small safe base; the parent environment is never inherited.
+   */
   env?: Record<string, string>;
   scanTimeoutMs?: number;
 }
@@ -18,6 +26,18 @@ export interface McpEngineResult {
   error?: string;
 }
 
+/**
+ * This is an environment boundary, not a complete OS sandbox. The target
+ * still needs container/VM isolation to restrict its network and filesystem.
+ */
+export function createRestrictedSubprocessEnv(overrides?: Record<string, string>): Record<string, string> {
+  const environment: Record<string, string> = {
+    PATH: process.env.PATH ?? '',
+  };
+
+  return { ...environment, ...overrides };
+}
+
 export async function runMcpEngine(
   rules: EngineRule[],
   projectId: string,
@@ -28,12 +48,23 @@ export async function runMcpEngine(
   const findings: Finding[] = [];
   const timeoutMs = options.scanTimeoutMs || 30000;
 
-  // Sandbox the MCP subprocess: no default env variables unless explicitly passed
-  // (In a real production environment, you'd want even stricter sandboxing like containerization)
+  if (!options.authorizationConfirmed || !options.authorizationConfirmedAt || Number.isNaN(Date.parse(options.authorizationConfirmedAt))) {
+    return {
+      runId,
+      projectId,
+      durationMs: Date.now() - startTime,
+      findings,
+      error: 'MCP scan refused: explicit authorization confirmation with a valid timestamp is required.',
+    };
+  }
+
+  // Safeguards: hard scan timeout and an explicit PATH-only environment (plus
+  // caller-provided overrides). This is not OS isolation: the target still has
+  // the invoking account's filesystem and network permissions; use a VM/container.
   const transport = new StdioClientTransport({
     command: options.command,
     args: options.args || [],
-    env: options.env, // Pass explicit env, or undefined (inherits parent, but we should restrict in production)
+    env: createRestrictedSubprocessEnv(options.env),
   });
 
   const client = new Client(

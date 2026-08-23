@@ -21,6 +21,8 @@ describe('MCP Engine Runner', () => {
     const result = await runMcpEngine(rules, 'test-project', {
       command: 'node',
       args: [testServerPath],
+      authorizationConfirmed: true,
+      authorizationConfirmedAt: new Date().toISOString(),
       scanTimeoutMs: 15000,
     });
 
@@ -64,10 +66,69 @@ describe('MCP Engine Runner', () => {
     const result = await runMcpEngine(rules, 'test-project', {
       command: 'node',
       args: ['does-not-exist.js'],
+      authorizationConfirmed: true,
+      authorizationConfirmedAt: new Date().toISOString(),
       scanTimeoutMs: 5000,
     });
 
     expect(result.error).toBeDefined();
     expect(result.findings).toHaveLength(0);
+  });
+
+  it('refuses to start a target without explicit authorization', async () => {
+    const result = await runMcpEngine([ToolCountRule], 'test-project', {
+      command: 'node',
+      args: [path.join(__dirname, 'test-server.js')],
+    });
+
+    expect(result.error).toContain('authorization confirmation');
+    expect(result.findings).toHaveLength(0);
+  });
+
+  it('does not pass ambient parent environment variables to the target subprocess', async () => {
+    const variableName = 'SENTINEL_MCP_PARENT_ONLY_SECRET';
+    const originalValue = process.env[variableName];
+    process.env[variableName] = 'must-not-reach-target';
+
+    try {
+      const result = await runMcpEngine([ToolCountRule], 'test-project', {
+        command: 'node',
+        args: [path.join(__dirname, 'env-test-server.js')],
+        authorizationConfirmed: true,
+        authorizationConfirmedAt: new Date().toISOString(),
+      });
+
+      expect(result.error).toBeUndefined();
+      const toolNames = result.findings.find((finding) => finding.ruleId === 'mcp-tool-count')?.evidence.toolNames as string[];
+      expect(toolNames).toContain('parent_environment_not_inherited');
+    } finally {
+      if (originalValue === undefined) delete process.env[variableName];
+      else process.env[variableName] = originalValue;
+    }
+  });
+
+  it('keeps the known-safe fixture free of high-confidence risk findings', async () => {
+    const result = await runMcpEngine([ToolCountRule, SchemaRigorRule, PrivilegeAnalysisRule, CveMatchingRule], 'test-project', {
+      command: 'node',
+      args: [path.join(__dirname, '../fixtures/safe-server.js')],
+      authorizationConfirmed: true,
+      authorizationConfirmedAt: new Date().toISOString(),
+    });
+
+    expect(result.error).toBeUndefined();
+    expect(result.findings.some((finding) => finding.severity === 'high' || finding.severity === 'critical')).toBe(false);
+  });
+
+  it('classifies the bounded network fixture as informational rather than unscoped', async () => {
+    const result = await runMcpEngine([PrivilegeAnalysisRule], 'test-project', {
+      command: 'node',
+      args: [path.join(__dirname, '../fixtures/borderline-server.js')],
+      authorizationConfirmed: true,
+      authorizationConfirmedAt: new Date().toISOString(),
+    });
+
+    expect(result.error).toBeUndefined();
+    expect(result.findings.some((finding) => finding.title.includes('Scoped Network Access'))).toBe(true);
+    expect(result.findings.some((finding) => finding.title.includes('Unscoped Network Access'))).toBe(false);
   });
 });

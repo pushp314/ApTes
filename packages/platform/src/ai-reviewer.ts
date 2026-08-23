@@ -157,7 +157,8 @@ class MockProvider implements AIProvider {
         verdict: 'likely',
         confidence: 0.85,
         reason: 'Mock AI assessment determined this is likely an issue.',
-        remediation: 'Review the mock output.'
+        remediation: 'Review the mock output.',
+        patch: '--- a/src/vulnerable.ts\n+++ b/src/vulnerable.ts\n@@ -1,2 +1,2 @@\n-const bad = true;\n+const bad = false;\n'
       }
     }));
   }

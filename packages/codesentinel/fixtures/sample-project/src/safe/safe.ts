@@ -45,11 +45,12 @@ app.post('/api/admin/settings', requireAuth, (req, res) => {
 });
 
 // 6. Injection (Parameterized queries and safe spawn)
-app.get('/api/users', (req, res) => {
+app.get('/api/users', requireAuth, (req, res) => {
   const id = req.query.id;
+  const userId = req.user.id;
   
-  // Parameterized query (safe)
-  db.query('SELECT * FROM users WHERE id = ?', [id]);
+  // Parameterized query scoped to user (safe)
+  db.query('SELECT * FROM users WHERE id = ? AND owner_id = ?', [id, userId]);
   
   // Safe spawn with args array
   spawn("ping", ["-c", "1", req.query.host]);

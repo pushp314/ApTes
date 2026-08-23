@@ -1,0 +1,5 @@
+--- a/src/vulnerable.ts
++++ b/src/vulnerable.ts
+@@ -1,2 +1,2 @@
+-const bad = true;
++const bad = false;

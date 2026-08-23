@@ -19,6 +19,10 @@ export interface WebEngineConfig {
   allowLocal: boolean;
   /** Maximum number of unique pages to crawl. */
   maxPages: number;
+  /** Explicit operator attestation required before a live target is loaded. */
+  authorizationConfirmed: boolean;
+  /** ISO-8601 timestamp for the operator attestation. */
+  authorizationConfirmedAt?: string;
 }
 
 const DEFAULT_CONFIG: WebEngineConfig = {
@@ -26,6 +30,7 @@ const DEFAULT_CONFIG: WebEngineConfig = {
   scanTimeoutMs: 60000,
   allowLocal: false,
   maxPages: 1, // Default to single page if not specified
+  authorizationConfirmed: false,
 };
 
 export interface WebRunResult {
@@ -51,6 +56,17 @@ export async function runWebEngine(
 
   const visited = new Set<string>();
   const queue: string[] = [startUrl];
+
+  // Authorization is deliberately enforced here as well as by the platform,
+  // so callers cannot bypass consent by invoking the engine directly.
+  if (!config.authorizationConfirmed || !config.authorizationConfirmedAt || Number.isNaN(Date.parse(config.authorizationConfirmedAt))) {
+    return {
+      findings: [],
+      pagesScanned: 0,
+      durationMs: Date.now() - startTime,
+      error: 'Web scan refused: explicit authorization confirmation with a valid timestamp is required.',
+    };
+  }
 
   // 1. Initial Target Validation (SSRF Protection)
   try {

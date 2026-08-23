@@ -19,9 +19,14 @@ program
   .requiredOption('--project <id>', 'Project ID')
   .requiredOption('--web <url>', 'Web application URL to scan')
   .requiredOption('--mcp <command>', 'MCP server command to run (e.g. "node server.js")')
+  .requiredOption('--authorized', 'Confirm that you own or have written permission to test the web target and MCP target')
+  .option('--mcp-name <name>', 'Stable MCP target name for explicit Web ↔ MCP correlation')
+  .option('--allow-local', 'Allow localhost/private web targets (for local fixtures/testing only)', false)
+  .option('--code <path>', 'Source code directory for backend analysis (optional)')
   .option('--ai', 'Enable AI analysis for low confidence findings', false)
   .option('--budget <number>', 'Maximum number of AI requests per scan', '5')
   .option('--ai-model <model>', 'Ollama model to use', 'llama3')
+  .option('--ai-provider <provider>', 'AI provider to use (ollama, mock)', 'ollama')
   .option('--ai-url <url>', 'Ollama API URL', 'http://localhost:11434')
   .option('--format <format>', 'Output format: cli, json, html, md', 'cli')
   .option('--out <file>', 'Output file path (optional)')
@@ -32,14 +37,22 @@ program
       const project = {
         id: options.project,
         webUrl: options.web,
+        authorizationConfirmed: options.authorized,
+        authorizationConfirmedAt: new Date().toISOString(),
+        codePath: options.code,
+        allowLocalTargets: options.allowLocal,
         aiEnabled: options.ai,
         aiBudget: parseInt(options.budget, 10),
         aiModel: options.aiModel,
         aiUrl: options.aiUrl,
+        aiProvider: options.aiProvider,
         mcpTargets: [
           {
+            name: options.mcpName,
             command: cmd,
-            args: args || []
+            args: args || [],
+            authorizationConfirmed: options.authorized,
+            authorizationConfirmedAt: new Date().toISOString(),
           }
         ]
       };

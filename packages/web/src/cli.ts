@@ -22,11 +22,12 @@ program
 program
   .command('scan <url>')
   .description('Scan a target URL using the Web Engine')
+  .requiredOption('--i-own-this-target', 'Confirm that you own or have written permission to test this target')
   .option('--allow-local', 'Allow scanning localhost / private IPs (for testing ONLY)')
   .option('--timeout <ms>', 'Timeout for the scan per page in milliseconds', '30000')
   .option('--max-pages <n>', 'Maximum number of pages to crawl', '1')
   .option('--export <path>', 'Export findings to a JSON file')
-  .action(async (url: string, options: { allowLocal: boolean; timeout: string; maxPages: string; export?: string }) => {
+  .action(async (url: string, options: { iOwnThisTarget: boolean; allowLocal: boolean; timeout: string; maxPages: string; export?: string }) => {
     // eslint-disable-next-line no-console
     console.log(`Starting Web Engine scan for: ${url}`);
     
@@ -48,6 +49,8 @@ program
       'local-test-project', 
       {
         allowLocal: options.allowLocal,
+        authorizationConfirmed: options.iOwnThisTarget,
+        authorizationConfirmedAt: new Date().toISOString(),
         scanTimeoutMs: parseInt(options.timeout, 10),
         maxPages: parseInt(options.maxPages, 10),
       }

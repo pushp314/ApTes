@@ -196,5 +196,105 @@
       "reason": "Mock AI assessment determined this is likely an issue.",
       "remediation": "Review the mock output."
     }
+  },
+  "ccf19a2332d2c65c0b6f06c08aa6374d2f6989fbe2903ffd1a9549e8b5dedccc": {
+    "findingId": "12a7201e-4693-4838-bec1-a40c2d06e8cd",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output.",
+      "patch": "--- a/src/vulnerable.ts\n+++ b/src/vulnerable.ts\n@@ -1,2 +1,2 @@\n-const bad = true;\n+const bad = false;\n"
+    }
+  },
+  "204dea9c07e5edb63f9ff584affb3a169c011cedcf1f67276c99ce10b142ca8a": {
+    "findingId": "d5f94c4e-896c-4651-b085-7bbdbf4ebc55",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output.",
+      "patch": "--- a/src/vulnerable.ts\n+++ b/src/vulnerable.ts\n@@ -1,2 +1,2 @@\n-const bad = true;\n+const bad = false;\n"
+    }
+  },
+  "e5ec22c7b4769413a352772a63bb897827e447bdf1fb8e57e34fa2aa6764ce34": {
+    "findingId": "980f47c0-fe3f-4f13-ab28-0de78acef210",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output.",
+      "patch": "--- a/src/vulnerable.ts\n+++ b/src/vulnerable.ts\n@@ -1,2 +1,2 @@\n-const bad = true;\n+const bad = false;\n"
+    }
+  },
+  "c4ea013c9c9a797a0dc9e52aca682bb983c8858331ab1070f716b336b148939b": {
+    "findingId": "d8e59f4e-f669-4d64-97f9-17b6741eaae2",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output.",
+      "patch": "--- a/src/vulnerable.ts\n+++ b/src/vulnerable.ts\n@@ -1,2 +1,2 @@\n-const bad = true;\n+const bad = false;\n"
+    }
+  },
+  "7d6f3fff8ec8207bfe555bff375d1a840a74495ed2a8f7c0bbef66ced450d647": {
+    "findingId": "65fc85cd-39a8-4d33-a02d-77bd810d0ac1",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output.",
+      "patch": "--- a/src/vulnerable.ts\n+++ b/src/vulnerable.ts\n@@ -1,2 +1,2 @@\n-const bad = true;\n+const bad = false;\n"
+    }
+  },
+  "cd1ae46dd58032d6694369ee694dad892e4d7258f830ee01972e28996b078c55": {
+    "findingId": "cb0e1f5a-7f62-4c9e-befb-ce379b6464dd",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output.",
+      "patch": "--- a/src/vulnerable.ts\n+++ b/src/vulnerable.ts\n@@ -1,2 +1,2 @@\n-const bad = true;\n+const bad = false;\n"
+    }
+  },
+  "f7079bd57dd8419159f23490eeddd5d6bb52bfaa7c260eb87d04c9dfa66876d3": {
+    "findingId": "010c0b05-24d6-4296-8603-a84d387cc9e0",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output.",
+      "patch": "--- a/src/vulnerable.ts\n+++ b/src/vulnerable.ts\n@@ -1,2 +1,2 @@\n-const bad = true;\n+const bad = false;\n"
+    }
+  },
+  "cfc2b41aa6576b9ed8ca18615c67d4a7bbe66dcdd7370698dab154b292b67f87": {
+    "findingId": "e3249d7f-bd4f-41a7-9eb6-7e64e4feb1b1",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output.",
+      "patch": "--- a/src/vulnerable.ts\n+++ b/src/vulnerable.ts\n@@ -1,2 +1,2 @@\n-const bad = true;\n+const bad = false;\n"
+    }
+  },
+  "ab7ad808691fadfa233cda62399c1f0fdc8069bb5e27e26dc703ac1b42b542c3": {
+    "findingId": "73e4a196-eaaa-48c4-a725-137f28e07b6c",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output.",
+      "patch": "--- a/src/vulnerable.ts\n+++ b/src/vulnerable.ts\n@@ -1,2 +1,2 @@\n-const bad = true;\n+const bad = false;\n"
+    }
+  },
+  "6b2066c940beb3da6b160bcf7c86b9473ff7d51aa82e5ebaa16870d4170919f8": {
+    "findingId": "675d9047-ad7f-483f-adbf-bdb44cb20c95",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output.",
+      "patch": "--- a/src/vulnerable.ts\n+++ b/src/vulnerable.ts\n@@ -1,2 +1,2 @@\n-const bad = true;\n+const bad = false;\n"
+    }
   }
 }

@@ -16,6 +16,8 @@ import { LogicContradictionsRule } from './detectors/logic-contradictions.js';
 import { SecretsRule } from './detectors/secrets.js';
 import { InjectionRule } from './detectors/injection.js';
 import { AuthRule } from './detectors/auth.js';
+import { DependencyCveRule } from './detectors/dependency-cve.js';
+import { IdorRule } from './detectors/idor.js';
 
 export const ACTIVE_RULES: CodeRule[] = [
   TypeErrorRule,
@@ -26,5 +28,7 @@ export const ACTIVE_RULES: CodeRule[] = [
   LogicContradictionsRule,
   SecretsRule,
   InjectionRule,
-  AuthRule
+  AuthRule,
+  DependencyCveRule,
+  IdorRule
 ];

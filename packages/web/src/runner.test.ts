@@ -8,6 +8,7 @@ import { PerformanceRule } from './rules/performance.js';
 import { SecurityHeadersRule } from './rules/security-headers.js';
 import { CookieSecurityRule } from './rules/cookie-security.js';
 import { MixedContentRule } from './rules/mixed-content.js';
+import { AiWidgetRule } from './rules/ai-widget.js';
 import { startTestServer, stopTestServer } from './test-server.js';
 import type * as http from 'node:http';
 
@@ -31,13 +32,16 @@ describe('Web Engine Runner', () => {
       PerformanceRule,
       SecurityHeadersRule,
       CookieSecurityRule,
-      MixedContentRule
+      MixedContentRule,
+      AiWidgetRule,
     ];
     const targetUrl = 'http://127.0.0.1:3456';
     
     // We MUST pass allowLocal: true since we're testing against localhost
     const result = await runWebEngine(targetUrl, rules, 'test-project', {
       allowLocal: true,
+      authorizationConfirmed: true,
+      authorizationConfirmedAt: new Date().toISOString(),
       scanTimeoutMs: 15000,
       maxPages: 2, // Allow it to crawl to /page2
     });
@@ -101,18 +105,32 @@ describe('Web Engine Runner', () => {
     const insecureCookie = findings.find(f => f.ruleId === 'web-cookie-security' && f.message.includes('insecure_session'));
     expect(insecureCookie).toBeDefined();
     expect(insecureCookie?.message).toContain('Missing HttpOnly');
+
+    const vendorWidget = findings.find(f => f.ruleId === 'web-ai-widget' && f.evidence.vendor === 'Botpress');
+    expect(vendorWidget).toBeDefined();
+    expect(vendorWidget?.confidence).toBe('low');
   }, 15000);
 
-  it('fails safely if SSRF protection triggers', async () => {
+  it('fails safely if SSRF protection triggers after authorization is confirmed', async () => {
     const rules = [ConsoleErrorsRule];
     const targetUrl = 'http://127.0.0.1:3456';
     
     // allowLocal is false by default, so it should block
-    const result = await runWebEngine(targetUrl, rules, 'test-project');
+    const result = await runWebEngine(targetUrl, rules, 'test-project', {
+      authorizationConfirmed: true,
+      authorizationConfirmedAt: new Date().toISOString(),
+    });
 
     expect(result.error).toBeDefined();
     expect(result.error).toContain('SSRF');
     expect(result.findings).toHaveLength(0);
+    expect(result.pagesScanned).toBe(0);
+  });
+
+  it('refuses a scan when authorization is absent', async () => {
+    const result = await runWebEngine('https://example.com', [ConsoleErrorsRule], 'test-project');
+
+    expect(result.error).toContain('authorization confirmation');
     expect(result.pagesScanned).toBe(0);
   });
 });

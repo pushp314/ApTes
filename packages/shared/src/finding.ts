@@ -27,6 +27,7 @@ export interface AiAssessment {
   impact?: string;
   remediation?: string;
   additionalEvidenceNeeded?: string[];
+  patch?: string;
 }
 
 /**

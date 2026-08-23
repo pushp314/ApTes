@@ -19,6 +19,7 @@ import * as fs from 'node:fs/promises';
 import { Command } from 'commander';
 import { createConfig } from './config.js';
 import { scan } from './scanner.js';
+import { LocalAiReviewer } from './ai-reviewer.js';
 
 const VERSION = '0.1.0';
 
@@ -41,8 +42,10 @@ program
   )
   .option('--export <path>', 'Export findings to JSON file')
   .option('--ai', 'Enable AI analysis for low confidence findings', false)
-  .option('--budget <number>', 'Maximum number of findings for AI', '5')
-  .action(async (targetPath: string, options: { cache: boolean; extensions: string; export?: string; ai?: boolean; budget?: string }) => {
+  .option('--budget <number>', 'Maximum number of findings for AI (default: 0)', '0')
+  .option('--ai-model <model>', 'Local Ollama model to use', 'llama3')
+  .option('--ai-url <url>', 'Local Ollama API URL', 'http://localhost:11434')
+  .action(async (targetPath: string, options: { cache: boolean; extensions: string; export?: string; ai?: boolean; budget?: string; aiModel?: string; aiUrl?: string }) => {
     const resolvedPath = path.resolve(targetPath);
 
     const config = createConfig({
@@ -70,19 +73,14 @@ program
 
       if (options.ai) {
         console.log(`\n[Sentinel AI] Running AI analysis on low-confidence findings (Budget: ${options.budget})...`);
-        try {
-          // @ts-expect-error: Platform may not be linked; we load it dynamically
-          const { AiReviewer } = await import('@sentinel/platform');
-          const reviewer = new AiReviewer({
-            enabled: true,
-            budget: options.budget ? parseInt(options.budget, 10) : 5,
-            projectId: 'codesentinel-local'
-          }, resolvedPath);
-          finalFindings = await reviewer.review(finalFindings);
-        } catch (err) {
-          console.error("\n[!] Failed to load AI modules. Ensure @sentinel/platform is built and linked.", err);
-          process.exit(1);
-        }
+        const reviewer = new LocalAiReviewer({
+          enabled: true,
+          budget: options.budget ? parseInt(options.budget, 10) : 0,
+          model: options.aiModel,
+          url: options.aiUrl,
+          projectDir: resolvedPath,
+        });
+        finalFindings = await reviewer.review(finalFindings, resolvedPath);
       }
 
       if (options.export) {

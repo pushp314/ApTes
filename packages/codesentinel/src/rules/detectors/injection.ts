@@ -2,6 +2,7 @@ import * as crypto from 'node:crypto';
 import type { Finding } from '@sentinel/shared';
 import type { CodeRule, CodeRuleContext } from '../rule.js';
 import { SyntaxKind, Node } from 'ts-morph';
+import { resolveExpression } from '../data-flow.js';
 
 export const InjectionRule: CodeRule = {
   id: 'injection-risk',
@@ -28,16 +29,19 @@ export const InjectionRule: CodeRule = {
         const args = callExpr.getArguments();
         
         for (const arg of args) {
-          // If the argument is a TemplateExpression containing string interpolation (e.g., `SELECT * FROM users WHERE id = ${id}`)
-          // or a BinaryExpression with string concatenation (e.g., "SELECT * FROM users WHERE id = " + id)
+          const origins = resolveExpression(arg);
           let isInsecure = false;
 
-          if (Node.isTemplateExpression(arg)) {
-            isInsecure = true;
-          } else if (Node.isBinaryExpression(arg)) {
-            const op = arg.getOperatorToken();
-            if (op.getKind() === SyntaxKind.PlusToken) {
+          for (const origin of origins) {
+            if (Node.isTemplateExpression(origin)) {
               isInsecure = true;
+              break;
+            } else if (Node.isBinaryExpression(origin)) {
+              const op = origin.getOperatorToken();
+              if (op.getKind() === SyntaxKind.PlusToken) {
+                isInsecure = true;
+                break;
+              }
             }
           }
 

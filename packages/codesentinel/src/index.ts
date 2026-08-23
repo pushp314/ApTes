@@ -14,3 +14,4 @@ export { walkProject, type WalkedFile, type WalkResult } from './walker.js';
 export { ContentHashCache, computeHash } from './cache.js';
 export { parseFiles, type ParseResult, type ParseError } from './parser.js';
 export { scan, type ScanResult } from './scanner.js';
+export { LocalAiReviewer, type LocalAiReviewerOptions } from './ai-reviewer.js';

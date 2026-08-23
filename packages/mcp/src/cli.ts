@@ -17,9 +17,10 @@ program
 program
   .command('scan <command> [args...]')
   .description('Scan a target MCP server by spawning it as a subprocess (stdio)')
+  .requiredOption('--i-own-this-target', 'Confirm that you own or have written permission to test this MCP target')
   .option('--timeout <ms>', 'Timeout for the scan in milliseconds', '30000')
   .option('--export <path>', 'Export findings to a JSON file')
-  .action(async (command: string, args: string[], options: { timeout: string; export?: string }) => {
+  .action(async (command: string, args: string[], options: { iOwnThisTarget: boolean; timeout: string; export?: string }) => {
     // eslint-disable-next-line no-console
     console.log(`Starting MCP Engine scan for command: ${command} ${args.join(' ')}`);
     
@@ -37,6 +38,8 @@ program
       {
         command,
         args,
+        authorizationConfirmed: options.iOwnThisTarget,
+        authorizationConfirmedAt: new Date().toISOString(),
         scanTimeoutMs: parseInt(options.timeout, 10),
       }
     );

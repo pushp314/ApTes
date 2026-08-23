@@ -21,6 +21,9 @@ const HTML_CONTENT = `
   
   <!-- This script will trigger a 404 -->
   <script src="/does-not-exist.js"></script>
+
+  <!-- Known-vendor widget URL exercises production widget heuristics. -->
+  <script src="/assets/botpress-webchat.js"></script>
   
   <!-- This script will trigger a console error -->
   <script>
@@ -77,6 +80,9 @@ export function startTestServer(): Promise<http.Server> {
       } else if (req.url === '/server-error-image.png') {
         res.writeHead(500, { 'Content-Type': 'text/plain' });
         res.end('Internal Server Error');
+      } else if (req.url === '/assets/botpress-webchat.js') {
+        res.writeHead(200, { 'Content-Type': 'application/javascript' });
+        res.end('// Fixture-only placeholder for a known chat-widget asset.');
       } else {
         res.writeHead(404, { 'Content-Type': 'text/plain' });
         res.end('Not Found');

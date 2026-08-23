@@ -1,6 +1,8 @@
 import type { UnifiedReport } from '../orchestrator.js';
 import type { Reporter } from './types.js';
 import type { Finding } from '@sentinel/shared';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 export class CliReporter implements Reporter {
   generate(report: UnifiedReport): string {
@@ -49,6 +51,27 @@ export class CliReporter implements Reporter {
         }
         out += `\n`;
       }
+    }
+
+    let patchesSaved = 0;
+    const patchDir = path.join(process.cwd(), '.sentinel', 'patches');
+
+    for (const finding of report.findings) {
+      if (finding.aiAssessment?.patch) {
+        if (patchesSaved === 0) {
+          fs.mkdirSync(patchDir, { recursive: true });
+        }
+        const patchName = `${finding.ruleId}-${finding.id.split('-')[0]}.patch`;
+        const patchPath = path.join(patchDir, patchName);
+        fs.writeFileSync(patchPath, finding.aiAssessment.patch, 'utf-8');
+        patchesSaved++;
+      }
+    }
+
+    if (patchesSaved > 0) {
+      out += `\n[AI REMEDIATION]\n`;
+      out += `Generated ${patchesSaved} AI patches in .sentinel/patches/.\n`;
+      out += `Run 'git apply .sentinel/patches/*.patch' to apply them.\n`;
     }
 
     out += `========================================\n`;

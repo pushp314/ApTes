@@ -1,0 +1,173 @@
+Starting Sentinel Platform Scan for project: test-1
+[Web Engine] Scanning: http://127.0.0.1:8080
+
+
+========================================
+    SENTINEL UNIFIED REPORT
+========================================
+Project: test-1
+Score:   0/100
+Time:    3849ms
+========================================
+
+[ENGINE: WEB]
+  [MEDIUM  ] Form Issue: unnamed-input
+             Input of type 'file' is missing a 'name' attribute.
+             Rule: web-forms | Location: http://127.0.0.1:8080
+             Fix: Ensure the form has a submit button, all inputs have name attributes, and an action is defined if not an SPA.
+
+  [LOW     ] Form Issue: missing-action
+             Form is missing an action attribute and has no obvious onsubmit handler.
+             Rule: web-forms | Location: http://127.0.0.1:8080
+             Fix: Ensure the form has a submit button, all inputs have name attributes, and an action is defined if not an SPA.
+
+  [LOW     ] Structure Issue: missing-h1
+             Page is missing a main <h1> heading.
+             Rule: web-page-structure | Location: http://127.0.0.1:8080
+             Fix: Update the page HTML to adhere to semantic and structural best practices.
+
+[ENGINE: MCP]
+  [CRITICAL] Dangerous Capability with Unbounded Inputs: execute_query
+             Tool exposes dangerous capabilities (execute, query, exec) but lacks strict input constraints, risking RCE or injection.
+             Rule: mcp-privilege-analysis | Location: Tool: execute_query
+             Fix: Restrict tools using tight string enums, regex patterns, or human-in-the-loop approvals.
+
+  [CRITICAL] Unscoped Filesystem Access: unsafe_read_file
+             Tool exposes filesystem operations (read_file, read) but accepts unbounded inputs, risking arbitrary file read/write or path traversal.
+             Rule: mcp-privilege-analysis | Location: Tool: unsafe_read_file
+             Fix: Restrict tools using tight string enums, regex patterns, or human-in-the-loop approvals.
+
+  [CRITICAL] Known Vulnerability Detected: SENTINEL-CVE-2024-001
+             The connected MCP server matches a known vulnerability signature (SENTINEL-CVE-2024-001) for component 'vulnerable-mcp-server'.
+             Rule: mcp-cve-matching | Location: Server Metadata: vulnerable-mcp-server
+             Fix: Upgrade vulnerable-mcp-server to version 1.1.0 or higher.
+
+  [HIGH    ] Opaque Object Schema
+             The tool accepts an object but defines no properties, allowing arbitrary payloads.
+             Rule: mcp-schema-rigor | Location: Tool: save_file
+             Fix: Apply stricter JSON Schema constraints (e.g., properties, enum, maxLength).
+
+  [HIGH    ] Unscoped Network Access: unsafe_fetch
+             Tool exposes network operations (fetch) but accepts unbounded inputs, risking SSRF.
+             Rule: mcp-privilege-analysis | Location: Tool: unsafe_fetch
+             Fix: Restrict tools using tight string enums, regex patterns, or human-in-the-loop approvals.
+
+  [MEDIUM  ] Unbounded String Parameter: sql
+             Parameter 'sql' is a string but lacks enum, maxLength, or pattern constraints. This increases the risk of injection or hallucinated payloads.
+             Rule: mcp-schema-rigor | Location: Tool: execute_query
+             Fix: Apply stricter JSON Schema constraints (e.g., properties, enum, maxLength).
+
+  [MEDIUM  ] Unbounded String Parameter: path
+             Parameter 'path' is a string but lacks enum, maxLength, or pattern constraints. This increases the risk of injection or hallucinated payloads.
+             Rule: mcp-schema-rigor | Location: Tool: unsafe_read_file
+             Fix: Apply stricter JSON Schema constraints (e.g., properties, enum, maxLength).
+
+  [MEDIUM  ] Unbounded String Parameter: url
+             Parameter 'url' is a string but lacks enum, maxLength, or pattern constraints. This increases the risk of injection or hallucinated payloads.
+             Rule: mcp-schema-rigor | Location: Tool: unsafe_fetch
+             Fix: Apply stricter JSON Schema constraints (e.g., properties, enum, maxLength).
+
+  [INFO    ] MCP Server Introspection Successful
+             The server exposes 8 tools, 0 resources, and 0 prompts.
+             Rule: mcp-tool-count | Location: Server Manifest
+             Fix: No action required.
+
+  [INFO    ] Scoped Filesystem Access: safe_read_file
+             Tool exposes filesystem operations (read_file, read) but inputs appear safely scoped via enums or patterns.
+             Rule: mcp-privilege-analysis | Location: Tool: safe_read_file
+             Fix: Restrict tools using tight string enums, regex patterns, or human-in-the-loop approvals.
+
+  [INFO    ] Scoped Network Access: safe_fetch
+             Tool exposes network operations (fetch) but inputs appear safely scoped.
+             Rule: mcp-privilege-analysis | Location: Tool: safe_fetch
+             Fix: Restrict tools using tight string enums, regex patterns, or human-in-the-loop approvals.
+
+[ENGINE: CODE]
+  [CRITICAL] Hardcoded Secret Detected
+             A hardcoded credential or secret key was detected in the source code.
+             Rule: hardcoded-secret | Location: src/vulnerable/vulnerable.ts:11:17
+             Fix: Move secrets to environment variables or a secure vault. Revoke the exposed credential immediately.
+
+  [CRITICAL] Hardcoded Secret Detected
+             A hardcoded credential or secret key was detected in the source code.
+             Rule: hardcoded-secret | Location: src/vulnerable/vulnerable.ts:12:22
+             Fix: Move secrets to environment variables or a secure vault. Revoke the exposed credential immediately.
+
+  [CRITICAL] SQL Injection Risk
+             Unsafe string interpolation or concatenation detected in a sensitive database call. This creates an injection vulnerability.
+             Rule: injection-risk | Location: src/vulnerable/vulnerable.ts:48:3
+             Fix: Use parameterized queries or prepared statements.
+
+  [CRITICAL] Command Injection Risk
+             Unsafe string interpolation or concatenation detected in a sensitive system call. This creates an injection vulnerability.
+             Rule: injection-risk | Location: src/vulnerable/vulnerable.ts:51:3
+             Fix: Avoid passing user input directly to system commands. Use safe array arguments.
+
+  [HIGH    ] TS2322: Type 'string' is not assignable to type 'number'.
+             Type 'string' is not assignable to type 'number'.
+             Rule: ts-type-error | Location: src/broken.ts:9:9
+             Fix: Fix the TypeScript error indicated by the compiler.
+
+  [HIGH    ] TS2304: Cannot find name 'nonExistentVariable'.
+             Cannot find name 'nonExistentVariable'.
+             Rule: ts-type-error | Location: src/broken.ts:10:10
+             Fix: Fix the TypeScript error indicated by the compiler.
+
+  [HIGH    ] TS18048: 'str' is possibly 'undefined'.
+             'str' is possibly 'undefined'.
+             Rule: ts-type-error | Location: src/broken.ts:15:10
+             Fix: Fix the TypeScript error indicated by the compiler.
+
+  [HIGH    ] TS2305: Module '"./utils"' has no exported member 'somethingMissing'.
+             Module '"./utils"' has no exported member 'somethingMissing'.
+             Rule: ts-type-error | Location: src/broken.ts:25:10
+             Fix: Fix the TypeScript error indicated by the compiler.
+
+  [HIGH    ] Missing Authentication on Sensitive Route
+             Route '/api/users' appears sensitive but lacks middleware arguments before the handler.
+             Rule: missing-auth | Location: src/safe/safe.ts:48:1
+             Fix: Apply authentication/authorization middleware to this route.
+
+  [HIGH    ] Missing API Error Handling
+             The fetch() call does not appear to check the response.ok property. This can lead to unhandled HTTP errors.
+             Rule: api-integration | Location: src/vulnerable/vulnerable.ts:35:9
+             Fix: Check `if (!response.ok)` after awaiting fetch, and throw or handle the error.
+
+  [HIGH    ] API Contract Mismatch
+             Frontend calls route '/api/does-not-exist', but this route is not defined in the backend source code.
+             Rule: contract-mismatch | Location: src/vulnerable/vulnerable.ts:35:9
+             Fix: Ensure the backend route exists or update the frontend fetch call to the correct path.
+
+  [HIGH    ] Illogical Condition
+             Always-true condition detected in if statement. This is either dead code or an infinite loop risk.
+             Rule: logic-contradictions | Location: src/vulnerable/vulnerable.ts:16:7
+             Fix: Refactor the logic to be dynamic or remove the dead code.
+
+  [HIGH    ] Illogical Condition
+             Contradictory conditions detected: cannot be true and false simultaneously.
+             Rule: logic-contradictions | Location: src/vulnerable/vulnerable.ts:21:7
+             Fix: Refactor the logic to be dynamic or remove the dead code.
+
+  [HIGH    ] Missing Authentication on Sensitive Route
+             Route '/api/admin/settings' appears sensitive but lacks middleware arguments before the handler.
+             Rule: missing-auth | Location: src/vulnerable/vulnerable.ts:39:1
+             Fix: Apply authentication/authorization middleware to this route.
+
+  [HIGH    ] Missing Authentication on Sensitive Route
+             Route '/api/users' appears sensitive but lacks middleware arguments before the handler.
+             Rule: missing-auth | Location: src/vulnerable/vulnerable.ts:44:1
+             Fix: Apply authentication/authorization middleware to this route.
+
+  [MEDIUM  ] Unhandled promise rejection
+             The function call 'Promise.resolve' returns a Promise that is not awaited, returned, or caught.
+             Rule: unhandled-promise | Location: src/broken.ts:4:3
+             Fix: Add an `await` before the call, or handle the promise rejection with `.catch()`.
+
+  [LOW     ] Unreachable code detected
+             Code exists after a terminal statement (return, throw, break, or continue) and will never be executed.
+             Rule: unreachable-code | Location: src/broken.ts:21:3
+             Fix: Remove the unreachable code or adjust the control flow so it can be executed.
+
+========================================
+Found 31 total issue(s).
+

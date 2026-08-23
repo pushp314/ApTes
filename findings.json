@@ -1,0 +1,23 @@
+[
+  {
+    "id": "f7688468-1b64-4e81-833f-b895e51adbf6",
+    "projectId": "vulnerable",
+    "runId": null,
+    "engine": "code",
+    "ruleId": "injection-risk",
+    "category": "security",
+    "severity": "critical",
+    "confidence": "low",
+    "title": "SQL Injection Risk",
+    "message": "Unsafe string interpolation or concatenation detected in a sensitive database call. This creates an injection vulnerability.",
+    "location": "index.ts:8:22",
+    "evidence": {
+      "file": "index.ts",
+      "line": 8,
+      "column": 22,
+      "code": "db.query(`SELECT * FROM users WHERE id = ${req.query.id}`)"
+    },
+    "remediation": "Use parameterized queries or prepared statements.",
+    "timestamp": "2026-08-23T11:00:49.414Z"
+  }
+]

@@ -5,6 +5,7 @@
   "type": "module",
   "main": "dist/index.js",
   "bin": {
+    "sentinel": "dist/cli.js",
     "sentinel-platform": "dist/cli.js"
   },
   "scripts": {
@@ -15,6 +16,7 @@
   "dependencies": {
     "@sentinel/shared": "*",
     "@sentinel/web": "*",
-    "@sentinel/mcp": "*"
+    "@sentinel/mcp": "*",
+    "commander": "^12.0.0"
   }
 }
