@@ -472,6 +472,13 @@ Before completing a phase:
 
 Use the project's actual scripts if their names differ.
 
+## Rule 21: Mandatory Documentation Updates
+
+Any feature addition, heuristic modification, or engine upgrade MUST be accompanied by corresponding updates to the \`packages/docs\` portal.
+1. **Source Code is the Truth**: When rules (e.g. CodeSentinel detectors) change, the documentation explaining them must be updated in sync.
+2. **Algorithmic Documentation**: The algorithms, heuristics, and logic used in new features must be documented in detail within the \`packages/docs/research/\` or \`packages/docs/development/\` categories.
+3. **No Drift**: Documentation drift is treated as a severe bug. Do not merge structural code changes without checking the documentation portal (\`npm run dev --workspace=@sentinel/docs\`).
+
 Never claim tests passed without actually running them.
 
 ---

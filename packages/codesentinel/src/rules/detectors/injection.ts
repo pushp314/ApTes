@@ -2,7 +2,7 @@ import * as crypto from 'node:crypto';
 import type { Finding } from '@sentinel/shared';
 import type { CodeRule, CodeRuleContext } from '../rule.js';
 import { SyntaxKind, Node } from 'ts-morph';
-import { resolveExpression } from '../data-flow.js';
+import { resolveExpression, isTaintSource } from '../data-flow.js';
 
 export const InjectionRule: CodeRule = {
   id: 'injection-risk',
@@ -21,7 +21,8 @@ export const InjectionRule: CodeRule = {
       const expr = callExpr.getExpression();
       const text = expr.getText();
       
-      const isDbCall = text.includes('db.query') || text.includes('db.execute') || text === 'query';
+      const isDbCall = text.includes('db.query') || text.includes('db.execute') || text === 'query' ||
+        /\.(find|findOne|create|update|delete|destroy|findAll)$/.test(text) || text.includes('$where');
       const isExecCall = text === 'exec' || text === 'execSync' || text === 'spawn';
 
       if (isDbCall || isExecCall) {
@@ -29,20 +30,30 @@ export const InjectionRule: CodeRule = {
         const args = callExpr.getArguments();
         
         for (const arg of args) {
-          const origins = resolveExpression(arg);
           let isInsecure = false;
 
-          for (const origin of origins) {
-            if (Node.isTemplateExpression(origin)) {
-              isInsecure = true;
-              break;
-            } else if (Node.isBinaryExpression(origin)) {
-              const op = origin.getOperatorToken();
-              if (op.getKind() === SyntaxKind.PlusToken) {
+          // Also check all identifiers inside the argument (e.g. object values)
+          const nodesToCheck = [arg, ...arg.getDescendantsOfKind(SyntaxKind.Identifier)];
+
+          for (const nodeToCheck of nodesToCheck) {
+            const origins = resolveExpression(nodeToCheck);
+
+            for (const origin of origins) {
+              if (Node.isTemplateExpression(origin)) {
+                isInsecure = true;
+                break;
+              } else if (Node.isBinaryExpression(origin)) {
+                const op = origin.getOperatorToken();
+                if (op.getKind() === SyntaxKind.PlusToken) {
+                  isInsecure = true;
+                  break;
+                }
+              } else if (isTaintSource(origin)) {
                 isInsecure = true;
                 break;
               }
             }
+            if (isInsecure) break;
           }
 
           if (isInsecure) {

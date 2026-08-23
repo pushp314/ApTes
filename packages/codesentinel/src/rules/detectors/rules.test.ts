@@ -229,6 +229,19 @@ describe('CodeSentinel Rules', () => {
       const findings = InjectionRule.analyze(context);
       expect(findings.length).toBe(0);
     });
+    it('detects NoSQL injection with taint tracking', () => {
+      const context = createTestContext(`
+        const username = req.body.username;
+        User.findOne({ user: username });
+      `);
+      const findings = InjectionRule.analyze(context);
+      expect(findings.length).toBe(1);
+    });
+    it('detects NoSQL direct object injection', () => {
+      const context = createTestContext(`User.create(req.body);`);
+      const findings = InjectionRule.analyze(context);
+      expect(findings.length).toBe(1);
+    });
   });
 
   describe('AuthRule', () => {
@@ -237,8 +250,18 @@ describe('CodeSentinel Rules', () => {
       const findings = AuthRule.analyze(context);
       expect(findings.length).toBe(1);
     });
+    it('detects missing auth with empty array', () => {
+      const context = createTestContext(`router.post('/admin/delete', [], (req, res) => {});`);
+      const findings = AuthRule.analyze(context);
+      expect(findings.length).toBe(1);
+    });
     it('ignores protected admin route', () => {
       const context = createTestContext(`app.post('/admin/settings', requireAuth, (req, res) => {});`);
+      const findings = AuthRule.analyze(context);
+      expect(findings.length).toBe(0);
+    });
+    it('ignores protected route with array middleware', () => {
+      const context = createTestContext(`router.put('/admin/update', [requireAuth], (req, res) => {});`);
       const findings = AuthRule.analyze(context);
       expect(findings.length).toBe(0);
     });

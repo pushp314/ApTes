@@ -23,7 +23,7 @@ export const AuthRule: CodeRule = {
       if (Node.isPropertyAccessExpression(expr)) {
         const propName = expr.getName();
         // Common HTTP methods
-        if (['get', 'post', 'put', 'delete', 'patch'].includes(propName)) {
+        if (['get', 'post', 'put', 'delete', 'patch', 'use', 'all'].includes(propName)) {
           const args = callExpr.getArguments();
           if (args.length >= 2) {
             const routeArg = args[0];
@@ -42,11 +42,17 @@ export const AuthRule: CodeRule = {
                                     routeText.includes('billing');
 
                 if (isSensitive) {
-                  // Check how many arguments are passed. 
-                  // Normally app.get('/admin', requireAuth, handler) => 3 args
-                  // If it's just app.get('/admin', handler) => 2 args
-                  // This is a naive heuristic for MVP.
+                  let isMissingAuth = false;
                   if (args.length === 2) {
+                    isMissingAuth = true;
+                  } else if (args.length >= 3) {
+                    const midArg = args[1];
+                    if (Node.isArrayLiteralExpression(midArg) && midArg.getElements().length === 0) {
+                      isMissingAuth = true;
+                    }
+                  }
+
+                  if (isMissingAuth) {
                     const start = callExpr.getStart();
                     const pos = sourceFile.getLineAndColumnAtPos(start);
                     

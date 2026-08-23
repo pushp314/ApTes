@@ -59,3 +59,16 @@ export function resolveExpression(node: Node, maxDepth = 3): Node[] {
   // For MVP data-flow tracking, we stop at function boundaries and return the call expression.
   return [node];
 }
+
+/**
+ * Heuristically determines if a given AST Node represents an untrusted user input source.
+ */
+export function isTaintSource(node: Node): boolean {
+  const text = node.getText();
+  const taintPatterns = [
+    'req.body', 'req.query', 'req.params', 'req.headers',
+    'request.body', 'request.query', 'request.params', 'request.headers',
+    'event.body', 'event.queryStringParameters' // AWS Lambda
+  ];
+  return taintPatterns.some(pattern => text.includes(pattern));
+}
