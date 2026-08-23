@@ -133,7 +133,7 @@ export default defineConfig({
       }
     ],
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/sentinel/sentinel' }
+      { icon: 'github', link: 'https://github.com/pushp314/ApTes' }
     ]
   }
 })
