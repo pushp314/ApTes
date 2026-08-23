@@ -1,7 +1,12 @@
 import { defineConfig } from 'vitepress'
+import { withMermaid } from 'vitepress-plugin-mermaid'
 
-export default defineConfig({
-  title: "Sentinel",
+export default withMermaid(
+  defineConfig({
+    mermaid: {
+      theme: 'dark',
+    },
+    title: "Sentinel",
   description: "Deterministic security analysis for code, web targets, and MCP systems.",
   head: [
     ['meta', { property: 'og:title', content: 'Sentinel | Deterministic Security Platform' }],
@@ -138,4 +143,6 @@ export default defineConfig({
       { icon: 'github', link: 'https://github.com/pushp314/ApTes' }
     ]
   }
-})
+}))
+
+
