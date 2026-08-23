@@ -26,7 +26,7 @@ export {
 } from './types.js';
 
 // Finding interface (shared data contract)
-export { type Finding } from './finding.js';
+export { type Finding, type AiAssessment } from './finding.js';
 
 // Engine rule interfaces (Web + MCP execution contract)
 export {

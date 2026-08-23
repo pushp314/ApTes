@@ -173,7 +173,7 @@ Finding
                          live TestRun, it's tied directly to the Project;
                          see CodeScanImport below)
 - projectId
-- engineType           ("web" | "mcp" | "code")
+- engine               ("web" | "mcp" | "code")
 - ruleId
 - category
 - severity
@@ -207,7 +207,7 @@ Both engines implement the **same** rule interface, unified from App Tester's `T
 interface EngineRule {
   id: string;
   name: string;
-  engineType: "web" | "mcp";
+  engine: "web" | "mcp";
   category: string;
   severity: "critical" | "high" | "medium" | "low" | "info";
   confidence: "high" | "low";
@@ -219,7 +219,7 @@ interface EngineRule {
 // MCP engine context wraps a TargetManifest (tools/resources/prompts) + the current TestRun
 interface EngineContext {
   runId: string;
-  engineType: "web" | "mcp";
+  engine: "web" | "mcp";
   webContext?: { page: Page; targetUrl: string };
   mcpContext?: { manifest: TargetManifest; serverMeta: ServerMetadata };
 }

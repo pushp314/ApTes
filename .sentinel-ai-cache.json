@@ -1,0 +1,200 @@
+{
+  "65491ceb2a1a97e93edce295a4419f96b6129cd889b8a6dca5643f94d705dab1": {
+    "findingId": "f2",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output."
+    }
+  },
+  "40c64aacd38703a230c6094a794c62df4ccde80572e8f2358fde0c36ce7385f0": {
+    "findingId": "f3",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output."
+    }
+  },
+  "46759c5c6edb19ad4d95498bb0d25cd73100be30d3e18d949baa3eca4b490f1f": {
+    "findingId": "f-0",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output."
+    }
+  },
+  "31b923ebf45fdd8b1edfc77374366b713160796e33056bdd788178aeb3cc791e": {
+    "findingId": "f-1",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output."
+    }
+  },
+  "8e7449bebce7f0c89ca86a9d6bc4c08d17f2ca30abab9771c2aa1afd232e538c": {
+    "findingId": "f-2",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output."
+    }
+  },
+  "8fa33f28ea4c41c175021c7075e8287483a6b131f98f6bc8e2491529e875050e": {
+    "findingId": "f-3",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output."
+    }
+  },
+  "3233d872c1426d2e9670f39e5c44bf75ffe22342b6aefb448c3b951cb34926df": {
+    "findingId": "f-4",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output."
+    }
+  },
+  "b357e3638b35576ecf5f698914d2d1093c1fa28fd58d8a9f815e712b8b251a97": {
+    "findingId": "f-5",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output."
+    }
+  },
+  "11e1b5bb29a4fa06c9b322a3a457da7b3bb6a9d446e2202a799aedca8c5bcde8": {
+    "findingId": "f-6",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output."
+    }
+  },
+  "4c4496cad540e278d3135db5a9224abcd748a79c83a1af8126a75452a16de4a7": {
+    "findingId": "f-7",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output."
+    }
+  },
+  "f46ca0e9486fef00e8e755b14c533e172a15a3e13bb903dddcb5cdc522578568": {
+    "findingId": "f-8",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output."
+    }
+  },
+  "24542059225ac47a4af19dc3a5165dd6afe9065ef708481f9cdaf02917765f23": {
+    "findingId": "f-9",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output."
+    }
+  },
+  "145565d47642714b03f153e2829e986da1aba358bca17c17efeb85eac39c838b": {
+    "findingId": "f-10",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output."
+    }
+  },
+  "25ce69222d0f2bd785b537f8b50df1427b411519affee970398025abeabcad9d": {
+    "findingId": "f-11",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output."
+    }
+  },
+  "152f1463f072d92a0cddcc6eef510dba3bb3cd66f7f655007df6b4d6d453a0bc": {
+    "findingId": "f-12",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output."
+    }
+  },
+  "83ee6f9fc047405f265b5988b2f41599615c8b88eee95557906f7fd531e9528d": {
+    "findingId": "f-13",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output."
+    }
+  },
+  "cb32993ae6b07cf2584ba9c4e00c98d5814c6cc1ad544b18c041e02dcadbefad": {
+    "findingId": "f-14",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output."
+    }
+  },
+  "a280b34d456467d5331bf2adeb3ffa6ddd098345a2122ebfdaea039ed4343a85": {
+    "findingId": "f-15",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output."
+    }
+  },
+  "e9055fde06ffa09aa13c2cc9e2cd9c88e506824e4058b41c3faa6b404ed396c1": {
+    "findingId": "f-16",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output."
+    }
+  },
+  "545685799fd15426ac3dda08e0183217ec3d5095ff5282be161e862c6d671dfd": {
+    "findingId": "f-17",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output."
+    }
+  },
+  "94162ecd1185d0c2c4640448995b79a01175231b7be99699377a6253e5303a91": {
+    "findingId": "f-18",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output."
+    }
+  },
+  "1666a598686095d77fb461b769d7c4fd08248b624f313a01d1cfe0878e4f4d60": {
+    "findingId": "f-19",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output."
+    }
+  }
+}

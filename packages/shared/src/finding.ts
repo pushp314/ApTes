@@ -16,6 +16,20 @@
 import type { Severity, Confidence, EngineType } from './types.js';
 
 /**
+ * Structured AI assessment for a low-confidence finding.
+ * Contains the AI's verdict, reasoning, and suggested remediation,
+ * cleanly separated from the deterministic engine's output.
+ */
+export interface AiAssessment {
+  verdict: 'confirmed' | 'likely' | 'uncertain' | 'dismissed';
+  confidence: number;
+  reason: string;
+  impact?: string;
+  remediation?: string;
+  additionalEvidenceNeeded?: string[];
+}
+
+/**
  * A single finding produced by any Sentinel engine.
  *
  * Every finding must answer four questions:
@@ -108,4 +122,10 @@ export interface Finding {
 
   /** ISO 8601 timestamp of when this finding was created. */
   timestamp: string;
+
+  /**
+   * Optional AI assessment for this finding.
+   * Set by the AI Reviewer for eligible low-confidence findings.
+   */
+  aiAssessment?: AiAssessment;
 }

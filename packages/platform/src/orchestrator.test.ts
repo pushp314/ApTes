@@ -17,7 +17,7 @@ const HTML_WIDGET = `
 </head>
 <body>
   <h1>Unified Platform Test</h1>
-  <div data-mcp-target="vulnerable-mcp-server">Chat Widget</div>
+  <div data-mcp-target="test-server">Chat Widget</div>
 </body>
 </html>
 `;
@@ -72,7 +72,7 @@ describe('Unified Platform Orchestrator', () => {
     const webWidgetFinding = report.findings.find(f => f.ruleId === 'web-ai-widget');
     expect(webWidgetFinding).toBeDefined();
     expect(webWidgetFinding?.engine).toBe('web');
-    expect(webWidgetFinding?.evidence?.targetName).toBe('vulnerable-mcp-server');
+    expect(webWidgetFinding?.evidence?.targetName).toBe('test-server');
 
     // 2. Verify MCP Engine ran and found vulnerabilities
     const mcpCriticalFindings = report.findings.filter(f => f.engine === 'mcp' && f.severity === 'critical');
@@ -83,7 +83,7 @@ describe('Unified Platform Orchestrator', () => {
     expect(correlationFinding).toBeDefined();
     expect(correlationFinding?.category).toBe('correlation');
     expect(correlationFinding?.severity).toBe('critical');
-    expect(correlationFinding?.message).toContain('vulnerable-mcp-server');
+    expect(correlationFinding?.message).toContain('test-server');
     expect(correlationFinding?.evidence?.webFindingId).toBe(webWidgetFinding?.id);
     
     // Check that we properly mapped the MCP findings

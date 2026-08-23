@@ -3,6 +3,12 @@ import { Project } from 'ts-morph';
 import { TypeErrorRule } from './type-errors.js';
 import { UnhandledPromiseRule } from './unhandled-promises.js';
 import { UnreachableCodeRule } from './unreachable-code.js';
+import { ApiIntegrationRule } from './api-integration.js';
+import { LogicContradictionsRule } from './logic-contradictions.js';
+import { SecretsRule } from './secrets.js';
+import { InjectionRule } from './injection.js';
+import { AuthRule } from './auth.js';
+import { ContractValidationRule } from './contract-validation.js';
 import type { CodeRuleContext } from '../rule.js';
 
 describe('CodeSentinel Rules', () => {
@@ -159,6 +165,100 @@ describe('CodeSentinel Rules', () => {
         }
       `);
       const findings = UnreachableCodeRule.analyze(context);
+      expect(findings.length).toBe(0);
+    });
+  });
+
+  describe('ApiIntegrationRule', () => {
+    it('detects missing ok check', () => {
+      const context = createTestContext(`
+        async function fetchIt() {
+          const res = await fetch('/api');
+          return res.json();
+        }
+      `);
+      const findings = ApiIntegrationRule.analyze(context);
+      expect(findings.length).toBe(1);
+    });
+    it('ignores handled ok check', () => {
+      const context = createTestContext(`
+        async function fetchIt() {
+          const res = await fetch('/api');
+          if (res.ok) return res.json();
+        }
+      `);
+      const findings = ApiIntegrationRule.analyze(context);
+      expect(findings.length).toBe(0);
+    });
+  });
+
+  describe('LogicContradictionsRule', () => {
+    it('detects always true', () => {
+      const context = createTestContext(`if (true) {}`);
+      const findings = LogicContradictionsRule.analyze(context);
+      expect(findings.length).toBe(1);
+    });
+    it('detects contradictory logic', () => {
+      const context = createTestContext(`if (x === true && x === false) {}`);
+      const findings = LogicContradictionsRule.analyze(context);
+      expect(findings.length).toBe(1);
+    });
+  });
+
+  describe('SecretsRule', () => {
+    it('detects hardcoded openai keys', () => {
+      const context = createTestContext(`const key = "sk-123456789012345678901234567890";`);
+      const findings = SecretsRule.analyze(context);
+      expect(findings.length).toBe(1);
+    });
+    it('ignores generic strings', () => {
+      const context = createTestContext(`const msg = "hello world";`);
+      const findings = SecretsRule.analyze(context);
+      expect(findings.length).toBe(0);
+    });
+  });
+
+  describe('InjectionRule', () => {
+    it('detects SQLi', () => {
+      const context = createTestContext(`db.query(\`SELECT * FROM users WHERE id = \${id}\`);`);
+      const findings = InjectionRule.analyze(context);
+      expect(findings.length).toBe(1);
+    });
+    it('ignores safe db queries', () => {
+      const context = createTestContext(`db.query('SELECT * FROM users');`);
+      const findings = InjectionRule.analyze(context);
+      expect(findings.length).toBe(0);
+    });
+  });
+
+  describe('AuthRule', () => {
+    it('detects missing auth on admin route', () => {
+      const context = createTestContext(`app.post('/admin/settings', (req, res) => {});`);
+      const findings = AuthRule.analyze(context);
+      expect(findings.length).toBe(1);
+    });
+    it('ignores protected admin route', () => {
+      const context = createTestContext(`app.post('/admin/settings', requireAuth, (req, res) => {});`);
+      const findings = AuthRule.analyze(context);
+      expect(findings.length).toBe(0);
+    });
+  });
+
+  describe('ContractValidationRule', () => {
+    it('detects missing backend route', () => {
+      const context = createTestContext(`
+        // No backend routes defined
+        fetch('/api/missing');
+      `);
+      const findings = ContractValidationRule.analyze(context);
+      expect(findings.length).toBe(1);
+    });
+    it('ignores matching backend route', () => {
+      const context = createTestContext(`
+        app.get('/api/users', () => {});
+        fetch('/api/users');
+      `);
+      const findings = ContractValidationRule.analyze(context);
       expect(findings.length).toBe(0);
     });
   });

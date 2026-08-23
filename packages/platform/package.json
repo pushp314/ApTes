@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "main": "dist/index.js",
+  "bin": {
+    "sentinel-platform": "dist/cli.js"
+  },
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "clean": "rm -rf dist"

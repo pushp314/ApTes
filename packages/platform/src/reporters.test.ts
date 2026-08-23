@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import type { Finding } from '@sentinel/shared';
 import type { UnifiedReport } from './orchestrator.js';
 import { JsonReporter, MarkdownReporter, HtmlReporter, CliReporter } from './reporters/index.js';
 
@@ -50,9 +51,9 @@ const mockReport: UnifiedReport = {
       message: 'Correlated finding',
       location: 'platform',
       timestamp: '2026-01-01T00:00:00Z',
-    }
+    } as unknown as Finding
   ]
-};
+} as UnifiedReport;
 
 describe('Reporters', () => {
   it('JsonReporter generates valid JSON', () => {

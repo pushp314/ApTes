@@ -64,6 +64,12 @@ export class HtmlReporter implements Reporter {
               <p><strong>Rule ID:</strong> ${finding.ruleId}</p>
               <p><strong>Message:</strong> ${finding.message}</p>
               ${finding.remediation ? `<p><strong>Remediation:</strong> ${finding.remediation}</p>` : ''}
+              ${finding.aiAssessment ? `
+              <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 1rem; margin-top: 1rem; border-radius: 0.5rem;">
+                <h4 style="margin-top: 0;">🤖 AI Assessment: ${finding.aiAssessment.verdict.toUpperCase()} (${(finding.aiAssessment.confidence * 100).toFixed(0)}%)</h4>
+                <p style="margin-bottom: 0;">${finding.aiAssessment.reason}</p>
+              </div>
+              ` : ''}
             </div>
           `;
         }

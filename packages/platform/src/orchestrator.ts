@@ -15,6 +15,9 @@ export interface ProjectDefinition {
   webUrl: string;
   mcpTargets: McpTarget[];
   aiEnabled?: boolean;
+  aiBudget?: number;
+  aiModel?: string;
+  aiUrl?: string;
 }
 
 export interface UnifiedReport {
@@ -30,7 +33,13 @@ export async function runUnifiedPlatform(project: ProjectDefinition, timeoutMs: 
   const errors: string[] = [];
   let allFindings: Finding[] = [];
   
-  const aiReviewer = new AiReviewer({ enabled: project.aiEnabled ?? false });
+  const aiReviewer = new AiReviewer({ 
+    enabled: project.aiEnabled ?? false,
+    budget: project.aiBudget,
+    model: project.aiModel,
+    url: project.aiUrl,
+    projectId: project.id
+  });
 
   const webRules = [
     ConsoleErrorsRule,
@@ -71,7 +80,16 @@ export async function runUnifiedPlatform(project: ProjectDefinition, timeoutMs: 
       if (mcpResult.error) {
         errors.push(`MCP Engine Error (${target.command}): ${mcpResult.error}`);
       } else {
-        allFindings = allFindings.concat(mcpResult.findings);
+        // Tag MCP findings with the target command so they can be correlated precisely
+        const targetString = `${target.command} ${target.args.join(' ')}`;
+        const taggedFindings = mcpResult.findings.map(f => ({
+          ...f,
+          evidence: {
+            ...f.evidence,
+            mcpTargetCommand: targetString
+          }
+        }));
+        allFindings = allFindings.concat(taggedFindings);
       }
     }
 
@@ -82,9 +100,15 @@ export async function runUnifiedPlatform(project: ProjectDefinition, timeoutMs: 
     const mcpVulnerabilities = allFindings.filter(f => f.engine === 'mcp' && (f.severity === 'high' || f.severity === 'critical'));
 
     for (const widget of webWidgets) {
-      if (mcpVulnerabilities.length > 0) {
-        const connectedTarget = widget.evidence?.targetName || 'unknown-target';
-        
+      const connectedTarget = widget.evidence?.targetName as string || 'unknown-target';
+      
+      // Only correlate if the MCP vulnerability actually came from the connected target
+      const specificMcpVulnerabilities = mcpVulnerabilities.filter(
+        v => typeof v.evidence?.mcpTargetCommand === 'string' && 
+             v.evidence.mcpTargetCommand.includes(connectedTarget)
+      );
+
+      if (specificMcpVulnerabilities.length > 0) {
         allFindings.push({
           id: randomUUID(),
           projectId: project.id,
@@ -95,11 +119,11 @@ export async function runUnifiedPlatform(project: ProjectDefinition, timeoutMs: 
           severity: 'critical',
           confidence: 'high',
           title: 'Critically Vulnerable AI Agent Exposed on Frontend',
-          message: `The web frontend exposes an AI chat widget/component (connected to '${connectedTarget}') while the connected backend MCP server has ${mcpVulnerabilities.length} critical/high vulnerabilities.`,
+          message: `The web frontend exposes an AI chat widget/component (connected to '${connectedTarget}') while the connected backend MCP server has ${specificMcpVulnerabilities.length} critical/high vulnerabilities.`,
           location: widget.location,
           evidence: {
             webFindingId: widget.id,
-            mcpFindingIds: mcpVulnerabilities.map(v => v.id),
+            mcpFindingIds: specificMcpVulnerabilities.map(v => v.id),
           },
           remediation: 'Address the underlying MCP vulnerabilities immediately or disconnect the agent from the frontend.',
           timestamp: new Date().toISOString(),

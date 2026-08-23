@@ -43,6 +43,10 @@ export class CliReporter implements Reporter {
         if (finding.remediation) {
           out += `             Fix: ${finding.remediation}\n`;
         }
+        if (finding.aiAssessment) {
+          out += `             [AI] Verdict: ${finding.aiAssessment.verdict.toUpperCase()} (${(finding.aiAssessment.confidence * 100).toFixed(0)}%)\n`;
+          out += `             [AI] Reason: ${finding.aiAssessment.reason}\n`;
+        }
         out += `\n`;
       }
     }

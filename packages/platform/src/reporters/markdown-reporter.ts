@@ -53,6 +53,10 @@ export class MarkdownReporter implements Reporter {
         if (finding.remediation) {
           md += `  - **Remediation:** ${finding.remediation}\n`;
         }
+        if (finding.aiAssessment) {
+          md += `  - **🤖 AI Verdict:** ${finding.aiAssessment.verdict.toUpperCase()} (${(finding.aiAssessment.confidence * 100).toFixed(0)}%)\n`;
+          md += `  - **🤖 AI Insight:** ${finding.aiAssessment.reason}\n`;
+        }
         md += `\n`;
       }
     }
