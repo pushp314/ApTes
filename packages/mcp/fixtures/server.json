@@ -1,0 +1,9 @@
+{
+  "tools": [
+    {
+      "name": "safe_tool",
+      "description": "A safe tool",
+      "inputSchema": { "type": "object", "properties": {} }
+    }
+  ]
+}

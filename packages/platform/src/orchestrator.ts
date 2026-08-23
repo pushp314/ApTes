@@ -113,7 +113,7 @@ export async function runUnifiedPlatform(project: ProjectDefinition, timeoutMs: 
           id: randomUUID(),
           projectId: project.id,
           runId: widget.runId,
-          engine: 'platform', // Platform-level correlated finding
+          engine: 'web', // Associated with the web app since it's the frontend exposing it
           ruleId: 'platform-mcp-exposure',
           category: 'correlation',
           severity: 'critical',

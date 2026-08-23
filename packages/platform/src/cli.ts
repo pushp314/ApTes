@@ -11,7 +11,11 @@ const program = new Command();
 program
   .name('sentinel')
   .description('Sentinel Unified Platform Scanner')
-  .version('0.1.0')
+  .version('0.1.0');
+
+program
+  .command('scan', { isDefault: true })
+  .description('Run a scan via CLI arguments')
   .requiredOption('--project <id>', 'Project ID')
   .requiredOption('--web <url>', 'Web application URL to scan')
   .requiredOption('--mcp <command>', 'MCP server command to run (e.g. "node server.js")')
@@ -66,6 +70,46 @@ program
       }
     } catch (err) {
       console.error('Fatal error during platform scan:', err);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('run <configFile>')
+  .description('Run a scan using a JSON configuration file')
+  .option('--format <format>', 'Output format: cli, json, html, md', 'cli')
+  .option('--out <file>', 'Output file path (optional)')
+  .action(async (configFile, options) => {
+    try {
+      const configStr = await fs.readFile(path.resolve(configFile), 'utf-8');
+      const project = JSON.parse(configStr);
+
+      console.log(`Starting Sentinel Platform Scan from config: ${configFile}`);
+      const report = await runUnifiedPlatform(project, 30000);
+
+      let reporter;
+      switch (options.format) {
+        case 'json': reporter = new JsonReporter(); break;
+        case 'html': reporter = new HtmlReporter(); break;
+        case 'md': reporter = new MarkdownReporter(); break;
+        case 'cli': 
+        default: reporter = new CliReporter(); break;
+      }
+
+      const output = reporter.generate(report);
+
+      if (options.out) {
+        await fs.writeFile(path.resolve(options.out), output, 'utf-8');
+        console.log(`Report written to ${options.out}`);
+      } else {
+        console.log('\n' + output);
+      }
+
+      if (report.errors.length > 0) {
+        process.exit(1);
+      }
+    } catch (err) {
+      console.error('Fatal error during config run:', err);
       process.exit(1);
     }
   });

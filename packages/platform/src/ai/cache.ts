@@ -6,12 +6,15 @@ import crypto from 'node:crypto';
 export class AICache {
   private cache: Record<string, AIAnalysis> = {};
   private cachePath: string;
+  private inMemory: boolean;
 
-  constructor(projectDir: string) {
+  constructor(projectDir: string, inMemory: boolean = false) {
     this.cachePath = path.join(projectDir, '.sentinel-ai-cache.json');
+    this.inMemory = inMemory;
   }
 
   async load(): Promise<void> {
+    if (this.inMemory) return;
     try {
       const data = await fs.readFile(this.cachePath, 'utf-8');
       this.cache = JSON.parse(data);
@@ -21,6 +24,7 @@ export class AICache {
   }
 
   async save(): Promise<void> {
+    if (this.inMemory) return;
     try {
       await fs.writeFile(this.cachePath, JSON.stringify(this.cache, null, 2), 'utf-8');
     } catch {

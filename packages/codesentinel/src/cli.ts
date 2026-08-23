@@ -15,6 +15,7 @@
 /* eslint-disable no-console */
 
 import * as path from 'node:path';
+import * as fs from 'node:fs/promises';
 import { Command } from 'commander';
 import { createConfig } from './config.js';
 import { scan } from './scanner.js';
@@ -38,7 +39,10 @@ program
     'File extensions to scan (comma-separated)',
     '.ts,.tsx,.js,.jsx',
   )
-  .action(async (targetPath: string, options: { cache: boolean; extensions: string }) => {
+  .option('--export <path>', 'Export findings to JSON file')
+  .option('--ai', 'Enable AI analysis for low confidence findings', false)
+  .option('--budget <number>', 'Maximum number of findings for AI', '5')
+  .action(async (targetPath: string, options: { cache: boolean; extensions: string; export?: string; ai?: boolean; budget?: string }) => {
     const resolvedPath = path.resolve(targetPath);
 
     const config = createConfig({
@@ -62,13 +66,40 @@ program
 
       console.log(`Files parsed:      ${result.filesParsed}`);
 
-      if (result.findings.length > 0) {
-        console.log(`\n🚨 Findings (${result.findings.length}):`);
-        for (const finding of result.findings) {
+      let finalFindings = result.findings;
+
+      if (options.ai) {
+        console.log(`\n[Sentinel AI] Running AI analysis on low-confidence findings (Budget: ${options.budget})...`);
+        try {
+          // @ts-ignore: Platform may not be linked; we load it dynamically
+          const { AiReviewer } = await import('@sentinel/platform');
+          const reviewer = new AiReviewer({
+            enabled: true,
+            budget: options.budget ? parseInt(options.budget, 10) : 5,
+            projectId: 'codesentinel-local'
+          }, resolvedPath);
+          finalFindings = await reviewer.review(finalFindings);
+        } catch (err) {
+          console.error("\n[!] Failed to load AI modules. Ensure @sentinel/platform is built and linked.", err);
+          process.exit(1);
+        }
+      }
+
+      if (options.export) {
+        await fs.writeFile(path.resolve(options.export), JSON.stringify(finalFindings, null, 2), 'utf-8');
+        console.log(`\nFindings exported to ${options.export}`);
+      }
+
+      if (finalFindings.length > 0) {
+        console.log(`\n🚨 Findings (${finalFindings.length}):`);
+        for (const finding of finalFindings) {
           console.log(`\n  [${finding.severity.toUpperCase()}] ${finding.title}`);
           console.log(`  Rule:     ${finding.ruleId} (${finding.category})`);
           console.log(`  Location: ${finding.location}`);
           console.log(`  Message:  ${finding.message}`);
+          if (finding.aiAssessment) {
+            console.log(`  AI Verdict: [${finding.aiAssessment.verdict.toUpperCase()}] ${finding.aiAssessment.reason}`);
+          }
           console.log(`  Fix:      ${finding.remediation}`);
         }
         console.log('');
@@ -97,7 +128,7 @@ program
       console.log(`Scan complete in ${result.durationMs}ms`);
 
       // Exit with error code if there were findings or parse errors
-      if (result.findings.length > 0 || result.parseErrors.length > 0) {
+      if (finalFindings.length > 0 || result.parseErrors.length > 0) {
         process.exit(1);
       }
     } catch (e) {

@@ -9,6 +9,7 @@ export class OllamaProvider implements AIProvider {
     
     // We create a structured JSON prompt asking Ollama to output exactly the expected schema.
     const prompt = this.buildPrompt(findings);
+    const estimatedInputTokens = Math.ceil(prompt.split(/\s+/).length * 1.3);
 
     try {
       const controller = new AbortController();
@@ -35,6 +36,11 @@ export class OllamaProvider implements AIProvider {
       }
 
       const data = await response.json() as { response: string };
+      const estimatedOutputTokens = Math.ceil(data.response.split(/\s+/).length * 1.3);
+      
+      // eslint-disable-next-line no-console
+      console.log(`[Sentinel AI] Batch tokens estimated: ~${estimatedInputTokens} input, ~${estimatedOutputTokens} output.`);
+
       return this.parseResponse(data.response, findings);
     } catch (err) {
       // If Ollama is down, timeout occurs, or parse error, return empty array to fail gracefully

@@ -10,8 +10,9 @@ export interface AiReviewerOptions {
   provider?: 'ollama' | 'mock';
   model?: string;
   url?: string;
-  budget?: number; // max number of batches (calls)
+  budget?: number; // max number of findings
   projectId: string;
+  inMemoryCache?: boolean;
 }
 
 /**
@@ -25,7 +26,6 @@ export class AiReviewer {
   private cache: AICache;
   private collector: ContextCollector;
   private redactor: SecretRedactor;
-  private callsMade = 0;
 
   constructor(options: Partial<AiReviewerOptions> & { projectId: string }, private projectDir: string = process.cwd()) {
     this.options = {
@@ -34,10 +34,11 @@ export class AiReviewer {
       model: options.model ?? 'llama3',
       url: options.url,
       budget: options.budget ?? 0, // 0 budget means no AI unless explicitly requested with >0
-      projectId: options.projectId
+      projectId: options.projectId,
+      inMemoryCache: options.inMemoryCache ?? false
     };
 
-    this.cache = new AICache(this.projectDir);
+    this.cache = new AICache(this.projectDir, this.options.inMemoryCache);
     this.collector = new ContextCollector();
     this.redactor = new SecretRedactor();
 
@@ -102,28 +103,30 @@ export class AiReviewer {
       }
     }
 
-    // 2. Batch & Process
-    const batchSize = 10;
-    for (let i = 0; i < pendingReview.length; i += batchSize) {
-      if (this.callsMade >= this.options.budget) {
-        // Budget exhausted: push remaining without AI
-        // eslint-disable-next-line no-console
-        console.warn(`[Sentinel AI] Budget exhausted (${this.options.budget}). Skipping remaining ${pendingReview.length - i} findings.`);
-        for (let j = i; j < pendingReview.length; j++) {
-          const r = pendingReview[j];
-          if (r) reviewedFindings.push(r);
-        }
-        break;
-      }
+    // 2. Budget Enforcement & Batching
+    const allowedCount = this.options.budget!;
+    const toProcess = pendingReview.slice(0, allowedCount);
+    const toSkip = pendingReview.slice(allowedCount);
 
-      const batch = pendingReview.slice(i, i + batchSize);
+    if (toSkip.length > 0) {
+      // eslint-disable-next-line no-console
+      console.warn(`[Sentinel AI] Budget exhausted (${this.options.budget}). Skipping remaining ${toSkip.length} findings.`);
+      for (const r of toSkip) {
+        // Remove internal tracking field
+        delete (r as unknown as Record<string, unknown>)._fingerprint;
+        reviewedFindings.push(r);
+      }
+    }
+
+    const batchSize = 10;
+    for (let i = 0; i < toProcess.length; i += batchSize) {
+      const batch = toProcess.slice(i, i + batchSize);
       const aiContext: AIContext = {
         model: this.options.model || 'llama3',
         url: this.options.url,
         timeoutMs: 30000
       };
 
-      this.callsMade++;
       const analyses = await this.provider.analyzeFindings(batch, aiContext);
 
       for (const finding of batch) {

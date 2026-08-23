@@ -93,7 +93,7 @@ describe('AiReviewer', () => {
     // If budget is 1, they both get analyzed because they are in the same batch.
     
     // Let's test a scenario where we force budget limits:
-    const reviewer = new AiReviewer({ enabled: true, budget: 1, provider: 'mock', projectId: 'test' });
+    const reviewer = new AiReviewer({ enabled: true, budget: 10, provider: 'mock', projectId: 'test', inMemoryCache: true });
     
     // Since batch size is 10, if we pass 20 findings, it takes 2 batches.
     const baseFinding = JSON.parse(JSON.stringify(mockFindings[1]));
