@@ -162,4 +162,10 @@ class MockProvider implements AIProvider {
       }
     }));
   }
+
+  async generateStructured(): Promise<null> {
+    // The mock never produces narrative content; callers fall back
+    // to deterministic rendering.
+    return null;
+  }
 }

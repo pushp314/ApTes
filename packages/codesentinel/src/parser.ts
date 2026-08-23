@@ -14,6 +14,8 @@
  * when actual detection rules are implemented.
  */
 
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { Project, type SourceFile, ts } from 'ts-morph';
 import type { WalkedFile } from './walker.js';
 import { PythonParser, type PythonParseResult } from './parser/python.js';
@@ -53,6 +55,25 @@ export interface ParseError {
 }
 
 // ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Locate a tsconfig.json for the scanned project so that path aliases
+ * (e.g. `@repo/ui` in monorepos) resolve correctly. Returns undefined when
+ * no tsconfig.json exists at the project root.
+ */
+function findTsConfig(targetDir: string): string | undefined {
+  const candidate = path.join(targetDir, 'tsconfig.json');
+  try {
+    fs.accessSync(candidate);
+    return candidate;
+  } catch {
+    return undefined;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
@@ -65,18 +86,26 @@ export interface ParseError {
  * @returns Parse result with ASTs and any errors.
  */
 export function parseFiles(files: WalkedFile[], targetDir: string = process.cwd()): ParseResult {
+  const tsConfigPath = findTsConfig(targetDir);
+
+  // When a tsconfig.json exists we inherit its compilerOptions (including
+  // `paths` aliases) but still only analyze the files the walker selected.
   const project = new Project({
-    compilerOptions: {
-      target: ts.ScriptTarget.ES2022,
-      module: ts.ModuleKind.Node16,
-      moduleResolution: ts.ModuleResolutionKind.Node16,
-      strict: true,
-      noEmit: true,
-      allowJs: true,
-      checkJs: true,
-      skipLibCheck: true,
-      esModuleInterop: true,
-    },
+    ...(tsConfigPath
+      ? { tsConfigFilePath: tsConfigPath }
+      : {
+          compilerOptions: {
+            target: ts.ScriptTarget.ES2022,
+            module: ts.ModuleKind.Node16,
+            moduleResolution: ts.ModuleResolutionKind.Node16,
+            strict: true,
+            noEmit: true,
+            allowJs: true,
+            checkJs: true,
+            skipLibCheck: true,
+            esModuleInterop: true,
+          },
+        }),
     skipAddingFilesFromTsConfig: true,
     skipFileDependencyResolution: false,
   });

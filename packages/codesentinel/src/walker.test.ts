@@ -117,4 +117,57 @@ describe('walkProject', () => {
 
     expect(paths1).toEqual(paths2);
   });
+
+  it('excludes root-relative directories via excludePatterns', async () => {
+    const config = createConfig({
+      respectGitignore: false,
+      excludePatterns: ['src/vulnerable/**'],
+    });
+    const result = await walkProject(SAMPLE_PROJECT, config);
+
+    const relativePaths = result.files.map((f) => f.relativePath);
+
+    expect(
+      relativePaths.some((p) => p.startsWith(path.join('src', 'vulnerable') + path.sep))
+    ).toBe(false);
+    expect(relativePaths).toContain(path.join('src', 'utils.ts'));
+  });
+
+  it('matches exclude globs at any directory depth', async () => {
+    const config = createConfig({
+      respectGitignore: false,
+      excludePatterns: ['vulnerable/**'],
+    });
+    const result = await walkProject(SAMPLE_PROJECT, config);
+
+    const relativePaths = result.files.map((f) => f.relativePath);
+
+    expect(relativePaths.some((p) => p.split(path.sep).includes('vulnerable'))).toBe(false);
+  });
+
+  it('respects .sentinelignore patterns', async () => {
+    const os = await import('node:os');
+    const fsPromises = await import('node:fs/promises');
+
+    const tmpDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'sentinel-ignore-'));
+    try {
+      await fsPromises.mkdir(path.join(tmpDir, 'keep'), { recursive: true });
+      await fsPromises.mkdir(path.join(tmpDir, 'secret-lab'), { recursive: true });
+      await fsPromises.writeFile(path.join(tmpDir, '.sentinelignore'), 'secret-lab/\n');
+      await fsPromises.writeFile(path.join(tmpDir, 'keep', 'a.ts'), 'export const a = 1;\n');
+      await fsPromises.writeFile(
+        path.join(tmpDir, 'secret-lab', 'b.ts'),
+        'export const b = 2;\n'
+      );
+
+      const config = createConfig({ respectGitignore: false });
+      const result = await walkProject(tmpDir, config);
+      const relativePaths = result.files.map((f) => f.relativePath);
+
+      expect(relativePaths).toContain(path.join('keep', 'a.ts'));
+      expect(relativePaths.some((p) => p.includes('secret-lab'))).toBe(false);
+    } finally {
+      await fsPromises.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
 });

@@ -23,6 +23,13 @@ export const TypeErrorRule: CodeRule = {
 
   analyze(context: CodeRuleContext): Finding[] {
     const findings: Finding[] = [];
+
+    // JS-only projects produce hundreds of implicit-any diagnostics that are
+    // not real vulnerabilities — operators can suppress them explicitly.
+    if (context.skipTypeErrors) {
+      return findings;
+    }
+
     const sourceFile = context.sourceFile;
 
     // Get semantic diagnostics (type errors, missing symbols, etc.)

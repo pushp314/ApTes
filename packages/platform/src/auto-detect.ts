@@ -12,7 +12,7 @@ export async function detectStartCommand(dir: string): Promise<string | undefine
     try {
       const pkgRaw = await fs.readFile(pkgPath, 'utf8');
       const pkg = JSON.parse(pkgRaw);
-      
+
       if (pkg.scripts) {
         if (pkg.scripts.start) return 'npm start';
         if (pkg.scripts.dev) return 'npm run dev';
@@ -20,6 +20,38 @@ export async function detectStartCommand(dir: string): Promise<string | undefine
       }
     } catch {
       // Ignore if no package.json
+    }
+
+    // 1.5 Monorepo workspaces — probe apps/* and packages/* when the root
+    // package.json has no usable start script (e.g. Turborepo templates).
+    const workspaceDirs = ['apps', 'packages'];
+    for (const workspaceDir of workspaceDirs) {
+      let entries: import('node:fs').Dirent[];
+      try {
+        entries = await fs.readdir(path.join(dir, workspaceDir), { withFileTypes: true });
+      } catch {
+        continue;
+      }
+
+      const subDirs = entries
+        .filter(e => e.isDirectory() && !e.name.startsWith('.'))
+        .map(e => e.name)
+        .sort();
+
+      for (const sub of subDirs) {
+        try {
+          const subPkgRaw = await fs.readFile(
+            path.join(dir, workspaceDir, sub, 'package.json'),
+            'utf8'
+          );
+          const subPkg = JSON.parse(subPkgRaw);
+          if (subPkg.scripts?.start) return 'npm start';
+          if (subPkg.scripts?.dev) return 'npm run dev';
+          if (subPkg.scripts?.server) return 'npm run server';
+        } catch {
+          // Ignore missing/unreadable workspace packages
+        }
+      }
     }
 
     // 2. Check for docker-compose
@@ -48,7 +80,7 @@ export async function detectStartCommand(dir: string): Promise<string | undefine
     }
 
     return undefined;
-  } catch (err) {
+  } catch {
     return undefined;
   }
 }

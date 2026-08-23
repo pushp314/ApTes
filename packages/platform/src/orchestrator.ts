@@ -1,7 +1,7 @@
 import { runWebEngine, ConsoleErrorsRule, FailedRequestsRule, FormsRule, PageStructureRule, PerformanceRule, SecurityHeadersRule, CookieSecurityRule, MixedContentRule, AiWidgetRule } from '@sentinel/web';
 import { runMcpEngine, ToolCountRule, SchemaRigorRule, PrivilegeAnalysisRule, TransportSecurityRule, CveMatchingRule } from '@sentinel/mcp';
 import { scan as runCodeEngine, createConfig as createCodeConfig } from '@sentinel/codesentinel';
-import type { Finding } from '@sentinel/shared';
+import type { Finding, AuditChapter } from '@sentinel/shared';
 import { randomUUID } from 'node:crypto';
 
 import { AiReviewer } from './ai-reviewer.js';
@@ -21,6 +21,10 @@ export interface ProjectDefinition {
   webUrl: string;
   mcpTargets: McpTarget[];
   codePath?: string;
+  /** Glob patterns of files/directories the Code Engine must skip (e.g. "fixtures/**"). */
+  excludePatterns?: string[];
+  /** Suppress ts-type-error diagnostics for JS-only codebases. */
+  skipTypeErrors?: boolean;
   /** Explicit attestation that the operator may scan this web target. */
   authorizationConfirmed: boolean;
   /** ISO-8601 timestamp at which the web-target attestation was made. */
@@ -63,6 +67,8 @@ export interface UnifiedReport {
   overallScore: number;
   findings: Finding[];
   errors: string[];
+  /** Optional AI-generated thematic chapters (advisory, never deterministic data). */
+  chapters?: AuditChapter[];
 }
 
 export async function runUnifiedPlatform(project: ProjectDefinition, timeoutMs: number = 30000): Promise<UnifiedReport> {
@@ -156,7 +162,9 @@ export async function runUnifiedPlatform(project: ProjectDefinition, timeoutMs: 
       try {
         const codeResult = await runCodeEngine(project.codePath, createCodeConfig({
           maxFiles: 1000,
-          useCache: false
+          useCache: false,
+          excludePatterns: project.excludePatterns ?? [],
+          skipTypeErrors: project.skipTypeErrors ?? false
         }));
         allFindings = allFindings.concat(codeResult.findings);
       } catch (err) {

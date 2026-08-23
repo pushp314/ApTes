@@ -296,5 +296,362 @@
       "remediation": "Review the mock output.",
       "patch": "--- a/src/vulnerable.ts\n+++ b/src/vulnerable.ts\n@@ -1,2 +1,2 @@\n-const bad = true;\n+const bad = false;\n"
     }
+  },
+  "31dea43cf243a89b109b24029106378c99b2d8636b66aa18b1903959c672af34": {
+    "findingId": "a5e707c2-b97c-46d8-bf7d-809f36a76f3e",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output.",
+      "patch": "--- a/src/vulnerable.ts\n+++ b/src/vulnerable.ts\n@@ -1,2 +1,2 @@\n-const bad = true;\n+const bad = false;\n"
+    }
+  },
+  "19661c15033ee47cb55bb06f5f7be7eb54d8bc3f2b3165cfde5af3979cb5dd03": {
+    "findingId": "1be0646c-871e-481a-bb33-78b181c166e7",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output.",
+      "patch": "--- a/src/vulnerable.ts\n+++ b/src/vulnerable.ts\n@@ -1,2 +1,2 @@\n-const bad = true;\n+const bad = false;\n"
+    }
+  },
+  "a58c4620caf44e1db0c19461a4c48947086f2a1ee9e0b48a342c533129a703ab": {
+    "findingId": "14c369a8-6e20-4a85-aa2d-0eff09792a26",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output.",
+      "patch": "--- a/src/vulnerable.ts\n+++ b/src/vulnerable.ts\n@@ -1,2 +1,2 @@\n-const bad = true;\n+const bad = false;\n"
+    }
+  },
+  "50937066f3aa7bb0517c068e15f8d4d0b12652e8f5cf84f1fa238c9272953c80": {
+    "findingId": "4e454769-19dd-4502-8c73-e9cf455c5925",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output.",
+      "patch": "--- a/src/vulnerable.ts\n+++ b/src/vulnerable.ts\n@@ -1,2 +1,2 @@\n-const bad = true;\n+const bad = false;\n"
+    }
+  },
+  "77d2f5c7db1eba494e74e019e601116f283bf1865aa22c96ba8a2baa7a9e5526": {
+    "findingId": "6c74ae8c-6d78-4331-95d9-39c7a517552b",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output.",
+      "patch": "--- a/src/vulnerable.ts\n+++ b/src/vulnerable.ts\n@@ -1,2 +1,2 @@\n-const bad = true;\n+const bad = false;\n"
+    }
+  },
+  "6713db2662fcc8e892d4de49072def640955164c9c66eb2beb285f2c000a3316": {
+    "findingId": "98c718d3-4b43-4586-80ce-65a0247ebcff",
+    "assessment": {
+      "verdict": "likely",
+      "confidence": 0.85,
+      "reason": "Mock AI assessment determined this is likely an issue.",
+      "remediation": "Review the mock output.",
+      "patch": "--- a/src/vulnerable.ts\n+++ b/src/vulnerable.ts\n@@ -1,2 +1,2 @@\n-const bad = true;\n+const bad = false;\n"
+    }
+  },
+  "c3ba986055e9403804659ee95ea096c829e61c37b962acdb9ecd6853ee9547b4": {
+    "plainExplanation": "Mock explanation of the finding.",
+    "attackerScenario": "Mock attacker scenario.",
+    "businessImpact": "Mock business impact.",
+    "fixSteps": [
+      "Step one",
+      "Step two"
+    ]
+  },
+  "120dd43a6098f1a50255c7433eaa30a35eec853cdbf5fe3c934dca7644a10a68": {
+    "plainExplanation": "Mock explanation of the finding.",
+    "attackerScenario": "Mock attacker scenario.",
+    "businessImpact": "Mock business impact.",
+    "fixSteps": [
+      "Step one",
+      "Step two"
+    ]
+  },
+  "6e0aaf16706a1f919e99cdeb9292df4cfa8d5c6cc1016c73244c32071abcc6ed": {
+    "chapters": [
+      {
+        "title": "Authentication gaps",
+        "intro": "Mock chapter intro.",
+        "findingIds": [
+          "cf0b9021-2a46-4fa2-b507-d33690e95d51",
+          "7cfe372b-14e4-449f-ab98-78d5d66594aa",
+          "1e195e51-6996-405f-af36-845e11f1ad59",
+          "65e2b266-3879-4ba8-9346-ae9526f14ce8",
+          "bb56f4f3-5416-4404-ad43-8eaeb55b5e30",
+          "aff52160-9164-4091-96f1-7c66ea272544",
+          "e156600b-dd88-426f-b7d8-f8d1de7deb5f",
+          "dbb5b257-60b5-4cf9-afce-74c90b0b096f",
+          "934ebdee-0ec6-4d86-967d-75c48eaccf50",
+          "599f16af-49a8-4b47-8edd-646b4e6edfcb",
+          "ce6f9d19-5353-4580-90de-f2fefd22fd06",
+          "68dcad2d-db1f-4844-8d76-785700dc4f86",
+          "d249a294-6f72-4f8e-b099-7a1f3fb5bf77",
+          "57d8bf07-96c3-4a0c-98c0-8605ce1d0bad",
+          "12b4ac12-f8be-466b-903d-f83ae174d971",
+          "bdb7ad43-56aa-46b3-be00-862ffa4b10a0",
+          "4ba5be93-39c7-4e5d-a951-bed980071ab0",
+          "3bdab84a-975b-45c7-97f7-4f9a23596567",
+          "f157b0e9-74b5-421a-a15f-eaa669159fda",
+          "505af419-5239-408b-b4cb-30251ba99b54",
+          "95835d52-7abc-4c3d-8ade-6dc56e2d2cae",
+          "987f0631-6cfd-4617-b804-bd4c1f514b97",
+          "b7047efc-3e6f-4c47-a253-ac91fc1d6776",
+          "800a9752-e94f-4df2-980b-688a0e80fd03",
+          "029c4a92-0d84-4650-8bf0-d121e130ac64",
+          "2c06a264-2c68-466c-be1c-7673fd5b7029",
+          "5e202d9b-a7df-4dca-afe2-5263ad994ac2",
+          "a94f43fa-3812-4399-aaae-f7a7f247717f",
+          "cb4eb6d5-9109-429c-89eb-8d890d4b49e5",
+          "471d749e-a43c-4cc7-aadc-267877b02b4e",
+          "f8f5e45d-72ab-4e89-a88b-6105f04e99b9",
+          "e9f056f2-9c8b-46ff-8b21-15d0f2c36906",
+          "ed50e311-ed0d-4f38-8f37-499bc5f11c1d",
+          "fbccbb73-806c-41b1-a581-7d569c88f333",
+          "8bb87ac6-186c-4980-90cb-fbe9517e1ebc",
+          "40f9a13a-bd09-4cf8-ba9c-c2c5da2b00de",
+          "50e7d39e-a2c4-4bb8-94db-633c5b1e4314",
+          "c12f7cc2-81dc-4dd8-8622-76ccca91f549",
+          "fb2aecc9-72ba-4037-93e2-b203035462d9",
+          "755d0246-ee5d-4ca1-9568-2ea3ca9dd862",
+          "f851d1e9-2ce4-4225-91c0-297badf95bc2",
+          "15b1c840-3a95-46b3-beaf-e3e7f8a475b1",
+          "2029adfd-ef1a-426e-9296-5bfd08ba6dad",
+          "2214cd1d-4153-4fdf-a8f1-b08fc28a4a88",
+          "d63f6d54-4890-439a-9297-25b1ed26ee5c",
+          "431cad31-d13f-4107-b6f6-98b9d96c566c",
+          "93495ed6-e2ff-474f-8e67-ea3a35c9cb59",
+          "1a7dc9d7-40fb-4705-8741-a36177bb3eb3",
+          "e7487277-3fa9-4098-897a-de7b9db477ff",
+          "57660ce3-14f8-4db7-a0c2-408e0346478e",
+          "c85f06cc-1cf2-4479-8714-5b18aa18423a",
+          "4a93b769-43be-4265-940b-53ab9cd17e68",
+          "2ff96b8a-e218-4698-a95d-2885c444e437",
+          "e8b5ead2-c04e-42c7-b74a-0eb387dcd176",
+          "834281a9-1e30-47b8-b12b-85d750d7c033",
+          "815cbe1b-609e-4eb9-9c10-c0638f24a0de",
+          "14d8be81-3867-4fcb-8d3a-00097ecee47f",
+          "96a36bd2-5de1-43c4-9f30-9d97c7c052f5",
+          "2978e130-0419-4a58-8c32-877afb62532c",
+          "25fcafbf-cbff-4274-a162-539167ca2061",
+          "a4700216-f937-46a1-8e88-2622cb934a04",
+          "4bb508a9-bdac-4c35-937b-b5bc3a6baae0",
+          "98c718d3-4b43-4586-80ce-65a0247ebcff"
+        ]
+      },
+      {
+        "title": "Invalid references",
+        "intro": "Should be filtered.",
+        "findingIds": [
+          "fake-id-1",
+          "fake-id-2"
+        ]
+      }
+    ]
+  },
+  "5c6c3d546ecdf90f80fa351694491e7c3b6942d8d99aeac752e426693e3429e8": {
+    "plainExplanation": "Mock explanation of the finding.",
+    "attackerScenario": "Mock attacker scenario.",
+    "businessImpact": "Mock business impact.",
+    "fixSteps": [
+      "Step one",
+      "Step two"
+    ]
+  },
+  "b7f48dad1dc75f4c363cee45fe19fbb5cfbe52ce49745c68a0c169eac5cc89cc": {
+    "plainExplanation": "Mock explanation of the finding.",
+    "attackerScenario": "Mock attacker scenario.",
+    "businessImpact": "Mock business impact.",
+    "fixSteps": [
+      "Step one",
+      "Step two"
+    ]
+  },
+  "d7786cfc9cb276b113de3184591fbc4d9c600b39f4b62f84c4b6f7b021459429": {
+    "chapters": [
+      {
+        "title": "Authentication gaps",
+        "intro": "Mock chapter intro.",
+        "findingIds": [
+          "69af0dde-47e3-49e4-8ce6-7f5ef97ac3ed",
+          "8b7b8985-a4e7-43ba-8f90-e857eae29b32",
+          "cb8192f3-0b79-4d55-8bc9-b9142322acff",
+          "cd2226e1-521c-4c75-a03d-2a3daf70dfe4",
+          "5abe47fd-23b5-4294-b05b-7aa431d239be",
+          "971dbf2a-ff92-4bf7-a23e-a3faa892064a",
+          "b6e5c341-ad8f-49ee-aac7-19a624935dc1",
+          "4b26b427-df20-49b6-9345-5ec1f8ef90d1",
+          "269a99f3-c7f6-438a-b911-02688eafdf39",
+          "7d57de60-04c7-4ff2-aec7-2ef729c090ef",
+          "a35d7b87-0c65-46b0-905c-b83e550060f8",
+          "f637b14b-3366-41b5-84bd-3f96fa15d61a",
+          "e17a834b-a262-4bae-80e8-7a167a675529",
+          "802f2f0a-dee2-48f1-ae26-7fd5ea1d8fa4",
+          "805b0a42-5fcd-4b15-9c3d-124946f32509",
+          "102c9828-53e5-40f7-9459-a88b4bfd5ed8",
+          "b46e94e6-9a45-4670-b158-2279d9564806",
+          "76d73f67-7a7c-4668-98f4-3ad631c84246",
+          "c916672b-3cfa-4145-88fb-5f71e0e542c2",
+          "1cab6177-ebc8-452a-9d21-6c1c48d4e9c2",
+          "d8ba213e-9b7a-42d3-a2b7-18c4b95b86ac",
+          "19f3bbbb-ddc3-4d57-8bac-8211785254de",
+          "08c3ae9a-efe8-4784-8570-40c01992d1f2",
+          "b7f9b47e-8b85-4064-a9e9-8385a1a6ac3c",
+          "1cfbf3e2-c693-4b33-b0d5-26f07a15835f",
+          "e596ac02-c13a-46e9-9c58-29450147f825",
+          "50785aa4-461b-45b2-b338-b44193ed631b",
+          "457e2e45-c3e5-4051-8581-0c7adb0af4f0",
+          "28c44360-999c-4dbe-b3a1-6222de92d9ce",
+          "082ba78c-5581-451a-9cd4-8be48d25fffb",
+          "acea73a3-9d56-441e-a922-48ba5404b353",
+          "385f4b86-6c1e-443b-84b1-6beac52e4edd",
+          "4ca35166-e33e-48e7-88f6-a82645f74242",
+          "1ed01e47-a4ac-4819-bbd0-b29fa7a34805",
+          "dc936534-6162-49d2-b766-c4ef4ecbb60e",
+          "c80b5da4-3611-4a32-89bd-a88b720150e8",
+          "8a556020-e6ee-4a1e-8acb-0feebcece58b",
+          "693bb80b-1ad4-4d4e-91a4-a54fbb88b259",
+          "ab29e071-ecb1-4d14-994d-52a1d54e29e3",
+          "637611bd-6d26-4e4a-886c-65aa9a9fbe8a",
+          "ee3a3832-5c10-4dbd-83ed-df8ba9bc021a",
+          "9e6e1975-b04c-4548-a97f-b63f05980042",
+          "9c60fce8-559d-44d3-8147-3b8c7ddb39dd",
+          "4b07cb5d-ec02-4ee0-8c5b-1968b8893638",
+          "1970d733-5a7b-4b6b-bd8e-dd28418e3493",
+          "4dd1a6c4-fcb5-494c-9ab1-ea50f7d438b3",
+          "de92b768-dbf7-4b30-a96a-d35f0544d819",
+          "1e73afb0-7b4f-4562-ba20-0cd10a9b2752",
+          "779b9a51-bf12-4adb-9ffa-464705bc4fcf",
+          "5457f8c5-dfc5-4a9d-acf2-d229cc624907",
+          "4d7d5d1b-f059-463e-aa1c-60a08248297c",
+          "cd90aa36-6a98-4e91-91da-90e1b234f090",
+          "fcf38a49-6868-453a-9f8b-b016c9a0d3f8",
+          "30644390-2fa3-4db2-8141-62c9eb30d171",
+          "4133e69b-308f-409c-a239-adf4640509f6",
+          "94da868a-db30-4452-852d-de90b26e33bb",
+          "973bf113-1455-4332-87dc-924347aa6b47",
+          "a8f56cfd-2ad0-4ef5-b982-b554cd29618d",
+          "8ac5ddbf-afd0-4e62-a57d-0fcd6a7ccc41",
+          "612f9814-5e87-42d5-902a-48d656d57142",
+          "74a9f2fe-244f-4625-bc1d-3d66f29c9f71",
+          "ca987bf7-d22d-4d4d-9b78-ec7f9a60af49",
+          "8d3f9167-caa3-424b-a2bd-115b88ead274"
+        ]
+      },
+      {
+        "title": "Invalid references",
+        "intro": "Should be filtered.",
+        "findingIds": [
+          "fake-id-1",
+          "fake-id-2"
+        ]
+      }
+    ]
+  },
+  "82fa354510f23d23be706e18f746590c4ab4e7b10466dfd2924637896197ef5d": {
+    "plainExplanation": "Mock explanation of the finding.",
+    "attackerScenario": "Mock attacker scenario.",
+    "businessImpact": "Mock business impact.",
+    "fixSteps": [
+      "Step one",
+      "Step two"
+    ]
+  },
+  "b90859a94f0fe3d4ae2c64ceba8dd4f926cd1a15676dca5a09ef9c565df217ca": {
+    "plainExplanation": "Mock explanation of the finding.",
+    "attackerScenario": "Mock attacker scenario.",
+    "businessImpact": "Mock business impact.",
+    "fixSteps": [
+      "Step one",
+      "Step two"
+    ]
+  },
+  "ccb1d53adc4ff11a1237ff3af4229c068001040a488a535421a2e6b4ed3e387e": {
+    "chapters": [
+      {
+        "title": "Authentication gaps",
+        "intro": "Mock chapter intro.",
+        "findingIds": [
+          "d31075d3-8c37-41e1-80af-44917f8fddbc",
+          "ec9f0c2f-66bb-48ce-9809-a65423762fbe",
+          "22340b9c-52c1-4bdc-8128-6270ba7c05d4",
+          "e9fe68da-0dac-43de-be86-d6c7d82b6cd2",
+          "e4f24eb4-c1e3-4194-a77d-eac88b5a5ffa",
+          "0cf9f68b-aa01-4e8a-bdd1-31977d13d4c2",
+          "8ef83493-3731-47f2-be42-0f258efdcd1d",
+          "1eca4233-38bb-41f6-9239-707e964e55d3",
+          "a4679be5-9645-43a1-81fd-97e8dddcdfc0",
+          "2bf9ebfc-b258-4323-ae56-f20f1569bee2",
+          "21fa0f83-1114-4e76-a4a1-a819a8c8b289",
+          "314ccaa2-063f-4e2f-8e05-39e8af18604d",
+          "03ce4442-1268-42ed-9832-c1e245363b21",
+          "7e7bb4ad-f3c0-4bbf-a7db-6c6a34999109",
+          "9aab4857-1ddc-476a-ac51-c6208612a2ea",
+          "ba601910-b66e-496c-ab03-61719f18b2fa",
+          "0f0f4fbc-4aa6-4a13-a627-990d04f9e933",
+          "351c75c4-a16b-45ba-ac4b-c78c6c2bb44c",
+          "0187484f-5e3c-4cf8-b3fc-ec34f43b4ff1",
+          "2d8443bc-f012-42ee-ab89-c540982e5c41",
+          "1095b211-5fb0-4673-8f03-6a641c5926c6",
+          "76ba6a9f-a5a1-4a11-8b9b-5bf371d4ae37",
+          "a12e3862-dae2-47d6-981a-33e992cc0b84",
+          "caabe0c4-46ef-47a2-8c44-04272c9971f4",
+          "97ee7d5f-8529-48b4-8b44-e2edf69dec3b",
+          "70f388eb-1e23-4b49-a55b-b1554f6ed89f",
+          "9397c9aa-4874-499e-8147-2cdfd4b8f468",
+          "ff50ed78-516c-4766-a7fa-c9b47eb68cc7",
+          "dd8b22d6-0af0-49ae-a23f-b8205514c12e",
+          "5e7cd07b-b570-4728-8e1c-7866a7a5d0b1",
+          "a5ca8d07-f5c9-4ac4-b58a-6fbfa3143216",
+          "055aee18-af6f-40d5-aef4-b5265d24ca4a",
+          "488953ff-db89-498a-a64c-1123fae14d12",
+          "d7f96cb5-1764-4172-91f4-b2cdf8aa4997",
+          "49bce811-479b-412f-b49f-7945aa4e3d56",
+          "df3bae7a-b285-4dba-b53f-6f2c028771ca",
+          "1791e6fe-39cb-4428-b86a-223e72a8abf8",
+          "8d76074a-e81f-4e7a-b06a-7ce2b46c54db",
+          "e7bb64a2-0e03-4001-9a86-86202577bc4b",
+          "422be8f7-951d-40ac-bec5-0c71dec0cf60",
+          "31d557ad-f59a-44aa-ac44-1eb27a1fb09f",
+          "db198798-8af3-45de-a126-7d8986adaa50",
+          "5ae564cd-f35e-42ad-a312-1f8b8211b18c",
+          "c019c6d5-28c2-453d-a91f-934f2a27c6ed",
+          "da020e06-93e2-4ccb-b9e2-6111a7c1da17",
+          "e24daacd-4b48-4ee0-b6af-c61f0af14a04",
+          "0451dd06-467a-46e8-a5f4-9a03e2290bf9",
+          "5924b7b7-42c0-4f5c-8d0f-270a9e04b3ec",
+          "b2521903-8d08-4a3e-ac5b-860a68fd0e4e",
+          "e2f55a23-6f2d-46bf-9b3c-1c4c1e514a1e",
+          "4439a163-d238-4706-952e-39d9c7def2b8",
+          "b7eeef4a-f75a-4a2f-84f5-b488f5db4a4d",
+          "8eb74b8b-e719-4721-a889-e0782e140abe",
+          "2e5918cb-92a0-4b7d-88d7-fae6860daa6c",
+          "e804379c-6129-497c-8ae9-45c449539245",
+          "0c075f77-6719-4ed8-b1ac-1a9716702c88",
+          "9253d208-6351-4e89-85ec-1804dc557f61",
+          "86bc3b71-dc77-4896-bfc9-da0592325ad3",
+          "f3373464-7042-4da9-af84-206e195732b9",
+          "3cf9fb40-5c18-4ec1-a049-a76f9fd7bfae",
+          "25b909ee-b25b-4ded-b857-b07c7a479f39",
+          "568df627-2484-45bc-bc04-99eb335445c6",
+          "48a02b9e-5193-4cfc-a388-3877eadfed38"
+        ]
+      },
+      {
+        "title": "Invalid references",
+        "intro": "Should be filtered.",
+        "findingIds": [
+          "fake-id-1",
+          "fake-id-2"
+        ]
+      }
+    ]
   }
 }

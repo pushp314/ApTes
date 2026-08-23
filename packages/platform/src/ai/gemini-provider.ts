@@ -55,8 +55,14 @@ export class GeminiProvider implements AIProvider {
         return response.text.trim().replace(/`/g, '');
       }
       return undefined;
-    } catch (err) {
+    } catch {
       return undefined;
     }
+  }
+
+  async generateStructured(): Promise<null> {
+    // Gemini path is not used for narrative generation; the local-first
+    // Ollama provider owns structured generation.
+    return null;
   }
 }

@@ -105,7 +105,9 @@ export async function scan(
   // 4. Run rules
   let findings: Finding[] = [];
   if (parseResult) {
-    const engineResult = runRules(parseResult, ACTIVE_RULES, projectId, targetDir);
+    const engineResult = runRules(parseResult, ACTIVE_RULES, projectId, targetDir, {
+      skipTypeErrors: config.skipTypeErrors,
+    });
     findings = engineResult.findings;
   }
 

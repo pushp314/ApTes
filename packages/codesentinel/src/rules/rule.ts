@@ -30,6 +30,9 @@ export interface CodeRuleContext {
 
   /** The full parse result containing all source files and python files. */
   parseResult?: import('../parser.js').ParseResult;
+
+  /** When true, rules that emit TypeScript semantic diagnostics (ts-type-error) must skip. */
+  skipTypeErrors?: boolean;
 }
 
 /**

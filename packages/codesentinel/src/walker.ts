@@ -84,7 +84,7 @@ export async function walkProject(
   rootDir: string,
   config: CodeSentinelConfig,
 ): Promise<WalkResult> {
-  const ig = await loadGitignore(rootDir, config.respectGitignore);
+  const ig = await loadIgnore(rootDir, config);
   const extensionSet = new Set(config.extensions);
 
   const files: WalkedFile[] = [];
@@ -176,23 +176,49 @@ export async function walkProject(
 // ---------------------------------------------------------------------------
 
 /**
- * Load the root .gitignore file and create an Ignore matcher.
- * If no .gitignore exists or respectGitignore is false, returns a no-op matcher.
+ * Load ignore patterns and create an Ignore matcher.
+ *
+ * Sources, in order of intent:
+ * - `.gitignore` (root-level) — only when respectGitignore is true
+ * - `.sentinelignore` (root-level) — always respected; explicit scan-scope intent
+ * - `config.excludePatterns` — CLI/config globs; always applied
  */
-async function loadGitignore(
+async function loadIgnore(
   rootDir: string,
-  respectGitignore: boolean,
+  config: CodeSentinelConfig,
 ): Promise<Ignore> {
   const ig = ignore();
 
-  if (!respectGitignore) return ig;
+  if (config.respectGitignore) {
+    const gitignorePath = path.join(rootDir, '.gitignore');
+    try {
+      const content = await fs.readFile(gitignorePath, 'utf-8');
+      ig.add(content);
+    } catch {
+      // No .gitignore — that's fine, continue without patterns
+    }
+  }
 
-  const gitignorePath = path.join(rootDir, '.gitignore');
+  const sentinelIgnorePath = path.join(rootDir, '.sentinelignore');
   try {
-    const content = await fs.readFile(gitignorePath, 'utf-8');
+    const content = await fs.readFile(sentinelIgnorePath, 'utf-8');
     ig.add(content);
   } catch {
-    // No .gitignore — that's fine, continue without patterns
+    // No .sentinelignore — fine
+  }
+
+  const patterns = config.excludePatterns.filter(p => p.trim().length > 0);
+  if (patterns.length > 0) {
+    ig.add(patterns);
+    // Exclude globs are matched relative to the scan root by default
+    // (gitignore anchoring). Users passing "fixtures/**" expect any
+    // directory named fixtures to be skipped, so also add depth-free variants.
+    const unanchored = patterns
+      .filter(p => !p.startsWith('**/'))
+      .map(p => `**/${p}`);
+    if (unanchored.length > 0) {
+      ig.add(unanchored);
+    }
   }
 
   return ig;

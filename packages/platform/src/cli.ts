@@ -30,6 +30,8 @@ program
   .option('-f, --format <format>', 'Output format: cli, json, html, md', 'cli')
   .option('-o, --out <file>', 'Output file path')
   .option('-E, --executive-report <dir>', 'Generate a VC-friendly AI Executive Report in the specified directory')
+  .option('-N, --narrate', 'Add AI-written plain-language narratives and audit chapters (requires -A)', false)
+  .option('--narrate-budget <number>', 'Max findings to narrate per scan', '4')
   .option('-x, --exclude <globs>', 'Comma-separated glob patterns to exclude (e.g. "fixtures/**,tests/**")')
   .option('-S, --skip-type-errors', 'Suppress TypeScript type diagnostics (useful for JS-only projects)', false)
   .action(async (url, options) => {
@@ -46,7 +48,8 @@ program
         console.error('Usage: sentinel scan <url> -m <mcp_command> -y');
         process.exit(1);
       }
-      const [cmd, ...args] = options.mcp.split(' ');
+      const mcpCommand = typeof options.mcp === 'string' ? options.mcp : '';
+      const [cmd = '', ...args] = mcpCommand.split(' ');
       projectConfig = {
         id: options.project || `sentinel-${Date.now()}`,
         webUrl: url,
@@ -75,7 +78,30 @@ program
 
     try {
       console.log(`Starting Sentinel Platform Scan for project: ${projectConfig.id}`);
-      const report = await runUnifiedPlatform(projectConfig as any, 30000);
+      const report = await runUnifiedPlatform(projectConfig, 30000);
+
+      // Optional AI narration (requires -A). Strictly advisory: it only
+      // attaches human-readable narratives and chapters to the report.
+      if (options.narrate && projectConfig.aiEnabled) {
+        const { NarrativeEngine } = await import('./ai/narrator.js');
+        const { AICache } = await import('./ai/cache.js');
+        const { MockProvider } = await import('./ai/mock-provider.js');
+        const { OllamaProvider } = await import('./ai/ollama-provider.js');
+        const engine = new NarrativeEngine(
+          projectConfig.aiProvider === 'mock' ? new MockProvider() : new OllamaProvider(),
+          new AICache(process.cwd()),
+          {
+            model: projectConfig.aiModel,
+            url: projectConfig.aiUrl,
+            budget: parseInt(options.narrateBudget, 10) || 4
+          }
+        );
+        const narrated = await engine.narrate(report.findings);
+        report.chapters = await engine.chapterize(report.findings);
+        if (narrated > 0 || report.chapters.length > 0) {
+          console.log(`[Sentinel AI] Narrated ${narrated} findings, structured ${report.chapters.length} audit chapters.`);
+        }
+      }
 
       let reporter;
       switch (options.format) {

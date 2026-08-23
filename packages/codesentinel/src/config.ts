@@ -27,6 +27,12 @@ export interface CodeSentinelConfig {
 
   /** Whether to respect .gitignore patterns. */
   respectGitignore: boolean;
+
+  /** Glob patterns of files/directories to exclude from scanning (e.g. "fixtures/**"). */
+  excludePatterns: string[];
+
+  /** Suppress TypeScript semantic diagnostics (ts-type-error findings) for JS-only projects. */
+  skipTypeErrors: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -70,6 +76,10 @@ export function createConfig(
     useCache: overrides.useCache ?? true,
 
     respectGitignore: overrides.respectGitignore ?? true,
+
+    excludePatterns: overrides.excludePatterns ?? [],
+
+    skipTypeErrors: overrides.skipTypeErrors ?? false,
   };
 }
 

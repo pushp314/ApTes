@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspace=@sentinel/shared && npm run build --workspace=@sentinel/web && npm run build --workspace=@sentinel/mcp && npm run build --workspace=@sentinel/platform && npm run build --workspace=@sentinel/codesentinel",
+    "build": "npm run build --workspace=@sentinel/shared && npm run build --workspace=@sentinel/codesentinel && npm run build --workspace=@sentinel/web && npm run build --workspace=@sentinel/mcp && npm run build --workspace=@sentinel/platform",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint 'packages/*/src/**/*.ts'",
     "lint:fix": "eslint 'packages/*/src/**/*.ts' --fix",

@@ -23,6 +23,12 @@ export interface EngineResult {
   durationMs: number;
 }
 
+/** Optional engine-wide behaviour switches threaded into every rule context. */
+export interface RunRulesOptions {
+  /** Suppress ts-type-error diagnostics (useful for JS-only projects). */
+  skipTypeErrors?: boolean;
+}
+
 /**
  * Run a set of rules against the parsed project.
  *
@@ -30,6 +36,7 @@ export interface EngineResult {
  * @param rules - The active detection rules to run.
  * @param projectId - The project identifier.
  * @param rootDir - The root directory of the project (for relative paths).
+ * @param options - Optional behaviour switches.
  * @returns The engine result containing all findings.
  */
 export function runRules(
@@ -37,6 +44,7 @@ export function runRules(
   rules: CodeRule[],
   projectId: string,
   rootDir: string,
+  options: RunRulesOptions = {},
 ): EngineResult {
   const startTime = Date.now();
   const findings: Finding[] = [];
@@ -52,6 +60,7 @@ export function runRules(
       relativePath,
       targetDir: rootDir,
       parseResult,
+      skipTypeErrors: options.skipTypeErrors ?? false,
     };
 
     for (const rule of rules) {

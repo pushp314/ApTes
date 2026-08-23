@@ -18,6 +18,23 @@ export class MarkdownReporter implements Reporter {
       md += `\n`;
     }
 
+    if (report.chapters && report.chapters.length > 0) {
+      md += `## What we found, by theme\n\n`;
+      for (const chapter of report.chapters) {
+        const chapterFindings = chapter.findingIds
+          .map(id => report.findings.find(f => f.id === id))
+          .filter((f): f is Finding => Boolean(f));
+        md += `### ${chapter.title}\n\n`;
+        if (chapter.intro) {
+          md += `${chapter.intro}\n\n`;
+        }
+        for (const finding of chapterFindings) {
+          md += `- **${finding.title}** (${finding.severity}) — \`${finding.location ?? finding.engine}\`\n`;
+        }
+        md += `\n`;
+      }
+    }
+
     if (report.findings.length === 0) {
       md += `## Findings\n\nNo findings detected.\n`;
       return md;
@@ -56,6 +73,21 @@ export class MarkdownReporter implements Reporter {
         if (finding.aiAssessment) {
           md += `  - **🤖 AI Verdict:** ${finding.aiAssessment.verdict.toUpperCase()} (${(finding.aiAssessment.confidence * 100).toFixed(0)}%)\n`;
           md += `  - **🤖 AI Insight:** ${finding.aiAssessment.reason}\n`;
+        }
+        if (finding.narrative) {
+          md += `  - **💬 What this means:** ${finding.narrative.plainExplanation}\n`;
+          if (finding.narrative.attackerScenario) {
+            md += `  - **💬 Attack scenario:** ${finding.narrative.attackerScenario}\n`;
+          }
+          if (finding.narrative.businessImpact) {
+            md += `  - **💬 Business impact:** ${finding.narrative.businessImpact}\n`;
+          }
+          if (finding.narrative.fixSteps.length > 0) {
+            md += `  - **💬 How to fix:**\n`;
+            for (const step of finding.narrative.fixSteps) {
+              md += `    1. ${step}\n`;
+            }
+          }
         }
         md += `\n`;
       }

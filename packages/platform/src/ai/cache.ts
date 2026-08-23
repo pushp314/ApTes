@@ -4,7 +4,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 
 export class AICache {
-  private cache: Record<string, AIAnalysis> = {};
+  private cache: Record<string, unknown> = {};
   private cachePath: string;
   private inMemory: boolean;
 
@@ -33,11 +33,20 @@ export class AICache {
   }
 
   get(fingerprint: string): AIAnalysis | undefined {
-    return this.cache[fingerprint];
+    return this.cache[fingerprint] as AIAnalysis | undefined;
   }
 
   set(fingerprint: string, analysis: AIAnalysis): void {
     this.cache[fingerprint] = analysis;
+  }
+
+  /** Cache for non-assessment payloads (narratives, chapters, summaries). */
+  getAny(fingerprint: string): unknown | undefined {
+    return this.cache[fingerprint];
+  }
+
+  setAny(fingerprint: string, value: unknown): void {
+    this.cache[fingerprint] = value;
   }
 
   generateFingerprint(ruleId: string, location: string, evidenceStr: string, model: string): string {

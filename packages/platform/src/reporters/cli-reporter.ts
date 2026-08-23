@@ -22,6 +22,17 @@ export class CliReporter implements Reporter {
       out += `\n`;
     }
 
+    if (report.chapters && report.chapters.length > 0) {
+      out += `[AUDIT CHAPTERS]\n`;
+      for (const chapter of report.chapters) {
+        out += `  ## ${chapter.title} (${chapter.findingIds.length})\n`;
+        if (chapter.intro) {
+          out += `     ${chapter.intro}\n`;
+        }
+      }
+      out += `\n`;
+    }
+
     if (report.findings.length === 0) {
       out += `[FINDINGS]\n`;
       out += `  No findings detected. Excellent!\n\n`;
@@ -48,6 +59,17 @@ export class CliReporter implements Reporter {
         if (finding.aiAssessment) {
           out += `             [AI] Verdict: ${finding.aiAssessment.verdict.toUpperCase()} (${(finding.aiAssessment.confidence * 100).toFixed(0)}%)\n`;
           out += `             [AI] Reason: ${finding.aiAssessment.reason}\n`;
+        }
+        if (finding.narrative) {
+          out += `             [?] ${finding.narrative.plainExplanation}\n`;
+          if (finding.narrative.businessImpact) {
+            out += `             [!] Impact: ${finding.narrative.businessImpact}\n`;
+          }
+          if (finding.narrative.fixSteps.length > 0) {
+            finding.narrative.fixSteps.forEach((step, i) => {
+              out += `             [Fix ${i + 1}] ${step}\n`;
+            });
+          }
         }
         out += `\n`;
       }

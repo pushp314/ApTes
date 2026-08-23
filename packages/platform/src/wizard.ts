@@ -4,8 +4,9 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { detectStartCommand } from './auto-detect.js';
 import { GeminiProvider } from './ai/gemini-provider.js';
+import type { ProjectDefinition } from './orchestrator.js';
 
-export async function runInteractiveWizard() {
+export async function runInteractiveWizard(): Promise<ProjectDefinition> {
   console.clear();
   p.intro(`${pc.bgBlue(pc.white(' Sentinel Tri-Boundary Orchestrator '))} ${pc.dim('v0.1.0')}`);
 
@@ -160,13 +161,15 @@ export async function runInteractiveWizard() {
     saveConfig = project.saveConfig as boolean;
   }
 
-  const [cmd, ...args] = mcpCommand.split(' ');
-  const config = {
+  const [cmd = '', ...args] = (mcpCommand ?? '').split(' ');
+  const config: ProjectDefinition = {
     id: `sentinel-project-${Date.now()}`,
     webUrl,
     authorizationConfirmed: authorized,
     authorizationConfirmedAt: new Date().toISOString(),
     codePath,
+    excludePatterns: [],
+    skipTypeErrors: false,
     allowLocalTargets: true,
     aiEnabled: enableAI,
     aiBudget: 5,
