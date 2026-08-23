@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { Project } from 'ts-morph';
 import { TypeErrorRule } from './type-errors.js';
+import { IdorRule } from './idor.js';
+import { McpExposureRule } from './mcp-exposure.js';
+import { ConfigDriftRule } from './config-drift.js';
+import { PayloadMismatchRule } from './payload-mismatch.js';
 import { UnhandledPromiseRule } from './unhandled-promises.js';
 import { UnreachableCodeRule } from './unreachable-code.js';
 import { ApiIntegrationRule } from './api-integration.js';
@@ -325,5 +329,40 @@ describe('CodeSentinel Rules', () => {
       const findings = ContractValidationRule.analyze(context);
       expect(findings.length).toBe(0);
     });
+  });
+
+  it('detects missing configuration variables (ConfigDriftRule)', () => {
+    // We can simulate it by providing a real targetDir to the context
+    const context = createTestContext('');
+    context.targetDir = require('path').resolve(__dirname, '../../../fixtures/sample-project');
+    const findings = ConfigDriftRule.analyze(context);
+
+    expect(findings.length).toBeGreaterThan(0);
+    const dbPassword = findings.find((f: any) => f.evidence?.variable === 'DB_PASSWORD');
+    expect(dbPassword).toBeDefined();
+    expect(dbPassword?.title).toBe('Configuration Drift');
+    
+    const apiKey = findings.find((f: any) => f.evidence?.variable === 'SECRET_API_KEY');
+    expect(apiKey).toBeDefined();
+  });
+
+  it('detects frontend to backend payload mismatches (PayloadMismatchRule)', () => {
+    const context = createTestContext(`
+      const app = { post: (route, handler) => {} };
+      app.post('/api/update', (req) => {
+        const userEmail = req.body.email;
+        const { age } = req.body;
+      });
+      fetch('/api/update', {
+        method: 'POST',
+        body: JSON.stringify({ name: 'John Doe' })
+      });
+    `);
+    
+    const findings = PayloadMismatchRule.analyze(context);
+    expect(findings.length).toBe(1);
+    expect(findings[0].title).toBe('Request/Response Payload Mismatch');
+    expect(findings[0].message).toContain('email');
+    expect(findings[0].message).toContain('age');
   });
 });

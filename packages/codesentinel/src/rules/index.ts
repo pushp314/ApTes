@@ -20,6 +20,9 @@ import { DependencyCveRule } from './detectors/dependency-cve.js';
 import { IdorRule } from './detectors/idor.js';
 import { McpExposureRule } from './detectors/mcp-exposure.js';
 
+import { ConfigDriftRule } from './detectors/config-drift.js';
+import { PayloadMismatchRule } from './detectors/payload-mismatch.js';
+
 export const ACTIVE_RULES: CodeRule[] = [
   TypeErrorRule,
   UnhandledPromiseRule,
@@ -32,5 +35,7 @@ export const ACTIVE_RULES: CodeRule[] = [
   AuthRule,
   DependencyCveRule,
   IdorRule,
-  McpExposureRule
+  McpExposureRule,
+  ConfigDriftRule,
+  PayloadMismatchRule
 ];

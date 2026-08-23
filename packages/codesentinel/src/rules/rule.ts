@@ -24,6 +24,9 @@ export interface CodeRuleContext {
 
   /** The relative path of the file being scanned (for finding metadata). */
   relativePath: string;
+
+  /** The absolute path to the project root directory. */
+  targetDir: string;
 }
 
 /**

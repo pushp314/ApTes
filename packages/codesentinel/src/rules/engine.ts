@@ -50,6 +50,7 @@ export function runRules(
       sourceFile,
       projectId,
       relativePath,
+      targetDir: rootDir,
     };
 
     for (const rule of rules) {

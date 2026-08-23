@@ -88,7 +88,9 @@ node packages/platform/dist/cli.js scan \
 ### What happens under the hood?
 1. **Parallel Execution:** CodeSentinel parses the AST, WebSentinel launches a headless browser, and MCPSentinel connects via stdio.
 2. **Deterministic Triage:** Engines generate findings based on strict, deterministic heuristics (Zero hallucinations).
-3. **Correlation:** The Orchestrator cross-references the findings to elevate Severities based on overlapping attack surfaces.
+3. **Advanced Payload & Drift Analysis:** CodeSentinel automatically cross-references `docker-compose.yml` against `.env` for config drift, and structurally infers frontend `fetch()` payloads vs backend route expectations without OpenAPI schemas.
+4. **DOM-to-Network Correlation:** WebSentinel injects tracking payloads into AI widgets in the DOM, clicks submit, and mathematically intercepts the exact network footprint, correlating it to the backend code.
+5. **Tri-Boundary Synthesis:** The Orchestrator cross-references all this data to elevate Severities based on overlapping attack surfaces, generating **Zero False Positive** `platform-p0-attack-path` alerts.
 
 ---
 
