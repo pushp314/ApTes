@@ -22,7 +22,11 @@ import { McpExposureRule } from './detectors/mcp-exposure.js';
 
 import { ConfigDriftRule } from './detectors/config-drift.js';
 import { PayloadMismatchRule } from './detectors/payload-mismatch.js';
+import { OpenRedirectRule } from './detectors/open-redirect.js';
+import { PrototypePollutionRule } from './detectors/prototype-pollution.js';
+import { InsecureDeserializationRule } from './detectors/insecure-deserialization.js';
 import { PythonInjectionRule } from './detectors/python-injection.js';
+import { PythonSecurityRule } from './detectors/python-security.js';
 import { BusinessLogicAiRule } from './detectors/business-logic-ai.js';
 
 export const ACTIVE_RULES: CodeRule[] = [
@@ -38,8 +42,12 @@ export const ACTIVE_RULES: CodeRule[] = [
   DependencyCveRule,
   IdorRule,
   McpExposureRule,
+  OpenRedirectRule,
+  PrototypePollutionRule,
+  InsecureDeserializationRule,
   ConfigDriftRule,
   PayloadMismatchRule,
   PythonInjectionRule,
+  PythonSecurityRule,
   BusinessLogicAiRule
 ];

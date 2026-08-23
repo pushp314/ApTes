@@ -7,45 +7,65 @@
 - **Git** (for cloning)
 - **Ollama** (optional, for AI features) — [Install Ollama](https://ollama.com/)
 
-## Option 1: Global Install (Recommended)
+## 🚀 Method 1: 1-Line Universal Installer (Mac, Linux & Windows)
 
+### 🍎 macOS & 🐧 Linux (Bash / Zsh)
 ```bash
-npm install -g @sentinel/platform
+curl -fsSL https://raw.githubusercontent.com/pushp314/ApTes/main/scripts/install.sh | bash
 ```
 
-After installation, the `sentinel` command is available globally. Run it from any project directory:
-
-```bash
-cd /path/to/your/project
-sentinel
+### 🪟 Windows (PowerShell)
+```powershell
+iwr -useb https://raw.githubusercontent.com/pushp314/ApTes/main/scripts/install.ps1 | iex
 ```
 
-## Option 2: Clone & Build from Source
+---
+
+## ⚡ Method 2: Zero-Install Instant Run (NPX)
+
+Run Sentinel instantly without installing anything permanently:
+
+```bash
+# Launch the Web Mission Control GUI
+npx @sentinel/platform ui
+
+# Launch the Terminal Dashboard
+npx @sentinel/platform dashboard
+```
+
+---
+
+## 🐍 Method 3: Python Security Toolkit (pip / pipx)
+
+Install the zero-dependency Python security tools directly:
+
+```bash
+# Instant run with pipx
+pipx run sentinel-security dashboard
+
+# Or install via pip
+pip install sentinel-security
+sentinel-py audit https://example.com
+```
+
+---
+
+## 📦 Method 4: Clone & Build from Source
 
 ```bash
 # Clone the repository
 git clone https://github.com/pushp314/ApTes.git
 cd ApTes
 
-# Install all dependencies
+# Install dependencies and build
 npm install
-
-# Build all packages
 npm run build
 
-# Link the sentinel command globally
+# Link CLI globally
 npm link ./packages/platform
 
 # Verify installation
-sentinel --version
-```
-
-## Option 3: Local Development (No Global Install)
-
-If you don't want to install globally, you can run the CLI directly:
-
-```bash
-node packages/platform/dist/cli.js scan http://localhost:3000 -m "node server.js" -y
+sentinel --help
 ```
 
 ## Setting Up AI Features (Optional)

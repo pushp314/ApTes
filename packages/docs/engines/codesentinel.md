@@ -103,10 +103,40 @@ CodeSentinel traces `req.body` → function arg → `filter` parameter → `User
 - **Confidence:** HIGH
 
 ### 4. Python Injection (`python-injection`)
-- **Purpose:** Detects dangerous uses of `eval()`, `exec()`, and f-string interpolations in Python.
+- **Purpose:** Detects dangerous uses of `eval()` and `exec()` in Python.
 - **How:** Uses `tree-sitter` to parse Python ASTs and identify `call_expression` nodes targeting `eval` or `exec` with non-literal arguments.
 - **Severity:** CRITICAL
 - **Confidence:** HIGH
+
+### 5. Python Mass Assignment (`python-mass-assignment`)
+- **Purpose:** Detects raw request dictionary unpacking (e.g. `User(**request.json())`) into database models.
+- **How:** Identifies `dictionary_splat` (`**`) syntax applied to request payloads in model instantiations.
+- **Severity:** HIGH
+- **Confidence:** HIGH
+
+### 6. Python SQL Injection (`python-sqli`)
+- **Purpose:** Detects f-string and `%` string interpolation in database query execution (e.g. `cursor.execute(f"SELECT... {user_id}")`).
+- **How:** Traces SQL query execution calls and verifies whether the query string utilizes unsafe string interpolation.
+- **Severity:** CRITICAL
+- **Confidence:** HIGH
+
+### 7. Python SSRF (`python-ssrf`)
+- **Purpose:** Detects HTTP requests via `requests.get()` or `httpx.get()` using unvalidated user input URLs.
+- **How:** Checks HTTP client invocations for dynamic user-controlled destination parameters.
+- **Severity:** HIGH
+- **Confidence:** HIGH
+
+### 8. Python Insecure JWT (`python-insecure-jwt`)
+- **Purpose:** Detects JWT verification bypasses (`verify_signature: False` or algorithm `none`).
+- **How:** Analyzes `jwt.decode()` calls for disabled signature verification options.
+- **Severity:** CRITICAL
+- **Confidence:** HIGH
+
+### 9. Python IDOR (`python-idor`)
+- **Purpose:** Detects database lookups by raw path IDs without tenant or user ownership validation.
+- **How:** Inspects `Model.objects.get(id=...)` queries derived from path parameters.
+- **Severity:** HIGH
+- **Confidence:** LOW
 
 ### 5. Logic Contradictions (`logic-contradictions`)
 - **Purpose:** Detects always-true, always-false, or contradictory conditions.
@@ -173,6 +203,24 @@ CodeSentinel traces `req.body` → function arg → `filter` parameter → `User
 - **How:** Measures handler complexity and emits LOW-confidence findings that the Platform AI Reviewer picks up for analysis of race conditions, coupon abuse, and logic flaws.
 - **Severity:** MEDIUM
 - **Confidence:** LOW
+
+### 16. Open Redirect (`open-redirect` / `python-open-redirect`)
+- **Purpose:** Detects unvalidated URL redirection (`res.redirect(req.query.url)` / `redirect(request.args.get('url'))`).
+- **How:** Uses data-flow analysis to trace parameters passed to `res.redirect()` and flags untrusted URLs missing domain allowlist validation.
+- **Severity:** HIGH
+- **Confidence:** HIGH
+
+### 17. Prototype Pollution (`prototype-pollution`)
+- **Purpose:** Detects JavaScript object prototype tampering via `__proto__` and unvalidated recursive object merges.
+- **How:** AST inspection of binary assignments to magic object properties (`__proto__`, `constructor`) and unbounded recursive clone/merge loops.
+- **Severity:** CRITICAL
+- **Confidence:** HIGH
+
+### 18. Insecure Deserialization (`insecure-deserialization` / `python-insecure-deserialization` / `python-unsafe-yaml`)
+- **Purpose:** Detects execution of dangerous object deserialization sinks (`pickle.loads()`, `yaml.load()` without SafeLoader, `node-serialize` `unserialize()`).
+- **How:** AST call-site matching with argument inspection to detect execution of arbitrary object graphs.
+- **Severity:** CRITICAL
+- **Confidence:** HIGH
 
 ---
 

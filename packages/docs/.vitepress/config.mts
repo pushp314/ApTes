@@ -96,8 +96,10 @@ export default defineConfig({
         ]
       },
       {
-        text: 'Security',
+        text: 'Security & Pentest Tools',
         items: [
+          { text: 'Pentest & Security Suite', link: '/security/pentest-tools' },
+          { text: 'Python Security Toolkit', link: '/security/python-toolkit' },
           { text: 'Security Model', link: '/security/security-model' },
           { text: 'SSRF Protection', link: '/security/ssrf-protection' },
           { text: 'MCP Isolation', link: '/security/mcp-isolation' },

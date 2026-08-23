@@ -1,8 +1,9 @@
-import { runWebEngine, ConsoleErrorsRule, FailedRequestsRule, FormsRule, PageStructureRule, PerformanceRule, SecurityHeadersRule, CookieSecurityRule, MixedContentRule, AiWidgetRule } from '@sentinel/web';
+import { runWebEngine, ConsoleErrorsRule, FailedRequestsRule, FormsRule, PageStructureRule, PerformanceRule, SecurityHeadersRule, CookieSecurityRule, MixedContentRule, AiWidgetRule, ActiveFuzzRule } from '@sentinel/web';
 import { runMcpEngine, ToolCountRule, SchemaRigorRule, PrivilegeAnalysisRule, TransportSecurityRule, CveMatchingRule } from '@sentinel/mcp';
 import { scan as runCodeEngine, createConfig as createCodeConfig } from '@sentinel/codesentinel';
 import type { Finding, AuditChapter } from '@sentinel/shared';
 import { randomUUID } from 'node:crypto';
+import { probeRouteAccessControls } from './pentest/auth-audit.js';
 
 import { AiReviewer } from './ai-reviewer.js';
 
@@ -25,6 +26,8 @@ export interface ProjectDefinition {
   excludePatterns?: string[];
   /** Suppress ts-type-error diagnostics for JS-only codebases. */
   skipTypeErrors?: boolean;
+  /** Enable active pentesting & access control probes against web target. */
+  activePentestMode?: boolean;
   /** Explicit attestation that the operator may scan this web target. */
   authorizationConfirmed: boolean;
   /** ISO-8601 timestamp at which the web-target attestation was made. */
@@ -105,7 +108,8 @@ export async function runUnifiedPlatform(project: ProjectDefinition, timeoutMs: 
     SecurityHeadersRule,
     CookieSecurityRule,
     MixedContentRule,
-    AiWidgetRule
+    AiWidgetRule,
+    ActiveFuzzRule
   ];
 
   const mcpRules = [
@@ -167,6 +171,21 @@ export async function runUnifiedPlatform(project: ProjectDefinition, timeoutMs: 
           skipTypeErrors: project.skipTypeErrors ?? false
         }));
         allFindings = allFindings.concat(codeResult.findings);
+
+        // Active Access Control Verification: If active pentest mode is enabled (or webUrl is live),
+        // probe discovered sensitive routes for real unauthenticated access.
+        if (project.activePentestMode && project.webUrl) {
+          const authFindings = codeResult.findings.filter(f => f.ruleId === 'missing-auth' && f.evidence?.route);
+          const targets = authFindings.map(f => ({
+            route: String(f.evidence.route),
+            isSensitive: true
+          }));
+
+          if (targets.length > 0) {
+            const probedFindings = await probeRouteAccessControls(targets, { baseUrl: project.webUrl }, project.id);
+            allFindings = allFindings.concat(probedFindings);
+          }
+        }
       } catch (err) {
         errors.push(`Code Engine Error: ${err instanceof Error ? err.message : String(err)}`);
       }

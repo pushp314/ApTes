@@ -14,6 +14,9 @@ import { SecretsRule } from './secrets.js';
 import { InjectionRule } from './injection.js';
 import { AuthRule } from './auth.js';
 import { ContractValidationRule } from './contract-validation.js';
+import { OpenRedirectRule } from './open-redirect.js';
+import { PrototypePollutionRule } from './prototype-pollution.js';
+import { InsecureDeserializationRule } from './insecure-deserialization.js';
 import type { CodeRuleContext } from '../rule.js';
 
 describe('CodeSentinel Rules', () => {
@@ -275,7 +278,7 @@ describe('CodeSentinel Rules', () => {
       const context = createContext('packages/codesentinel/fixtures/sample-project/src/vulnerable/nosql-injection.js');
       const findings = InjectionRule.analyze(context);
       
-      const nosqlObjectFindings = findings.filter(f => f.evidence?.code.includes('findOne('));
+      const nosqlObjectFindings = findings.filter(f => (f.evidence as any)?.code?.includes('findOne('));
       expect(nosqlObjectFindings.length).toBe(1);
     });
 
@@ -285,7 +288,7 @@ describe('CodeSentinel Rules', () => {
       const context = createContext('packages/codesentinel/fixtures/sample-project/src/vulnerable/cross-file-db.js');
       const findings = InjectionRule.analyze(context);
       
-      const crossFileFindings = findings.filter(f => f.evidence?.code.includes('execute('));
+      const crossFileFindings = findings.filter(f => (f.evidence as any)?.code?.includes('execute('));
       expect(crossFileFindings.length).toBe(1);
     });
   });
@@ -391,4 +394,78 @@ describe('CodeSentinel Rules', () => {
     expect(findings[0].evidence.function).toBe('eval');
     expect(findings[1].evidence.function).toBe('exec');
   });
+
+  describe('OpenRedirectRule', () => {
+    it('detects unvalidated redirect from req.query', () => {
+      const context = createTestContext(`
+        app.get('/login', (req, res) => {
+          res.redirect(req.query.url);
+        });
+      `);
+      const findings = OpenRedirectRule.analyze(context);
+      expect(findings.length).toBe(1);
+      expect(findings[0].ruleId).toBe('open-redirect');
+      expect(findings[0].title).toBe('Unvalidated Open Redirect');
+    });
+
+    it('ignores safe relative redirect', () => {
+      const context = createTestContext(`
+        app.get('/login', (req, res) => {
+          res.redirect('/dashboard');
+        });
+      `);
+      const findings = OpenRedirectRule.analyze(context);
+      expect(findings.length).toBe(0);
+    });
+  });
+
+  describe('PrototypePollutionRule', () => {
+    it('detects direct __proto__ assignment', () => {
+      const context = createTestContext(`
+        const obj = {};
+        obj['__proto__'] = { admin: true };
+      `);
+      const findings = PrototypePollutionRule.analyze(context);
+      expect(findings.length).toBe(1);
+      expect(findings[0].ruleId).toBe('prototype-pollution');
+      expect(findings[0].severity).toBe('critical');
+    });
+
+    it('detects unsafe recursive merge loop', () => {
+      const context = createTestContext(`
+        function merge(target, source) {
+          for (let key in source) {
+            merge(target[key], source[key]);
+          }
+        }
+      `);
+      const findings = PrototypePollutionRule.analyze(context);
+      expect(findings.length).toBe(1);
+      expect(findings[0].title).toContain('Prototype Pollution Risk');
+    });
+  });
+
+  describe('InsecureDeserializationRule', () => {
+    it('detects node-serialize unserialize call', () => {
+      const context = createTestContext(`
+        const serialize = require('node-serialize');
+        const user = serialize.unserialize(req.cookies.profile);
+      `);
+      const findings = InsecureDeserializationRule.analyze(context);
+      expect(findings.length).toBe(1);
+      expect(findings[0].ruleId).toBe('insecure-deserialization');
+      expect(findings[0].title).toBe('Insecure Object Deserialization');
+    });
+
+    it('detects unsafe yaml.load call', () => {
+      const context = createTestContext(`
+        const yaml = require('js-yaml');
+        const config = yaml.load(rawInput);
+      `);
+      const findings = InsecureDeserializationRule.analyze(context);
+      expect(findings.length).toBe(1);
+      expect(findings[0].title).toBe('Unsafe YAML Loading');
+    });
+  });
 });
+

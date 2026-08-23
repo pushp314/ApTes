@@ -11,3 +11,4 @@ export { SecurityHeadersRule } from './rules/security-headers.js';
 export { CookieSecurityRule } from './rules/cookie-security.js';
 export { MixedContentRule } from './rules/mixed-content.js';
 export { AiWidgetRule } from './rules/ai-widget.js';
+export { ActiveFuzzRule } from './rules/active-fuzz.js';

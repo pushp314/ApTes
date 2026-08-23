@@ -190,4 +190,147 @@ program
     }
   });
 
+program
+  .command('pentest [url]')
+  .description('Run active penetration testing & access control probes against an authorized target')
+  .option('-p, --project <id>', 'Project ID (defaults to auto-generated)')
+  .option('-m, --mcp <command>', 'MCP server command to run (e.g. "node server.js")')
+  .option('-y, --authorized', 'Confirm that you own or have written permission to test the targets')
+  .option('--allow-local', 'Allow localhost/private web targets', false)
+  .option('-c, --code <path>', 'Source code directory for backend route discovery')
+  .option('-A, --ai', 'Enable AI analysis for low confidence findings', false)
+  .option('-f, --format <format>', 'Output format: cli, json, html, md', 'cli')
+  .option('-o, --out <file>', 'Output file path')
+  .action(async (url, options) => {
+    if (!url || !options.authorized) {
+      console.error('Error: Pentest mode requires a target URL and explicit authorization (-y / --authorized).');
+      console.error('Usage: sentinel pentest <url> -y [-c ./src] [-m "node server.js"]');
+      process.exit(1);
+    }
+
+    const mcpCommand = typeof options.mcp === 'string' ? options.mcp : '';
+    const [cmd = '', ...args] = mcpCommand ? mcpCommand.split(' ') : [];
+
+    const projectConfig = {
+      id: options.project || `sentinel-pentest-${Date.now()}`,
+      webUrl: url,
+      authorizationConfirmed: options.authorized,
+      authorizationConfirmedAt: new Date().toISOString(),
+      codePath: options.code,
+      activePentestMode: true,
+      allowLocalTargets: options.allowLocal,
+      aiEnabled: options.ai,
+      mcpTargets: cmd ? [
+        {
+          command: cmd,
+          args,
+          authorizationConfirmed: options.authorized,
+          authorizationConfirmedAt: new Date().toISOString(),
+        }
+      ] : []
+    };
+
+    try {
+      console.log(`\n🛡️  Starting Sentinel Active Pentest Suite for: ${url}`);
+      const report = await runUnifiedPlatform(projectConfig as any, 45000);
+
+      let reporter;
+      switch (options.format) {
+        case 'json': reporter = new JsonReporter(); break;
+        case 'html': reporter = new HtmlReporter(); break;
+        case 'md': reporter = new MarkdownReporter(); break;
+        case 'cli': 
+        default: reporter = new CliReporter(); break;
+      }
+
+      const output = reporter.generate(report);
+      if (options.out) {
+        await fs.writeFile(path.resolve(options.out), output, 'utf-8');
+        console.log(`Pentest report written to ${options.out}`);
+      } else {
+        console.log('\n' + output);
+      }
+
+      if (report.errors.length > 0) {
+        process.exit(1);
+      }
+    } catch (err) {
+      console.error('Fatal error during pentest execution:', err);
+      process.exit(1);
+    }
+  });
+
+const securityCmd = program
+  .command('security')
+  .description('Dedicated security utilities (JWT inspection, HTTP headers audit, and security tools)');
+
+securityCmd
+  .command('headers <url>')
+  .description('Audit HTTP security headers on a target URL')
+  .action(async (targetUrl) => {
+    try {
+      const { auditSecurityHeaders } = await import('./pentest/security-tools.js');
+      console.log(`Auditing security headers for: ${targetUrl}...`);
+      const result = await auditSecurityHeaders(targetUrl);
+      console.log('\nHTTP Status:', result.statusCode);
+      console.log('\nMissing Security Headers:');
+      if (result.missingHeaders.length === 0) {
+        console.log('  ✅ All critical security headers are present!');
+      } else {
+        result.missingHeaders.forEach(h => console.log(`  ❌ ${h}`));
+      }
+      console.log('\nRecommendations:');
+      result.recommendations.forEach(r => console.log(`  👉 ${r}`));
+    } catch (err) {
+      console.error('Failed to audit headers:', err instanceof Error ? err.message : String(err));
+      process.exit(1);
+    }
+  });
+
+securityCmd
+  .command('jwt <token>')
+  .description('Inspect and diagnose a JWT token for security weaknesses (insecure algorithm, expiration)')
+  .action(async (token) => {
+    try {
+      const { inspectJwtToken } = await import('./pentest/security-tools.js');
+      const result = inspectJwtToken(token);
+      console.log('\n--- JWT Inspection Report ---');
+      console.log('Algorithm:', result.algorithm);
+      console.log('Expired:', result.isExpired ? '🚨 YES' : '✅ NO');
+      console.log('\nHeader:', JSON.stringify(result.header, null, 2));
+      console.log('\nPayload:', JSON.stringify(result.payload, null, 2));
+      if (result.warnings.length > 0) {
+        console.log('\nSecurity Warnings:');
+        result.warnings.forEach(w => console.log(`  ⚠️  ${w}`));
+      } else {
+        console.log('\n✅ No immediate token format weaknesses detected.');
+      }
+    } catch (err) {
+      console.error('JWT inspection error:', err instanceof Error ? err.message : String(err));
+      process.exit(1);
+    }
+  });
+
+program
+  .command('dashboard')
+  .description('Launch the interactive Terminal Mission Control Dashboard')
+  .action(async () => {
+    const { spawn } = await import('node:child_process');
+    const dashboardPy = path.resolve(__dirname, '../../../packages/sentinel-py/sentinel.py');
+    const child = spawn('python3', [dashboardPy, 'dashboard'], { stdio: 'inherit' });
+    child.on('exit', code => process.exit(code ?? 0));
+  });
+
+program
+  .command('ui')
+  .description('Launch the local Web-based Mission Control Dashboard GUI')
+  .option('-p, --port <number>', 'Port to run the dashboard server on', '3333')
+  .action(async (options) => {
+    const { startDashboardServer } = await import('./dashboard-server.js');
+    const port = parseInt(options.port, 10) || 3333;
+    await startDashboardServer(port);
+    console.log(`\n🚀 Sentinel Mission Control Web GUI is live at: http://localhost:${port}\n`);
+  });
+
 program.parse(process.argv);
+
