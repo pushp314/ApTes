@@ -28,14 +28,14 @@ Advanced Mode allows you to manually override every option:
 
 When Sentinel runs, it no longer leaves you guessing. The CLI features a dynamic visual loader that provides real-time progress updates:
 - **Estimated Time:** Calculates an ETA (e.g., `~5-10s`) depending on target latency and AI provider speed.
-- **Active Operations:** Shows the exact engine currently executing (e.g., `◒ Starting Web Engine scan for target: https://appnity.co.in`).
+- **Active Operations:** Shows the exact engine currently executing (e.g., `◒ Starting Web Engine scan for target: https://example.com`).
 
 ## Running with Arguments
 
 For CI/CD pipelines or rapid execution, you can bypass the wizard by providing arguments directly:
 
 ```bash
-sentinel scan https://appnity.co.in -y
+sentinel scan https://example.com -y
 ```
 
 > **Note:** If you forget the `-y` authorization flag, the CLI will safely pause and prompt you for legal authorization instead of failing!
