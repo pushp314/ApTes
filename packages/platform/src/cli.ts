@@ -43,13 +43,23 @@ program
       const { runInteractiveWizard } = await import('./wizard.js');
       projectConfig = await runInteractiveWizard();
     } else {
-      if (!url || !options.mcp || !options.authorized) {
+      if (!url || !options.authorized) {
         console.error('Error: missing required arguments. Run `sentinel scan --help` or run `sentinel scan` without arguments for the interactive wizard.');
-        console.error('Usage: sentinel scan <url> -m <mcp_command> -y');
+        console.error('Usage: sentinel scan <url> [-m <mcp_command>] -y');
         process.exit(1);
       }
-      const mcpCommand = typeof options.mcp === 'string' ? options.mcp : '';
-      const [cmd = '', ...args] = mcpCommand.split(' ');
+      const mcpTargets = [];
+      if (options.mcp && typeof options.mcp === 'string') {
+        const [cmd = '', ...args] = options.mcp.trim().split(' ');
+        mcpTargets.push({
+          name: options.mcpName || 'backend',
+          command: cmd,
+          args,
+          authorizationConfirmed: options.authorized,
+          authorizationConfirmedAt: new Date().toISOString(),
+        });
+      }
+
       projectConfig = {
         id: options.project || `sentinel-${Date.now()}`,
         webUrl: url,
@@ -64,15 +74,7 @@ program
         aiModel: options.aiModel,
         aiUrl: options.aiUrl,
         aiProvider: options.aiProvider,
-        mcpTargets: [
-          {
-            name: options.mcpName,
-            command: cmd,
-            args: args || [],
-            authorizationConfirmed: options.authorized,
-            authorizationConfirmedAt: new Date().toISOString(),
-          }
-        ]
+        mcpTargets,
       };
     }
 

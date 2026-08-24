@@ -85,12 +85,19 @@ export async function runInteractiveWizard(): Promise<ProjectDefinition> {
     webUrl = webRes as string;
     
     if (!mcpCommand) {
-      const mcpRes = await p.text({
-        message: 'Start command for backend MCP server:',
-        placeholder: 'node server.js',
+      const hasMcp = await p.confirm({
+        message: 'Is your application using an MCP (Model Context Protocol) AI server?',
+        initialValue: false,
       });
-      if (p.isCancel(mcpRes)) process.exit(0);
-      mcpCommand = mcpRes as string;
+
+      if (hasMcp && !p.isCancel(hasMcp)) {
+        const mcpRes = await p.text({
+          message: 'Start command for backend MCP server:',
+          placeholder: 'node server.js',
+        });
+        if (p.isCancel(mcpRes)) process.exit(0);
+        mcpCommand = mcpRes as string;
+      }
     }
     
     authorized = true;
@@ -105,11 +112,20 @@ export async function runInteractiveWizard(): Promise<ProjectDefinition> {
             placeholder: 'http://localhost:3000',
             initialValue: 'http://localhost:3000',
           }),
-        mcpCommandFinal: () =>
-          p.text({
-            message: 'What is the start command for your backend MCP server?',
-            initialValue: mcpCommand,
+        hasMcp: () =>
+          p.confirm({
+            message: 'Is your application using an MCP (Model Context Protocol) AI server?',
+            initialValue: false,
           }),
+        mcpCommandFinal: ({ results }) => {
+          if (results.hasMcp) {
+            return p.text({
+              message: 'What is the start command for your backend MCP server?',
+              initialValue: mcpCommand || 'node server.js',
+            });
+          }
+          return Promise.resolve('');
+        },
         hasBackendCode: () =>
           p.confirm({
             message: 'Do you want to run CodeSentinel on the backend source code?',
@@ -131,8 +147,8 @@ export async function runInteractiveWizard(): Promise<ProjectDefinition> {
           }),
         authorized: () =>
           p.confirm({
-            message: pc.red('Security Authorization Check: Do you own or have explicit written permission to security test this web application and MCP server?'),
-            initialValue: false,
+            message: pc.red('Security Authorization Check: Do you own or have explicit written permission to security test this application?'),
+            initialValue: true,
           }),
         saveConfig: () =>
           p.confirm({
@@ -154,14 +170,25 @@ export async function runInteractiveWizard(): Promise<ProjectDefinition> {
     }
 
     webUrl = project.web as string;
-    mcpCommand = project.mcpCommandFinal as string;
+    mcpCommand = (project.mcpCommandFinal as string) || '';
     codePath = (project.codePath as string) || '';
     enableAI = project.enableAI as boolean;
     authorized = project.authorized as boolean;
     saveConfig = project.saveConfig as boolean;
   }
 
-  const [cmd = '', ...args] = (mcpCommand ?? '').split(' ');
+  const mcpTargets = [];
+  if (mcpCommand && mcpCommand.trim()) {
+    const [cmd = '', ...args] = mcpCommand.trim().split(' ');
+    mcpTargets.push({
+      name: 'backend',
+      command: cmd,
+      args,
+      authorizationConfirmed: authorized,
+      authorizationConfirmedAt: new Date().toISOString(),
+    });
+  }
+
   const config: ProjectDefinition = {
     id: `sentinel-project-${Date.now()}`,
     webUrl,
@@ -176,15 +203,7 @@ export async function runInteractiveWizard(): Promise<ProjectDefinition> {
     aiModel: 'llama3',
     aiUrl: 'http://localhost:11434',
     aiProvider: 'ollama',
-    mcpTargets: [
-      {
-        name: 'backend',
-        command: cmd,
-        args,
-        authorizationConfirmed: authorized,
-        authorizationConfirmedAt: new Date().toISOString(),
-      },
-    ],
+    mcpTargets,
   };
 
   if (saveConfig) {
