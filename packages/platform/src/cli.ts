@@ -316,9 +316,54 @@ program
   .description('Launch the interactive Terminal Mission Control Dashboard')
   .action(async () => {
     const { spawn } = await import('node:child_process');
-    const dashboardPy = path.resolve(__dirname, '../../../packages/sentinel-py/sentinel.py');
+    const { fileURLToPath } = await import('node:url');
+    const currentDir = path.dirname(fileURLToPath(import.meta.url));
+    const dashboardPy = path.resolve(currentDir, '../../sentinel-py/sentinel.py');
     const child = spawn('python3', [dashboardPy, 'dashboard'], { stdio: 'inherit' });
     child.on('exit', code => process.exit(code ?? 0));
+  });
+
+program
+  .command('tools')
+  .description('Display complete catalog of all Sentinel CLI commands, engines, and pentest tools')
+  .action(() => {
+    console.log(`
+\x1b[1m\x1b[34m================================================================================
+   🛡️  SENTINEL MASTER CLI TOOL CATALOG & COMMAND INDEX
+================================================================================\x1b[0m
+
+\x1b[1m\x1b[36m1. MISSION CONTROL HUBS & GUIS\x1b[0m
+   • \x1b[32msentinel ui\x1b[0m                 Launch local Web Mission Control GUI (http://localhost:3333)
+   • \x1b[32msentinel dashboard\x1b[0m          Launch interactive terminal TUI dashboard
+   • \x1b[32msentinel\x1b[0m                    Launch interactive 1-Click Zero-Config Express Wizard
+
+\x1b[1m\x1b[36m2. TRI-BOUNDARY APPLICATION SCANNING\x1b[0m
+   • \x1b[32msentinel scan <url> -m "<mcp>" -y\x1b[0m
+     Full unified scan across Code (AST) + Web (DOM) + MCP (Isolation).
+     \x1b[90mOptions: -c <code_path>, -A (Enable AI), -E <dir> (VC Report), -f <format>\x1b[0m
+
+\x1b[1m\x1b[36m3. ACTIVE PENETRATION TESTING & DAST\x1b[0m
+   • \x1b[32msentinel pentest <url> -y\x1b[0m   Active access control prober & DAST form fuzzing
+   • \x1b[32msentinel security headers <url>\x1b[0m
+     Audit HTTP security headers (CSP, HSTS, X-Frame-Options)
+   • \x1b[32msentinel security jwt <token>\x1b[0m
+     Forensic JWT inspector (flags alg "none", expirations, structural claims)
+
+\x1b[1m\x1b[36m4. PYTHON RECONNAISSANCE & AUDIT SUITE (sentinel-py)\x1b[0m
+   • \x1b[32msentinel-py endpoints <url>\x1b[0m Discover API endpoints from JS bundles, HTML & Swagger
+   • \x1b[32msentinel-py audit <url>\x1b[0m     Multi-vector audit: Headers + CORS + Cookies + Redirects
+   • \x1b[32msentinel-py cors <url>\x1b[0m      CORS origin reflection & credential leakage auditor
+   • \x1b[32msentinel-py cookies <url>\x1b[0m   Cookie security & SameSite/CSRF compliance auditor
+   • \x1b[32msentinel-py redirect <url>\x1b[0m  Open redirect parameter prober (15+ probes)
+   • \x1b[32msentinel-py auth <url>\x1b[0m      Unauthenticated route access prober
+
+\x1b[1m\x1b[36m5. STATIC CODE AST ENGINES (CodeSentinel)\x1b[0m
+   • Supports TypeScript, JavaScript (.ts, .js, .tsx, .jsx, .mjs, .cjs) and Python (.py)
+   • 18+ AST Rules: SQLi, NoSQLi, SSRF, IDOR, Mass Assignment, Prototype Pollution,
+     Insecure Deserialization (Pickle/YAML), Open Redirects, Hardcoded Secrets.
+
+\x1b[1m\x1b[34m================================================================================\x1b[0m
+    `);
   });
 
 program
@@ -333,4 +378,5 @@ program
   });
 
 program.parse(process.argv);
+
 
