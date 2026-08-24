@@ -16,7 +16,7 @@ export default defineConfig({
       md.renderer.rules.fence = (tokens, idx, options, env, self) => {
         const token = tokens[idx];
         if (token.info.trim() === 'mermaid') {
-          return `<div class="mermaid" style="display: flex; justify-content: center; margin: 1.5rem 0;">${escapeHtml(token.content)}</div>`;
+          return `<pre class="mermaid" style="display: flex; justify-content: center; margin: 1.5rem 0; background: transparent;">${escapeHtml(token.content)}</pre>`;
         }
         return defaultFence(tokens, idx, options, env, self);
       };
@@ -86,8 +86,8 @@ export default defineConfig({
       {
         text: 'API Reference',
         items: [
-          { text: 'Shared Models', link: '/api-reference/modules/shared_src' },
-          { text: 'Platform Orchestrator', link: '/api-reference/modules/platform_src' }
+          { text: 'Shared Models', link: '/api-reference/shared/src/README' },
+          { text: 'Platform Orchestrator', link: '/api-reference/platform/src/README' }
         ]
       },
       {
