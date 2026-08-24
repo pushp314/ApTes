@@ -16,6 +16,7 @@ export async function runInteractiveWizard(): Promise<ProjectDefinition> {
     message: 'How would you like to configure Sentinel?',
     options: [
       { value: 'express', label: '🚀 Express Mode (1-Click, Auto-Detect)' },
+      { value: 'web-only', label: '🌐 Web Scan Only (Live Domain/URL)' },
       { value: 'advanced', label: '⚙️ Advanced Mode (Configure all settings)' }
     ],
   });
@@ -25,41 +26,45 @@ export async function runInteractiveWizard(): Promise<ProjectDefinition> {
     process.exit(0);
   }
 
+  let mcpCommand = '';
   const spinner = p.spinner();
-  spinner.start('Analyzing workspace...');
-  const detectedCommand = await detectStartCommand(cwd);
-  spinner.stop(detectedCommand ? `Detected start command: ${pc.green(detectedCommand)}` : 'Could not auto-detect start command.');
+  
+  if (mode !== 'web-only') {
+    spinner.start('Analyzing workspace...');
+    const detectedCommand = await detectStartCommand(cwd);
+    spinner.stop(detectedCommand ? `Detected start command: ${pc.green(detectedCommand)}` : 'Could not auto-detect start command.');
 
-  let mcpCommand = detectedCommand || '';
+    mcpCommand = detectedCommand || '';
 
-  if (!detectedCommand) {
-    const useGemini = await p.confirm({
-      message: 'Would you like Gemini AI to analyze your workspace and suggest the start command?',
-      initialValue: true,
-    });
-
-    if (useGemini && !p.isCancel(useGemini)) {
-      const apiKey = await p.password({
-        message: 'Please enter your Gemini API Key:',
-        validate: (value) => {
-          if (!value) return 'API Key is required to use Gemini.';
-        },
+    if (!detectedCommand) {
+      const useGemini = await p.confirm({
+        message: 'Would you like Gemini AI to analyze your workspace and suggest the start command?',
+        initialValue: true,
       });
 
-      if (typeof apiKey === 'string') {
-        spinner.start('Gemini is analyzing your files...');
-        const gemini = new GeminiProvider(apiKey);
-        const suggested = await gemini.analyzeWorkspaceForCommand(cwd);
-        spinner.stop('Gemini analysis complete.');
+      if (useGemini && !p.isCancel(useGemini)) {
+        const apiKey = await p.password({
+          message: 'Please enter your Gemini API Key:',
+          validate: (value) => {
+            if (!value) return 'API Key is required to use Gemini.';
+          },
+        });
 
-        if (suggested) {
-          p.note(`Gemini suggests: ${pc.cyan(suggested)}`, 'Analysis Result');
-          const accept = await p.confirm({
-            message: 'Use this command?',
-            initialValue: true,
-          });
-          if (accept) {
-            mcpCommand = suggested;
+        if (typeof apiKey === 'string') {
+          spinner.start('Gemini is analyzing your files...');
+          const gemini = new GeminiProvider(apiKey);
+          const suggested = await gemini.analyzeWorkspaceForCommand(cwd);
+          spinner.stop('Gemini analysis complete.');
+
+          if (suggested) {
+            p.note(`Gemini suggests: ${pc.cyan(suggested)}`, 'Analysis Result');
+            const accept = await p.confirm({
+              message: 'Use this command?',
+              initialValue: true,
+            });
+            if (accept) {
+              mcpCommand = suggested;
+            }
           }
         }
       }
@@ -68,11 +73,11 @@ export async function runInteractiveWizard(): Promise<ProjectDefinition> {
 
   let webUrl = 'http://localhost:3000';
   let authorized = false;
-  let codePath = './';
+  let codePath = mode === 'web-only' ? '' : './';
   let enableAI = false;
   let saveConfig = false;
 
-  if (mode === 'express') {
+  if (mode === 'express' || mode === 'web-only') {
     p.note(pc.red('By continuing, you confirm you have explicit legal authorization to security test the targets.'), 'Authorization Check');
     
     const webRes = await p.text({
@@ -84,7 +89,7 @@ export async function runInteractiveWizard(): Promise<ProjectDefinition> {
     if (p.isCancel(webRes)) process.exit(0);
     webUrl = webRes as string;
     
-    if (!mcpCommand) {
+    if (mode === 'express' && !mcpCommand) {
       const hasMcp = await p.confirm({
         message: 'Is your application using an MCP (Model Context Protocol) AI server?',
         initialValue: false,
@@ -101,7 +106,7 @@ export async function runInteractiveWizard(): Promise<ProjectDefinition> {
     }
     
     authorized = true;
-    saveConfig = true; // Automatically save in express mode so future runs are instant
+    saveConfig = mode === 'express'; // Automatically save in express mode so future runs are instant
   } else {
     // Advanced Mode
     const project = await p.group(
