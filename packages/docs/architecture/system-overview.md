@@ -6,7 +6,7 @@ Sentinel is designed as a modular security platform consisting of three independ
 
 ```mermaid
 flowchart TD
-    subgraph "Developer Interface"
+    subgraph DeveloperInterface ["Developer Interface"]
         CLI["sentinel CLI (Commander.js)"]
         WIZARD["Interactive Wizard (@clack/prompts)"]
         CONFIG["sentinel.config.json"]

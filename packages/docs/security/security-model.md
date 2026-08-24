@@ -19,19 +19,19 @@ All analysis runs locally on the developer's machine. No source code, findings, 
 
 ```mermaid
 flowchart TD
-    subgraph "Layer 1: Authorization"
+    subgraph Layer1 ["Layer 1: Authorization"]
         AUTH["--authorized flag REQUIRED"]
         AUTH2["Interactive confirmation"]
     end
-    subgraph "Layer 2: Network Safety"
+    subgraph Layer2 ["Layer 2: Network Safety"]
         SSRF["SSRF Protection (blocks private IPs)"]
         TLS["HTTPS validation"]
     end
-    subgraph "Layer 3: Process Isolation"
+    subgraph Layer3 ["Layer 3: Process Isolation"]
         MCP_ISO["MCP server in child process"]
         BROWSER["Browser in Playwright sandbox"]
     end
-    subgraph "Layer 4: Data Protection"
+    subgraph Layer4 ["Layer 4: Data Protection"]
         REDACT["Secret redaction before AI"]
         BUDGET["AI budget enforcement"]
         LOCAL["Local-only Ollama by default"]

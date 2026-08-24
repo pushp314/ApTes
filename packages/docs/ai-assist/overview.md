@@ -12,18 +12,18 @@ AI **MUST NOT** silently mutate deterministic findings. The original finding gen
 
 ```mermaid
 flowchart TD
-    subgraph "Deterministic Engines"
+    subgraph Engines ["Deterministic Engines"]
         CS[CodeSentinel]
         WS[WebSentinel]
         MS[MCPSentinel]
     end
-    subgraph "Platform"
+    subgraph Platform ["Platform"]
         CS --> O[Orchestrator]
         WS --> O
         MS --> O
         O --> AIR[AI Reviewer]
     end
-    subgraph "AI Reviewer Pipeline"
+    subgraph AIReviewer ["AI Reviewer Pipeline"]
         AIR --> FILTER[Filter: LOW/MEDIUM confidence only]
         FILTER --> REDACT[Secret Redactor]
         REDACT --> BATCH[Batch Findings]
