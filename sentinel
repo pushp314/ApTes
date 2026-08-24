@@ -1,0 +1,173 @@
+#!/usr/bin/env bash
+# ──────────────────────────────────────────────────────────────────────────────
+#  🛡️  Sentinel Security Toolkit — Quick CLI Wrapper
+#  Usage:  ./sentinel <command> [args]
+# ──────────────────────────────────────────────────────────────────────────────
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PY_SENTINEL="$SCRIPT_DIR/packages/sentinel-py/sentinel.py"
+
+# Colors
+BOLD="\033[1m"
+CYAN="\033[96m"
+GREEN="\033[92m"
+YELLOW="\033[93m"
+RED="\033[91m"
+DIM="\033[2m"
+RESET="\033[0m"
+
+show_banner() {
+  echo ""
+  echo -e "${BOLD}${CYAN}  ╔══════════════════════════════════════════════════╗${RESET}"
+  echo -e "${BOLD}${CYAN}  ║     🛡️  Sentinel Security Toolkit  CLI          ║${RESET}"
+  echo -e "${BOLD}${CYAN}  ╚══════════════════════════════════════════════════╝${RESET}"
+  echo ""
+}
+
+show_help() {
+  show_banner
+  echo -e "  ${BOLD}USAGE${RESET}"
+  echo -e "    ${GREEN}./sentinel${RESET} ${CYAN}<command>${RESET} ${DIM}<url>${RESET}"
+  echo ""
+  echo -e "  ${BOLD}COMMANDS${RESET}"
+  echo -e "    ${GREEN}scan${RESET}  ${DIM}<url>${RESET}       Full 8-stage security audit"
+  echo -e "    ${GREEN}admin${RESET} ${DIM}<url>${RESET}       Admin panel & hidden API discovery"
+  echo -e "    ${GREEN}headers${RESET} ${DIM}<url>${RESET}     HTTP security headers audit"
+  echo -e "    ${GREEN}cors${RESET}  ${DIM}<url>${RESET}       CORS misconfiguration test"
+  echo -e "    ${GREEN}cookies${RESET} ${DIM}<url>${RESET}     Cookie & CSRF flag audit"
+  echo -e "    ${GREEN}xss${RESET}   ${DIM}<url>${RESET}       Reflected XSS injection probes"
+  echo -e "    ${GREEN}redirect${RESET} ${DIM}<url>${RESET}    Open redirect scanner"
+  echo -e "    ${GREEN}exposure${RESET} ${DIM}<url>${RESET}    Sensitive file exposure probe"
+  echo -e "    ${GREEN}auth${RESET}  ${DIM}<url>${RESET}       API route auth bypass prober"
+  echo -e "    ${GREEN}endpoints${RESET} ${DIM}<url>${RESET}   API endpoint discovery & recon"
+  echo -e "    ${GREEN}jwt${RESET}   ${DIM}<token>${RESET}     JWT token analysis"
+  echo -e "    ${GREEN}ui${RESET}                Launch Mission Control dashboard"
+  echo ""
+  echo -e "  ${BOLD}EXAMPLES${RESET}"
+  echo -e "    ${DIM}./sentinel scan https://mysite.com${RESET}"
+  echo -e "    ${DIM}./sentinel admin https://mysite.com${RESET}"
+  echo -e "    ${DIM}./sentinel xss https://mysite.com${RESET}"
+  echo -e "    ${DIM}./sentinel jwt eyJhbGciOi...${RESET}"
+  echo -e "    ${DIM}./sentinel ui${RESET}"
+  echo ""
+}
+
+interactive_mode() {
+  show_banner
+  echo -e "  ${BOLD}No command specified. What would you like to do?${RESET}"
+  echo ""
+  echo -e "  ${GREEN}1${RESET})  Full Security Scan    ${DIM}(8-stage audit)${RESET}"
+  echo -e "  ${GREEN}2${RESET})  Admin Panel Discovery ${DIM}(130 path recon)${RESET}"
+  echo -e "  ${GREEN}3${RESET})  HTTP Headers Audit"
+  echo -e "  ${GREEN}4${RESET})  CORS Policy Test"
+  echo -e "  ${GREEN}5${RESET})  Cookie & CSRF Audit"
+  echo -e "  ${GREEN}6${RESET})  XSS Injection Probes"
+  echo -e "  ${GREEN}7${RESET})  Open Redirect Scanner"
+  echo -e "  ${GREEN}8${RESET})  Sensitive File Exposure"
+  echo -e "  ${GREEN}9${RESET})  API Auth Bypass Prober"
+  echo -e "  ${GREEN}10${RESET}) API Endpoint Discovery"
+  echo -e "  ${GREEN}11${RESET}) JWT Token Analysis"
+  echo -e "  ${GREEN}12${RESET}) Launch Dashboard UI"
+  echo -e "  ${GREEN}0${RESET})  Exit"
+  echo ""
+
+  read -rp "  Select [1-12]: " choice
+  echo ""
+
+  case "$choice" in
+    1)  CMD="audit" ;;
+    2)  CMD="admin" ;;
+    3)  CMD="headers" ;;
+    4)  CMD="cors" ;;
+    5)  CMD="cookies" ;;
+    6)  CMD="xss" ;;
+    7)  CMD="redirect" ;;
+    8)  CMD="exposure" ;;
+    9)  CMD="auth" ;;
+    10) CMD="endpoints" ;;
+    11)
+      read -rp "  Paste JWT token: " TOKEN
+      python3 "$PY_SENTINEL" jwt "$TOKEN"
+      exit 0
+      ;;
+    12)
+      echo -e "  ${CYAN}Launching Mission Control...${RESET}"
+      node "$SCRIPT_DIR/packages/platform/dist/cli.js" ui
+      exit 0
+      ;;
+    0)  echo -e "  ${DIM}Bye.${RESET}"; exit 0 ;;
+    *)  echo -e "  ${RED}Invalid choice.${RESET}"; exit 1 ;;
+  esac
+
+  read -rp "  Enter target URL (e.g. https://mysite.com): " TARGET_URL
+
+  if [ -z "$TARGET_URL" ]; then
+    echo -e "  ${RED}URL is required.${RESET}"
+    exit 1
+  fi
+
+  echo ""
+  python3 "$PY_SENTINEL" "$CMD" "$TARGET_URL"
+}
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Main dispatch
+# ──────────────────────────────────────────────────────────────────────────────
+
+if [ $# -eq 0 ]; then
+  interactive_mode
+  exit 0
+fi
+
+CMD="$1"
+shift
+
+case "$CMD" in
+  scan|audit)
+    python3 "$PY_SENTINEL" audit "$@"
+    ;;
+  admin)
+    python3 "$PY_SENTINEL" admin "$@"
+    ;;
+  headers)
+    python3 "$PY_SENTINEL" headers "$@"
+    ;;
+  cors)
+    python3 "$PY_SENTINEL" cors "$@"
+    ;;
+  cookies)
+    python3 "$PY_SENTINEL" cookies "$@"
+    ;;
+  xss)
+    python3 "$PY_SENTINEL" xss "$@"
+    ;;
+  redirect)
+    python3 "$PY_SENTINEL" redirect "$@"
+    ;;
+  exposure)
+    python3 "$PY_SENTINEL" exposure "$@"
+    ;;
+  auth)
+    python3 "$PY_SENTINEL" auth "$@"
+    ;;
+  endpoints)
+    python3 "$PY_SENTINEL" endpoints "$@"
+    ;;
+  jwt)
+    python3 "$PY_SENTINEL" jwt "$@"
+    ;;
+  ui|dashboard)
+    echo -e "${CYAN}Launching Mission Control Dashboard...${RESET}"
+    node "$SCRIPT_DIR/packages/platform/dist/cli.js" ui
+    ;;
+  help|--help|-h)
+    show_help
+    ;;
+  *)
+    echo -e "${RED}Unknown command: ${CMD}${RESET}"
+    show_help
+    exit 1
+    ;;
+esac
