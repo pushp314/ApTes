@@ -1204,6 +1204,7 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
     let currentView = 'findings';
     let rawPayload = {};
     let currentFindingsList = [];
+    let chatHistory = [];
 
     function setUrl(val) { document.getElementById('target-url').value = val; }
     function setSampleJwt() {
@@ -1562,6 +1563,7 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
           body: JSON.stringify({
             prompt: text,
             model: model,
+            history: chatHistory,
             context: {
               targetUrl: document.getElementById('target-url').value,
               telemetry: rawPayload
@@ -1569,10 +1571,15 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
           })
         });
 
+        // Add user message to history
+        chatHistory.push({ role: 'user', content: text });
+
         const data = await response.json();
         const aiBubble = document.getElementById(aiBubbleId);
         if (aiBubble) {
-          aiBubble.innerHTML = renderMarkdownToHtml(data.response || data.message || 'No response generated from local LLM.');
+          const aiText = data.response || data.message || 'No response generated from local LLM.';
+          aiBubble.innerHTML = renderMarkdownToHtml(aiText);
+          chatHistory.push({ role: 'assistant', content: aiText });
         }
       } catch (err) {
         const el = document.getElementById(aiBubbleId);
@@ -1641,15 +1648,24 @@ Your goals:
 3. Provide precise, copyable code remediation in relevant frameworks (Express, Next.js, FastAPI, Django, NGINX).
 4. Maintain a clear, defensive security engineer perspective.`;
 
-            // Call local Ollama on http://localhost:11434
+            const history = payload.history || [];
+            if (prompt) {
+              history.push({ role: 'user', content: prompt });
+            }
+
+            const messages = [
+              { role: 'system', content: systemPrompt },
+              ...history
+            ];
+
+            // Call local Ollama on http://localhost:11434 using /api/chat
             try {
-              const ollamaReq = await fetch('http://localhost:11434/api/generate', {
+              const ollamaReq = await fetch('http://localhost:11434/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   model: model,
-                  prompt: prompt,
-                  system: systemPrompt,
+                  messages: messages,
                   stream: false,
                 })
               });
@@ -1657,7 +1673,7 @@ Your goals:
               if (ollamaReq.ok) {
                 const ollamaData = (await ollamaReq.json()) as any;
                 res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ response: ollamaData.response }));
+                res.end(JSON.stringify({ response: ollamaData.message?.content || ollamaData.response }));
                 return;
               }
             } catch {
