@@ -200,9 +200,9 @@ export async function runInteractiveWizard(): Promise<ProjectDefinition> {
     allowLocalTargets: true,
     aiEnabled: enableAI,
     aiBudget: 5,
-    aiModel: 'llama3',
+    aiModel: process.env.GEMINI_API_KEY ? 'gemini-1.5-flash' : 'llama3',
     aiUrl: 'http://localhost:11434',
-    aiProvider: 'ollama',
+    aiProvider: process.env.GEMINI_API_KEY ? 'gemini' : 'ollama',
     mcpTargets,
   };
 

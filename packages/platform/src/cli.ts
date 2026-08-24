@@ -117,8 +117,19 @@ program
         const { AICache } = await import('./ai/cache.js');
         const { MockProvider } = await import('./ai/mock-provider.js');
         const { OllamaProvider } = await import('./ai/ollama-provider.js');
+        const { GeminiProvider } = await import('./ai/gemini-provider.js');
+        
+        let provider;
+        if (projectConfig.aiProvider === 'gemini' && process.env.GEMINI_API_KEY) {
+          provider = new GeminiProvider(process.env.GEMINI_API_KEY, projectConfig.aiModel);
+        } else if (projectConfig.aiProvider === 'mock') {
+          provider = new MockProvider();
+        } else {
+          provider = new OllamaProvider();
+        }
+
         const engine = new NarrativeEngine(
-          projectConfig.aiProvider === 'mock' ? new MockProvider() : new OllamaProvider(),
+          provider,
           new AICache(process.cwd()),
           {
             model: projectConfig.aiModel,

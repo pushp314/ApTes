@@ -1,13 +1,15 @@
 import type { Finding } from '@sentinel/shared';
-import type { AIProvider, AIContext, AIAnalysis } from './ai/provider.js';
+import type { AIProvider, AIContext } from './ai/provider.js';
 import { OllamaProvider } from './ai/ollama-provider.js';
 import { AICache } from './ai/cache.js';
 import { ContextCollector } from './ai/collector.js';
 import { SecretRedactor } from './ai/redactor.js';
+import { MockProvider } from './ai/mock-provider.js';
+import { GeminiProvider } from './ai/gemini-provider.js';
 
 export interface AiReviewerOptions {
   enabled: boolean;
-  provider?: 'ollama' | 'mock';
+  provider?: 'ollama' | 'mock' | 'gemini';
   model?: string;
   url?: string;
   budget?: number; // max number of findings
@@ -44,6 +46,8 @@ export class AiReviewer {
 
     if (this.options.provider === 'mock') {
       this.provider = new MockProvider();
+    } else if (this.options.provider === 'gemini' && process.env.GEMINI_API_KEY) {
+      this.provider = new GeminiProvider(process.env.GEMINI_API_KEY, this.options.model);
     } else {
       this.provider = new OllamaProvider();
     }
@@ -145,27 +149,5 @@ export class AiReviewer {
     await this.cache.save();
 
     return reviewedFindings;
-  }
-}
-
-// Mock provider for testing without Ollama
-class MockProvider implements AIProvider {
-  async analyzeFindings(findings: Finding[]): Promise<AIAnalysis[]> {
-    return findings.map(f => ({
-      findingId: f.id,
-      assessment: {
-        verdict: 'likely',
-        confidence: 0.85,
-        reason: 'Mock AI assessment determined this is likely an issue.',
-        remediation: 'Review the mock output.',
-        patch: '--- a/src/vulnerable.ts\n+++ b/src/vulnerable.ts\n@@ -1,2 +1,2 @@\n-const bad = true;\n+const bad = false;\n'
-      }
-    }));
-  }
-
-  async generateStructured(): Promise<null> {
-    // The mock never produces narrative content; callers fall back
-    // to deterministic rendering.
-    return null;
   }
 }

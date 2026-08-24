@@ -60,9 +60,38 @@ export class GeminiProvider implements AIProvider {
     }
   }
 
-  async generateStructured(): Promise<null> {
-    // Gemini path is not used for narrative generation; the local-first
-    // Ollama provider owns structured generation.
-    return null;
+  async generateStructured(
+    system: string,
+    user: string,
+    schema: Record<string, unknown>,
+    _context: AIContext
+  ): Promise<unknown | null> {
+    try {
+      const response = await this.ai.models.generateContent({
+        model: this.model,
+        contents: user,
+        config: {
+          systemInstruction: system,
+          responseMimeType: 'application/json',
+          responseSchema: schema as any,
+          // Low temperature to prioritize strict adherence to schema/facts over creativity
+          temperature: 0.1,
+        }
+      });
+      
+      if (!response.text) return null;
+      
+      try {
+        return JSON.parse(response.text);
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('[Sentinel AI] Failed to parse Gemini structured JSON output:', e);
+        return null;
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error('[Sentinel AI] Gemini generation error:', e);
+      return null;
+    }
   }
 }

@@ -95,7 +95,7 @@ export async function runUnifiedPlatform(project: ProjectDefinition, timeoutMs: 
     budget: project.aiBudget,
     model: project.aiModel,
     url: project.aiUrl,
-    provider: project.aiProvider as 'ollama' | 'mock',
+    provider: project.aiProvider as 'ollama' | 'mock' | 'gemini',
     projectId: project.id
   });
 
