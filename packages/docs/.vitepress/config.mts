@@ -1,12 +1,28 @@
-import { defineConfig } from 'vitepress'
-import { withMermaid } from 'vitepress-plugin-mermaid'
+import { defineConfig } from 'vitepress';
 
-export default withMermaid(
-  defineConfig({
-    mermaid: {
-      theme: 'dark',
-    },
-    title: "Sentinel",
+function escapeHtml(str: string) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+export default defineConfig({
+  markdown: {
+    config(md) {
+      const defaultFence = md.renderer.rules.fence!;
+      md.renderer.rules.fence = (tokens, idx, options, env, self) => {
+        const token = tokens[idx];
+        if (token.info.trim() === 'mermaid') {
+          return `<div class="mermaid" style="display: flex; justify-content: center; margin: 1.5rem 0;">${escapeHtml(token.content)}</div>`;
+        }
+        return defaultFence(tokens, idx, options, env, self);
+      };
+    }
+  },
+  title: "Sentinel",
   description: "Deterministic security analysis for code, web targets, and MCP systems.",
   head: [
     ['meta', { property: 'og:title', content: 'Sentinel | Deterministic Security Platform' }],
@@ -143,6 +159,7 @@ export default withMermaid(
       { icon: 'github', link: 'https://github.com/pushp314/ApTes' }
     ]
   }
-}))
+})
+
 
 
