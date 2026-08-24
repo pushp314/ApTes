@@ -19,6 +19,10 @@ from tools.auth_prober import probe_endpoints
 from tools.api_finder import find_api_endpoints
 from tools.redirect_scanner import audit_open_redirect
 from tools.cookie_auditor import audit_cookies
+from tools.csp_analyzer import audit_csp, parse_csp
+from tools.tech_fingerprinter import fingerprint_target
+from tools.subdomain_scanner import scan_subdomains
+from tools.port_scanner import scan_ports
 
 
 class MockSecurityHandler(http.server.BaseHTTPRequestHandler):
@@ -41,8 +45,11 @@ class MockSecurityHandler(http.server.BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-Type", "text/html")
             self.send_header("Set-Cookie", "session=insecure_token; Path=/")
+            self.send_header("Server", "Apache/2.4.41 (Ubuntu)")
+            self.send_header("X-Powered-By", "Express")
+            self.send_header("Content-Security-Policy", "script-src 'self' 'unsafe-inline' *; object-src 'none'")
             self.end_headers()
-            self.wfile.write(b'<html><script src="/static/bundle.js"></script><a href="/api/v1/users">Users</a></html>')
+            self.wfile.write(b'<html><script src="/static/bundle.js"></script><a href="/api/v1/users">Users</a><div data-reactroot=""></div></html>')
         elif self.path.startswith("/login"):
             # Simulate vulnerable open redirect
             self.send_response(302)
@@ -62,21 +69,20 @@ class MockSecurityHandler(http.server.BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            self.wfile.write(b'{"status": "vulnerable_admin_data"}')
+            self.wfile.write(json.dumps({"secret_admin_data": "exposed"}).encode("utf-8"))
         elif self.path == "/api/admin/protected":
             self.send_response(401)
-            self.send_header("Content-Type", "application/json")
             self.end_headers()
-            self.wfile.write(b'{"error": "Unauthorized"}')
         else:
             self.send_response(404)
             self.end_headers()
 
     def log_message(self, format, *args):
-        pass  # Suppress test output noise
+        # Silence HTTP server logs during tests
+        pass
 
 
-class TestSentinelPythonTools(unittest.TestCase):
+class TestSentinelTools(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.server = http.server.HTTPServer(("127.0.0.1", 0), MockSecurityHandler)
@@ -91,10 +97,10 @@ class TestSentinelPythonTools(unittest.TestCase):
         cls.server.shutdown()
         cls.server.server_close()
 
-    def test_jwt_analyzer_none_algorithm(self):
+    def test_jwt_analyzer_algorithm_none(self):
         # Header: {"alg":"none","typ":"JWT"} -> eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0
-        # Payload: {"user":"admin","exp":9999999999} -> eyJ1c2VyIjoiYWRtaW4iLCJleHAiOjk5OTk5OTk5OTl9
-        token = "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJ1c2VyIjoiYWRtaW4iLCJleHAiOjk5OTk5OTk5OTl9."
+        # Payload: {"user":"admin","admin":true} -> eyJ1c2VyIjoiYWRtaW4iLCJhZG1pbiI6dHJ1ZX0
+        token = "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJ1c2VyIjoiYWRtaW4iLCJhZG1pbiI6dHJ1ZX0."
         res = analyze_jwt(token)
 
         self.assertTrue(res["vulnerable"])
@@ -102,8 +108,6 @@ class TestSentinelPythonTools(unittest.TestCase):
         self.assertTrue(any("Insecure Algorithm 'none'" in w["title"] for w in res["warnings"]))
 
     def test_jwt_analyzer_expired_token(self):
-        # Header: {"alg":"HS256","typ":"JWT"} -> eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
-        # Payload: {"user":"test","exp":1577836800} -> eyJ1c2VyIjoidGVzdCIsImV4cCI6MTU3NzgzNjgwMH0
         token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoidGVzdCIsImV4cCI6MTU3NzgzNjgwMH0.sig"
         res = analyze_jwt(token)
 
@@ -119,7 +123,6 @@ class TestSentinelPythonTools(unittest.TestCase):
         res = audit_headers(self.base_url)
         self.assertIn("missing_headers", res)
         missing_names = [h["header"] for h in res["missing_headers"]]
-        self.assertIn("content-security-policy", missing_names)
         self.assertIn("strict-transport-security", missing_names)
 
     def test_auth_prober_unauthenticated_endpoint(self):
@@ -147,10 +150,31 @@ class TestSentinelPythonTools(unittest.TestCase):
         res = audit_cookies(self.base_url)
         self.assertTrue(res["is_vulnerable"])
         self.assertEqual(res["total_cookies"], 1)
-        # Should flag missing HttpOnly and SameSite
         titles = [f["title"] for f in res["findings"]]
         self.assertTrue(any("Missing 'HttpOnly'" in t for t in titles))
         self.assertTrue(any("Weak/Missing 'SameSite'" in t for t in titles))
+
+    def test_csp_analyzer(self):
+        res = audit_csp(self.base_url)
+        self.assertTrue(res["has_csp"])
+        titles = [f["title"] for f in res["findings"]]
+        self.assertTrue(any("unsafe-inline" in t for t in titles))
+        self.assertTrue(any("Wildcard" in t for t in titles))
+
+    def test_tech_fingerprinter(self):
+        res = fingerprint_target(self.base_url)
+        self.assertIn("React", res["detected_technologies"])
+        self.assertEqual(res["powered_by"], "Express")
+        self.assertTrue(any("Server:" in v for v in res["version_disclosures"]))
+
+    def test_subdomain_scanner_structure(self):
+        res = scan_subdomains("localhost")
+        self.assertEqual(res["base_domain"], "localhost")
+        self.assertIn("discovered", res)
+
+    def test_port_scanner_local(self):
+        res = scan_ports(f"127.0.0.1:{self.port}")
+        self.assertIn("open_ports", res)
 
 
 if __name__ == "__main__":
