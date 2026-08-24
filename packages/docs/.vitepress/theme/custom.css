@@ -1,0 +1,62 @@
+:root {
+  --vp-c-brand-1: #d2a8ff;
+  --vp-c-brand-2: #a371f7;
+  --vp-c-brand-3: #8957e5;
+}
+
+/* Video Placeholder Styles */
+.video-placeholder {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 2rem 0;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.video-placeholder:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+}
+
+.video-overlay {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.play-icon {
+  font-size: 3rem;
+  color: var(--vp-c-brand-1);
+  background: rgba(210, 168, 255, 0.1);
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid var(--vp-c-brand-1);
+  transition: all 0.2s ease;
+}
+
+.video-placeholder:hover .play-icon {
+  transform: scale(1.1);
+  background: rgba(210, 168, 255, 0.2);
+}
+
+.video-overlay p {
+  margin: 0;
+  font-weight: 600;
+  color: #c9d1d9;
+  font-size: 1.1rem;
+}

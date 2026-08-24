@@ -1,5 +1,12 @@
 # System Overview
 
+<div class="video-placeholder">
+  <div class="video-overlay">
+    <span class="play-icon">▶</span>
+    <p>Watch: Architecture Deep-Dive (12 mins)</p>
+  </div>
+</div>
+
 Sentinel is designed as a modular security platform consisting of three independent engines coordinated by a central orchestrator, with optional AI augmentation.
 
 ## High-Level Architecture

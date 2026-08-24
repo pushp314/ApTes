@@ -64,6 +64,7 @@ export default defineConfig({
         text: 'Getting Started',
         items: [
           { text: 'Introduction', link: '/getting-started/introduction' },
+          { text: 'Interactive Playground', link: '/getting-started/playground' },
           { text: 'Installation', link: '/getting-started/installation' },
           { text: 'Quick Start', link: '/getting-started/quick-start' },
           { text: 'First Scan', link: '/getting-started/first-scan' },
@@ -87,7 +88,8 @@ export default defineConfig({
         text: 'API Reference',
         items: [
           { text: 'Shared Models', link: '/api-reference/shared/src/README' },
-          { text: 'Platform Orchestrator', link: '/api-reference/platform/src/README' }
+          { text: 'Platform Orchestrator', link: '/api-reference/platform/src/README' },
+          { text: 'Custom Rules Tutorial', link: '/api-reference/tutorial-custom-rules' }
         ]
       },
       {

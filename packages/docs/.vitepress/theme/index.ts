@@ -1,4 +1,5 @@
 import DefaultTheme from 'vitepress/theme';
+import './custom.css';
 import { onMounted, watch, nextTick } from 'vue';
 import { useRoute } from 'vitepress';
 

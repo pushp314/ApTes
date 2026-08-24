@@ -1,5 +1,12 @@
 # How to Use Sentinel (Comprehensive Guide)
 
+<div class="video-placeholder">
+  <div class="video-overlay">
+    <span class="play-icon">▶</span>
+    <p>Watch: Sentinel Quick Start (3 mins)</p>
+  </div>
+</div>
+
 Sentinel is a Tri-Boundary Security Orchestrator. Unlike traditional scanners that only look at static code, Sentinel actively correlates vulnerabilities across your Code (AST), your Web frontend (DOM), and your AI tool integrations (MCP).
 
 This guide will teach you exactly how to use Sentinel to secure your applications with Zero Configuration required.
