@@ -43,10 +43,25 @@ program
       const { runInteractiveWizard } = await import('./wizard.js');
       projectConfig = await runInteractiveWizard();
     } else {
-      if (!url || !options.authorized) {
-        console.error('Error: missing required arguments. Run `sentinel scan --help` or run `sentinel scan` without arguments for the interactive wizard.');
-        console.error('Usage: sentinel scan <url> [-m <mcp_command>] -y');
+      if (!url) {
+        console.error('Error: missing required URL argument. Run `sentinel scan --help` or run `sentinel scan` without arguments for the interactive wizard.');
         process.exit(1);
+      }
+      
+      let isAuthorized = options.authorized;
+      if (!isAuthorized) {
+        const { confirm } = await import('@clack/prompts');
+        const pc = (await import('picocolors')).default;
+        
+        isAuthorized = await confirm({
+          message: pc.red('Security Authorization Check: Do you own or have explicit written permission to security test this application?'),
+          initialValue: false,
+        });
+        
+        if (!isAuthorized) {
+          console.error('Authorization denied. Exiting.');
+          process.exit(1);
+        }
       }
       const mcpTargets = [];
       if (options.mcp && typeof options.mcp === 'string') {
@@ -55,7 +70,7 @@ program
           name: options.mcpName || 'backend',
           command: cmd,
           args,
-          authorizationConfirmed: options.authorized,
+          authorizationConfirmed: isAuthorized,
           authorizationConfirmedAt: new Date().toISOString(),
         });
       }
@@ -63,7 +78,7 @@ program
       projectConfig = {
         id: options.project || `sentinel-${Date.now()}`,
         webUrl: url,
-        authorizationConfirmed: options.authorized,
+        authorizationConfirmed: isAuthorized,
         authorizationConfirmedAt: new Date().toISOString(),
         codePath: options.code,
         excludePatterns: options.exclude ? options.exclude.split(',').map((s: string) => s.trim()) : [],

@@ -128,6 +128,7 @@ export async function runUnifiedPlatform(project: ProjectDefinition, timeoutMs: 
       allowLocal: project.allowLocalTargets ?? false,
       authorizationConfirmed: project.authorizationConfirmed,
       authorizationConfirmedAt: project.authorizationConfirmedAt,
+      onProgress: onProgress,
     });
     if (webResult.error) {
       errors.push(`Web Engine Error: ${webResult.error}`);

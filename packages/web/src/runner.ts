@@ -23,6 +23,8 @@ export interface WebEngineConfig {
   authorizationConfirmed: boolean;
   /** ISO-8601 timestamp for the operator attestation. */
   authorizationConfirmedAt?: string;
+  /** Optional callback to report detailed progress. */
+  onProgress?: (msg: string) => void;
 }
 
 const DEFAULT_CONFIG: WebEngineConfig = {
@@ -104,8 +106,9 @@ export async function runWebEngine(
       if (visited.has(targetUrl)) continue;
       visited.add(targetUrl);
 
-      // eslint-disable-next-line no-console
-      console.log(`[Web Engine] Scanning: ${targetUrl}`);
+      if (config.onProgress) {
+        config.onProgress(`[Web Engine] Scanning: ${targetUrl}`);
+      }
       
       const page = await context.newPage();
       page.setDefaultNavigationTimeout(config.pageLoadTimeoutMs);
