@@ -80,7 +80,20 @@ program
 
     try {
       console.log(`Starting Sentinel Platform Scan for project: ${projectConfig.id}`);
-      const report = await runUnifiedPlatform(projectConfig, 30000);
+      
+      const { spinner } = await import('@clack/prompts');
+      const s = spinner();
+      
+      const aiTime = projectConfig.aiEnabled ? ' (AI Analysis: ~10-15s)' : '';
+      console.log(`\x1b[90mEstimated time: ~5-10s depending on target latency${aiTime}\x1b[0m`);
+      
+      s.start('Running Diagnostic Security Engines (AST, DAST, RECON)...');
+      
+      const report = await runUnifiedPlatform(projectConfig, 30000, (msg) => {
+        s.message(msg);
+      });
+      
+      s.stop('Diagnostic scan complete!');
 
       // Optional AI narration (requires -A). Strictly advisory: it only
       // attaches human-readable narratives and chapters to the report.
@@ -98,8 +111,13 @@ program
             budget: parseInt(options.narrateBudget, 10) || 4
           }
         );
+        const aiSpinner = spinner();
+        aiSpinner.start('Synthesizing AI Threat Narratives & Executive Chapters...');
+        
         const narrated = await engine.narrate(report.findings);
         report.chapters = await engine.chapterize(report.findings);
+        
+        aiSpinner.stop('AI Synthesis complete.');
         if (narrated > 0 || report.chapters.length > 0) {
           console.log(`[Sentinel AI] Narrated ${narrated} findings, structured ${report.chapters.length} audit chapters.`);
         }

@@ -74,7 +74,7 @@ export interface UnifiedReport {
   chapters?: AuditChapter[];
 }
 
-export async function runUnifiedPlatform(project: ProjectDefinition, timeoutMs: number = 30000): Promise<UnifiedReport> {
+export async function runUnifiedPlatform(project: ProjectDefinition, timeoutMs: number = 30000, onProgress?: (msg: string) => void): Promise<UnifiedReport> {
   const startTime = Date.now();
   const authorizationError = getProjectAuthorizationError(project);
   if (authorizationError) {
@@ -122,6 +122,7 @@ export async function runUnifiedPlatform(project: ProjectDefinition, timeoutMs: 
 
   try {
     // 1. Run Web Engine
+    onProgress?.(`Starting Web Engine scan for target: ${project.webUrl}`);
     const webResult = await runWebEngine(project.webUrl, webRules, project.id, {
       scanTimeoutMs: timeoutMs,
       allowLocal: project.allowLocalTargets ?? false,
@@ -135,7 +136,11 @@ export async function runUnifiedPlatform(project: ProjectDefinition, timeoutMs: 
     }
 
     // 2. Run MCP Engine (for each configured target)
+    if (project.mcpTargets.length > 0) {
+      onProgress?.(`Starting MCP Engine checks across ${project.mcpTargets.length} targets`);
+    }
     for (const target of project.mcpTargets) {
+      onProgress?.(`Testing MCP target: ${target.command}`);
       const mcpResult = await runMcpEngine(mcpRules, project.id, {
         command: target.command,
         args: target.args,
@@ -163,6 +168,7 @@ export async function runUnifiedPlatform(project: ProjectDefinition, timeoutMs: 
 
     // 2.5 Run Code Engine
     if (project.codePath) {
+      onProgress?.(`Starting Static Source Code Engine analysis for directory: ${project.codePath}`);
       try {
         const codeResult = await runCodeEngine(project.codePath, createCodeConfig({
           maxFiles: 1000,
