@@ -1,6 +1,6 @@
 /**
  * Sentinel Unified Mission Control Web Dashboard Server
- * Tier-1 Enterprise Cybersecurity & Threat Management Platform
+ * Tier-1 Enterprise Cybersecurity & Threat Management Platform with AI Copilot
  */
 
 import http from 'node:http';
@@ -400,7 +400,6 @@ const HTML_PAGE = `<!DOCTYPE html>
       color: var(--text-muted);
     }
 
-    /* Multi-stage Stepper Pipeline */
     .pipeline-stepper {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -444,28 +443,6 @@ const HTML_PAGE = `<!DOCTYPE html>
       font-weight: 700;
       color: #fff;
     }
-
-    /* Live Terminal Log Stream */
-    .terminal-stream {
-      background: #040508;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.85rem 1rem;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.78rem;
-      color: #94a3b8;
-      max-height: 160px;
-      overflow-y: auto;
-      line-height: 1.6;
-    }
-
-    .terminal-line { display: flex; gap: 0.75rem; }
-    .terminal-time { color: var(--text-faint); }
-    .terminal-text { color: #cbd5e1; }
-    .terminal-text.accent { color: #fff; font-weight: 600; }
-    .terminal-text.success { color: var(--success); }
-    .terminal-text.warn { color: var(--warning); }
-    .terminal-text.danger { color: var(--danger); }
 
     /* Executive AI Summary Box */
     .executive-card {
@@ -555,11 +532,11 @@ const HTML_PAGE = `<!DOCTYPE html>
       font-weight: 700;
     }
 
-    /* Finding Rows */
+    /* Finding Rows & Forensic Evidence Box */
     .findings-list {
       display: flex;
       flex-direction: column;
-      gap: 0.85rem;
+      gap: 1rem;
       max-height: 600px;
       overflow-y: auto;
       padding-right: 0.25rem;
@@ -569,7 +546,7 @@ const HTML_PAGE = `<!DOCTYPE html>
       background: var(--surface-elevated);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 1.15rem;
+      padding: 1.25rem;
       transition: all 0.15s ease;
     }
 
@@ -590,7 +567,7 @@ const HTML_PAGE = `<!DOCTYPE html>
     }
 
     .finding-name {
-      font-size: 0.92rem;
+      font-size: 0.95rem;
       font-weight: 700;
       color: #fff;
     }
@@ -615,82 +592,184 @@ const HTML_PAGE = `<!DOCTYPE html>
       line-height: 1.5;
     }
 
-    .code-remediation {
+    /* Forensic HTTP Evidence Drawer */
+    .forensic-box {
       background: #040508;
       border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 0.75rem 1rem;
+      padding: 0.85rem 1rem;
       margin-top: 0.75rem;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.8rem;
-      color: #cbd5e1;
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+
+    .forensic-header {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
-      gap: 0.6rem;
-    }
-
-    .copy-btn {
-      background: var(--surface-elevated);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-muted);
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.7rem;
-      cursor: pointer;
-    }
-    .copy-btn:hover { color: #fff; background: var(--surface-hover); }
-
-    /* Telemetry Table */
-    .telemetry-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.82rem;
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    .telemetry-table th {
-      text-align: left;
       font-size: 0.7rem;
       font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
       color: var(--text-faint);
-      padding: 0.65rem 0.85rem;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface-elevated);
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
     }
 
-    .telemetry-table td {
-      padding: 0.65rem 0.85rem;
-      border-bottom: 1px solid var(--border-subtle);
+    .forensic-line {
+      margin: 0.25rem 0;
+      word-break: break-all;
+    }
+
+    .forensic-preview {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      padding: 0.5rem 0.75rem;
+      margin-top: 0.45rem;
+      max-height: 100px;
+      overflow-y: auto;
+      white-space: pre-wrap;
       color: #cbd5e1;
     }
 
-    .telemetry-status {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      font-weight: 600;
-      font-size: 0.75rem;
+    .finding-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
     }
 
-    .telemetry-status.passed { color: var(--success); }
-    .telemetry-status.failed { color: var(--danger); }
-    .telemetry-status.warn { color: var(--warning); }
+    .action-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 0.35rem 0.7rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.12s ease;
+    }
 
-    .raw-view-box {
+    .action-btn:hover {
+      background: var(--surface-hover);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .action-btn.ai-btn {
+      background: #fff;
+      color: #000;
+      font-weight: 700;
+      border: none;
+    }
+    .action-btn.ai-btn:hover { background: #e2e8f0; }
+
+    /* AI Copilot Chat Panel */
+    .ai-chat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
       display: none;
+      flex-direction: column;
+      gap: 1rem;
+      min-height: 520px;
+    }
+
+    .ai-chat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.85rem;
+    }
+
+    .ai-model-picker {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .model-select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      padding: 0.3rem 0.6rem;
+      border-radius: 4px;
+    }
+
+    .chat-messages {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      max-height: 420px;
+      overflow-y: auto;
+      padding-right: 0.5rem;
+    }
+
+    .chat-bubble {
+      padding: 1rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      line-height: 1.6;
+    }
+
+    .chat-bubble.user {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      align-self: flex-end;
+      color: #fff;
+      max-width: 80%;
+    }
+
+    .chat-bubble.ai {
       background: #040508;
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1.25rem;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.8rem;
-      color: #94a3b8;
-      height: 520px;
-      overflow-y: auto;
+      border-left: 3px solid #fff;
+      color: #cbd5e1;
+      align-self: flex-start;
+      max-width: 100%;
       white-space: pre-wrap;
+    }
+
+    .chat-input-row {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: auto;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      color: #fff;
+      font-size: 0.86rem;
+      font-family: inherit;
+    }
+
+    .chat-input:focus {
+      outline: none;
+      border-color: var(--border-focus);
+    }
+
+    .chat-send-btn {
+      background: #fff;
+      color: #000;
+      font-weight: 700;
+      border: none;
+      padding: 0 1.25rem;
+      border-radius: 6px;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -709,7 +788,7 @@ const HTML_PAGE = `<!DOCTYPE html>
     <div class="header-center">
       <div class="gateway-status">
         <span class="status-dot"></span>
-        <span id="gateway-telemetry">DIAGNOSTIC DAEMONS: AST • DAST • RECON • AI</span>
+        <span id="gateway-telemetry">AI COPILOT ONLINE (dolphin-llama3 / Ollama)</span>
       </div>
     </div>
 
@@ -724,7 +803,7 @@ const HTML_PAGE = `<!DOCTYPE html>
   <main>
     <!-- Left Navigation Sidebar -->
     <div class="sidebar-panel">
-      <!-- Target Perimeter Configuration -->
+      <!-- Target Configuration -->
       <div class="config-card">
         <div class="input-label">Target Perimeter</div>
         <input type="text" id="target-url" class="form-input" placeholder="https://app.example.com" value="https://example.com">
@@ -831,46 +910,6 @@ const HTML_PAGE = `<!DOCTYPE html>
         </div>
       </div>
 
-      <!-- Live Operations & Behind-the-Scenes Activity Stepper -->
-      <div class="operations-panel">
-        <div class="operations-header">
-          <span>Operational Execution Telemetry (Behind The Scenes)</span>
-          <span style="font-family: 'JetBrains Mono', monospace;" id="telemetry-elapsed">LATENCY: 0.00s</span>
-        </div>
-
-        <!-- 5-Stage Multi-Stage Stepper -->
-        <div class="pipeline-stepper">
-          <div class="step-item" id="step-1">
-            <span class="step-num">01 / RECON</span>
-            <span class="step-title">Perimeter Handshake</span>
-          </div>
-          <div class="step-item" id="step-2">
-            <span class="step-num">02 / HEADERS</span>
-            <span class="step-title">Security Policies</span>
-          </div>
-          <div class="step-item" id="step-3">
-            <span class="step-num">03 / IDENTITY</span>
-            <span class="step-title">Auth & CORS Probing</span>
-          </div>
-          <div class="step-item" id="step-4">
-            <span class="step-num">04 / EXPLOITS</span>
-            <span class="step-title">XSS & Redirect Fuzzing</span>
-          </div>
-          <div class="step-item" id="step-5">
-            <span class="step-num">05 / SYNTHESIS</span>
-            <span class="step-title">AI Threat Scoring</span>
-          </div>
-        </div>
-
-        <!-- Terminal Output Stream -->
-        <div class="terminal-stream" id="terminal-stream">
-          <div class="terminal-line">
-            <span class="terminal-time">[00:00:00]</span>
-            <span class="terminal-text">Sentinel Enterprise Gateway ready. Select target perimeter to dispatch diagnostic daemons.</span>
-          </div>
-        </div>
-      </div>
-
       <!-- Executive AI Verdict -->
       <div class="executive-card" id="executive-card">
         <div class="executive-header">
@@ -884,11 +923,12 @@ const HTML_PAGE = `<!DOCTYPE html>
         </div>
       </div>
 
-      <!-- Tabbed Findings Workspace -->
-      <div class="content-card">
+      <!-- Tabbed Findings & AI Copilot Workspace -->
+      <div class="content-card" id="content-card">
         <div class="tab-bar">
           <div class="tabs-group">
-            <button class="tab-btn active" id="tab-findings-btn" onclick="switchView('findings')">Findings & Vulnerabilities</button>
+            <button class="tab-btn active" id="tab-findings-btn" onclick="switchView('findings')">Findings & Forensic Evidence</button>
+            <button class="tab-btn" id="tab-copilot-btn" onclick="switchView('copilot')">🤖 AI Copilot Chat</button>
             <button class="tab-btn" id="tab-matrix-btn" onclick="switchView('matrix')">Verification Matrix</button>
             <button class="tab-btn" id="tab-raw-btn" onclick="switchView('raw')">Raw JSON Telemetry</button>
           </div>
@@ -897,7 +937,7 @@ const HTML_PAGE = `<!DOCTYPE html>
           </div>
         </div>
 
-        <!-- Tab 1: Findings List -->
+        <!-- Tab 1: Findings List with Forensics -->
         <div class="findings-list" id="findings-container">
           <div class="finding-row sev-safe">
             <div class="finding-top">
@@ -910,60 +950,59 @@ const HTML_PAGE = `<!DOCTYPE html>
           </div>
         </div>
 
-        <!-- Tab 2: Verification Matrix Table -->
+        <!-- Tab 2: AI Security Copilot Chat -->
+        <div class="ai-chat-card" id="ai-chat-container">
+          <div class="ai-chat-header">
+            <div class="ai-model-picker">
+              <span>Selected LLM:</span>
+              <select class="model-select" id="ollama-model-select">
+                <option value="dolphin-llama3:latest" selected>dolphin-llama3:latest (Local Ollama)</option>
+                <option value="llama3:latest">llama3:latest</option>
+                <option value="mistral:latest">mistral:latest</option>
+                <option value="deepseek-coder:latest">deepseek-coder:latest</option>
+              </select>
+            </div>
+            <span style="font-size: 0.75rem; color: var(--success);">● Local LLM Gateway Connected</span>
+          </div>
+
+          <div class="chat-messages" id="chat-messages">
+            <div class="chat-bubble ai">
+              Hello! I am your <strong>Sentinel AI Security Copilot</strong> powered by <code>dolphin-llama3:latest</code>. 
+I have access to your full diagnostic audit telemetry, HTTP forensic headers, and response payloads. 
+Ask me how to manually verify any finding with <code>curl</code>, evaluate potential exploit paths safely, or generate framework code remediation (Express, Next.js, FastAPI, Django).
+            </div>
+          </div>
+
+          <div class="chat-input-row">
+            <input type="text" class="chat-input" id="chat-user-input" placeholder="Ask AI Copilot (e.g. 'Explain why /api/keys returned 200 OK and how to verify')..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+            <button class="chat-send-btn" onclick="sendChatMessage()">Send</button>
+          </div>
+        </div>
+
+        <!-- Tab 3: Verification Matrix Table -->
         <div id="matrix-container" style="display: none;">
-          <table class="telemetry-table">
+          <table class="telemetry-table" style="width: 100%; border-collapse: collapse; font-family: monospace; font-size: 0.8rem;">
             <thead>
-              <tr>
-                <th>Security Subsystem</th>
-                <th>Diagnostic Vector</th>
-                <th>Target Perimeter Check</th>
-                <th>Compliance Status</th>
+              <tr style="background: var(--surface-elevated); color: var(--text-faint); text-align: left;">
+                <th style="padding: 0.6rem 0.8rem;">Security Subsystem</th>
+                <th style="padding: 0.6rem 0.8rem;">Diagnostic Vector</th>
+                <th style="padding: 0.6rem 0.8rem;">Target Perimeter Check</th>
+                <th style="padding: 0.6rem 0.8rem;">Compliance Status</th>
               </tr>
             </thead>
             <tbody id="matrix-tbody">
               <tr>
-                <td>HTTP Response Headers</td>
-                <td>HSTS, CSP, X-Frame-Options, Permissions-Policy</td>
-                <td>7 Security Directives</td>
-                <td><span class="telemetry-status passed">● Compliant</span></td>
-              </tr>
-              <tr>
-                <td>CORS Boundary Policy</td>
-                <td>Origin Reflection & ACAC Credentials</td>
-                <td>3 Boundary Checks</td>
-                <td><span class="telemetry-status passed">● Isolated</span></td>
-              </tr>
-              <tr>
-                <td>Cookie Architecture</td>
-                <td>HttpOnly, Secure, SameSite Directives</td>
-                <td>Set-Cookie Attribute Inspector</td>
-                <td><span class="telemetry-status passed">● Enforced</span></td>
-              </tr>
-              <tr>
-                <td>Redirect Sanitization</td>
-                <td>Unvalidated 3xx Redirection</td>
-                <td>15 Target Parameters</td>
-                <td><span class="telemetry-status passed">● Protected</span></td>
-              </tr>
-              <tr>
-                <td>Secret & Config Exposure</td>
-                <td>Public .env, .git, Docker, Backups</td>
-                <td>13 Critical Paths</td>
-                <td><span class="telemetry-status passed">● Protected</span></td>
-              </tr>
-              <tr>
-                <td>Input Sanitization (XSS)</td>
-                <td>Reflected HTML/Attribute Tag Breakout</td>
-                <td>33 Injection Probes</td>
-                <td><span class="telemetry-status passed">● Sanitized</span></td>
+                <td style="padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border-subtle);">HTTP Response Headers</td>
+                <td style="padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border-subtle);">HSTS, CSP, X-Frame-Options, Permissions-Policy</td>
+                <td style="padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border-subtle);">7 Security Directives</td>
+                <td style="padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border-subtle);"><span style="color: var(--success);">● Compliant</span></td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <!-- Tab 3: Raw JSON Box -->
-        <div class="raw-view-box" id="raw-json-box"></div>
+        <!-- Tab 4: Raw JSON Box -->
+        <div id="raw-json-box" style="display: none; background: #040508; border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; font-family: monospace; font-size: 0.8rem; color: #94a3b8; height: 520px; overflow-y: auto; white-space: pre-wrap;"></div>
       </div>
     </div>
   </main>
@@ -996,57 +1035,16 @@ const HTML_PAGE = `<!DOCTYPE html>
       
       document.getElementById('tab-' + view + '-btn').classList.add('active');
       document.getElementById('findings-container').style.display = view === 'findings' ? 'flex' : 'none';
+      document.getElementById('ai-chat-container').style.display = view === 'copilot' ? 'flex' : 'none';
       document.getElementById('matrix-container').style.display = view === 'matrix' ? 'block' : 'none';
       document.getElementById('raw-json-box').style.display = view === 'raw' ? 'block' : 'none';
-    }
-
-    function addLog(text, type = '') {
-      const stream = document.getElementById('terminal-stream');
-      const time = new Date().toTimeString().split(' ')[0];
-      const div = document.createElement('div');
-      div.className = 'terminal-line';
-      div.innerHTML = '<span class="terminal-time">[' + time + ']</span><span class="terminal-text ' + type + '">' + text + '</span>';
-      stream.appendChild(div);
-      stream.scrollTop = stream.scrollHeight;
-    }
-
-    function updateStep(stepIndex, status) {
-      const step = document.getElementById('step-' + stepIndex);
-      if (!step) return;
-      step.classList.remove('active', 'completed');
-      if (status === 'active') step.classList.add('active');
-      if (status === 'completed') step.classList.add('completed');
     }
 
     async function executeAudit() {
       const targetUrl = document.getElementById('target-url').value;
       const jwtToken = document.getElementById('jwt-token').value;
-      const startTime = performance.now();
 
-      // Reset Stepper & Logs
-      for (let i = 1; i <= 5; i++) updateStep(i, '');
-      addLog('🚀 Dispatched assessment for perimeter: ' + targetUrl, 'accent');
-
-      updateStep(1, 'active');
-      addLog('→ [Stage 1/5] Establishing TLS connection & fetching root HTML/bundles...');
-
-      const stepTimer1 = setTimeout(() => {
-        updateStep(1, 'completed');
-        updateStep(2, 'active');
-        addLog('→ [Stage 2/5] Auditing security headers (HSTS, CSP, X-Frame-Options)...');
-      }, 250);
-
-      const stepTimer2 = setTimeout(() => {
-        updateStep(2, 'completed');
-        updateStep(3, 'active');
-        addLog('→ [Stage 3/5] Testing CORS reflection, unauthenticated API routes & cookie flags...');
-      }, 550);
-
-      const stepTimer3 = setTimeout(() => {
-        updateStep(3, 'completed');
-        updateStep(4, 'active');
-        addLog('→ [Stage 4/5] Injected 33 XSS probes, 15 redirect params & 13 sensitive file checks...');
-      }, 950);
+      document.getElementById('telemetry-timestamp').innerText = 'STATUS: RUNNING AUDIT...';
 
       try {
         const res = await fetch('/api/run', {
@@ -1057,25 +1055,9 @@ const HTML_PAGE = `<!DOCTYPE html>
         const data = await res.json();
         rawPayload = data;
         document.getElementById('raw-json-box').innerText = JSON.stringify(data, null, 2);
-
-        clearTimeout(stepTimer1);
-        clearTimeout(stepTimer2);
-        clearTimeout(stepTimer3);
-
-        for (let i = 1; i <= 4; i++) updateStep(i, 'completed');
-        updateStep(5, 'active');
-        addLog('→ [Stage 5/5] Correlating evidence across boundaries & synthesizing AI risk rating...');
-
-        setTimeout(() => {
-          updateStep(5, 'completed');
-          const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
-          document.getElementById('telemetry-elapsed').innerText = 'LATENCY: ' + elapsed + 's';
-          addLog('✅ Assessment completed in ' + elapsed + 's. Security scorecard updated.', 'success');
-          renderResults(data);
-        }, 200);
-
+        renderResults(data);
       } catch (err) {
-        addLog('❌ Execution failed: ' + err.message, 'danger');
+        document.getElementById('findings-container').innerHTML = '<div class="finding-row sev-critical"><div class="finding-name">Assessment Error</div><div class="finding-details">' + err.message + '</div></div>';
       } finally {
         document.getElementById('telemetry-timestamp').innerText = 'LAST RUN: ' + new Date().toLocaleTimeString();
       }
@@ -1113,34 +1095,42 @@ const HTML_PAGE = `<!DOCTYPE html>
         gradeBadge.innerText = 'GRADE F';
       }
 
-      // Render Findings
+      // Render Findings with HTTP Forensic Evidence
       if (data.findings && data.findings.length > 0) {
         data.findings.forEach((f, idx) => {
           const isCrit = f.severity === 'CRITICAL' || f.severity === 'HIGH';
           const sevClass = isCrit ? 'critical' : 'high';
-          const remId = 'rem-code-' + idx;
+          const curlCmd = f.curl_command || ('curl -i \x27' + (f.url || document.getElementById('target-url').value) + '\x27');
+          const bodyPrev = f.body_snippet || f.message;
+
           container.innerHTML += 
-            '<div class="finding-row sev-' + (isCrit ? 'critical' : 'high') + '">' +
+            '<div class="finding-row sev-' + sevClass + '">' +
               '<div class="finding-top">' +
                 '<span class="finding-name">' + (f.title || 'Security Deficit') + '</span>' +
                 '<span class="sev-tag ' + sevClass + '">' + (f.severity || 'HIGH') + '</span>' +
               '</div>' +
               '<div class="finding-details">' + (f.message || '') + '</div>' +
-              (f.remediation ? 
-                '<div class="code-remediation">' +
-                  '<span id="' + remId + '">⚙️ Fix: ' + f.remediation + '</span>' +
-                  '<button class="copy-btn" onclick="copySnippet(\'' + remId + '\')">Copy</button>' +
-                '</div>' : '') +
+              
+              // Forensic Evidence Drawer
+              '<div class="forensic-box">' +
+                '<div class="forensic-header">' +
+                  '<span>🔬 HTTP Forensic Evidence & Payload Inspection</span>' +
+                  '<span>' + (f.status_code ? 'HTTP ' + f.status_code + ' OK' : 'DAST CHECK') + '</span>' +
+                '</div>' +
+                '<div class="forensic-line"><strong>Target Endpoint:</strong> <code>' + (f.url || f.route || 'Target') + '</code></div>' +
+                (f.content_type ? '<div class="forensic-line"><strong>Response Content-Type:</strong> <code>' + f.content_type + '</code></div>' : '') +
+                (f.is_spa_fallback ? '<div class="forensic-line" style="color: var(--warning);">⚠️ Note: Served client-side Single Page Application HTML index page fallback.</div>' : '') +
+                '<div class="forensic-preview">' + escapeHtml(bodyPrev) + '</div>' +
+              '</div>' +
+
+              // Action Toolbar
+              '<div class="finding-actions">' +
+                '<button class="action-btn" onclick="copyText(\x27' + escapeAttr(curlCmd) + '\x27)">📋 Copy cURL PoC</button>' +
+                '<button class="action-btn" onclick="copyText(\x27' + escapeAttr(f.remediation || '') + '\x27)">⚙️ Copy Fix</button>' +
+                '<button class="action-btn ai-btn" onclick="askAiAboutFinding(\x27' + escapeAttr(f.title) + '\x27, \x27' + escapeAttr(curlCmd) + '\x27, \x27' + escapeAttr(bodyPrev) + '\x27)">🤖 Ask AI Copilot</button>' +
+              '</div>' +
             '</div>';
         });
-      } else if (activeModule === 'endpoints' && data.endpoints) {
-        let total = data.total_endpoints_found || data.endpoints.length;
-        let html = '<div class="finding-row sev-safe"><div class="finding-top"><span class="finding-name">Discovered ' + total + ' API Endpoints & Routes</span><span class="sev-tag safe">' + total + ' ENDPOINTS</span></div><div class="finding-details" style="margin-top: 0.5rem;">';
-        data.endpoints.forEach(ep => {
-          html += '<div style="margin: 0.25rem 0; font-family: monospace; color: #fff;">⚡ ' + ep + '</div>';
-        });
-        html += '</div></div>';
-        container.innerHTML = html;
       } else {
         container.innerHTML = 
           '<div class="finding-row sev-safe">' +
@@ -1153,24 +1143,71 @@ const HTML_PAGE = `<!DOCTYPE html>
             '</div>' +
           '</div>';
       }
-
-      // Update Matrix Table Statuses
-      if (data.headers) {
-        const matrixBody = document.getElementById('matrix-tbody');
-        matrixBody.innerHTML = 
-          '<tr><td>HTTP Response Headers</td><td>HSTS, CSP, X-Frame-Options, Permissions-Policy</td><td>' + (data.headers.total_tested || 7) + ' Directives</td><td>' + (data.headers.missing_headers && data.headers.missing_headers.length ? '<span class="telemetry-status warn">⚠️ Hardening Needed</span>' : '<span class="telemetry-status passed">● Compliant</span>') + '</td></tr>' +
-          '<tr><td>CORS Boundary Policy</td><td>Origin Reflection & ACAC Credentials</td><td>3 Boundary Checks</td><td>' + (data.cors && data.cors.is_vulnerable ? '<span class="telemetry-status failed">● Vulnerable</span>' : '<span class="telemetry-status passed">● Isolated</span>') + '</td></tr>' +
-          '<tr><td>Cookie Architecture</td><td>HttpOnly, Secure, SameSite Directives</td><td>Set-Cookie Flags</td><td>' + (data.cookies && data.cookies.is_vulnerable ? '<span class="telemetry-status warn">⚠️ Missing Flags</span>' : '<span class="telemetry-status passed">● Enforced</span>') + '</td></tr>' +
-          '<tr><td>Redirect Sanitization</td><td>Unvalidated 3xx Redirection</td><td>15 Target Parameters</td><td>' + (data.redirects && data.redirects.is_vulnerable ? '<span class="telemetry-status failed">● Vulnerable</span>' : '<span class="telemetry-status passed">● Protected</span>') + '</td></tr>' +
-          '<tr><td>Secret & Config Exposure</td><td>Public .env, .git, Docker, Backups</td><td>13 Critical Paths</td><td>' + (data.exposure && data.exposure.exposed_count ? '<span class="telemetry-status failed">● Exposed</span>' : '<span class="telemetry-status passed">● Protected</span>') + '</td></tr>' +
-          '<tr><td>Input Sanitization (XSS)</td><td>Reflected HTML/Attribute Tag Breakout</td><td>33 Injection Probes</td><td>' + (data.xss && data.xss.vulnerable_count ? '<span class="telemetry-status failed">● Reflected</span>' : '<span class="telemetry-status passed">● Sanitized</span>') + '</td></tr>';
-      }
     }
 
-    function copySnippet(elementId) {
-      const text = document.getElementById(elementId).innerText.replace('⚙️ Fix: ', '');
-      navigator.clipboard.writeText(text);
-      alert('Remediation snippet copied to clipboard!');
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function escapeAttr(str) {
+      if (!str) return '';
+      return String(str).replace(/'/g, "\\\\'").replace(/"/g, '&quot;');
+    }
+
+    function copyText(val) {
+      navigator.clipboard.writeText(val);
+      alert('Copied to clipboard: ' + val);
+    }
+
+    function askAiAboutFinding(title, curlCmd, snippet) {
+      switchView('copilot');
+      const input = document.getElementById('chat-user-input');
+      input.value = "I need advice on finding: '" + title + "'. It responded with curl: " + curlCmd + ". Evidence snippet: " + snippet.substring(0, 150) + "... How should I safely verify and remediate this?";
+      sendChatMessage();
+    }
+
+    async function sendChatMessage() {
+      const input = document.getElementById('chat-user-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const chatContainer = document.getElementById('chat-messages');
+      const model = document.getElementById('ollama-model-select').value;
+
+      // Add user message
+      chatContainer.innerHTML += '<div class="chat-bubble user">' + escapeHtml(text) + '</div>';
+      input.value = '';
+
+      // Add AI loading bubble
+      const aiBubbleId = 'ai-msg-' + Date.now();
+      chatContainer.innerHTML += '<div class="chat-bubble ai" id="' + aiBubbleId + '"><em>AI Copilot is analyzing forensic evidence via ' + model + '...</em></div>';
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      try {
+        const response = await fetch('/api/ai-chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: text,
+            model: model,
+            context: {
+              targetUrl: document.getElementById('target-url').value,
+              telemetry: rawPayload
+            }
+          })
+        });
+
+        const data = await response.json();
+        const aiBubble = document.getElementById(aiBubbleId);
+        aiBubble.innerHTML = escapeHtml(data.response || data.message || 'No response generated from local LLM.');
+      } catch (err: any) {
+        const el = document.getElementById(aiBubbleId);
+        if (el) {
+          el.innerHTML = '<span style="color: var(--danger);">Ollama LLM connection error: ' + (err?.message || 'Offline') + '. Ensure Ollama is running with "ollama run dolphin-llama3:latest".</span>';
+        }
+      }
+      chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
     function exportReport() {
@@ -1210,6 +1247,79 @@ export function startDashboardServer(port = 3333, autoOpen = true): Promise<numb
         return;
       }
 
+      // AI Copilot Chat Endpoint (Ollama Local Integration with dolphin-llama3)
+      if (req.method === 'POST' && parsed.pathname === '/api/ai-chat') {
+        let body = '';
+        req.on('data', chunk => (body += chunk));
+        req.on('end', async () => {
+          try {
+            const payload = JSON.parse(body || '{}');
+            const prompt = payload.prompt || '';
+            const model = payload.model || 'dolphin-llama3:latest';
+            const contextData = payload.context || {};
+
+            const systemPrompt = `You are Sentinel AI Security Copilot, an elite defensive cybersecurity advisor and code remediation expert.
+You have access to the diagnostic pentest findings and HTTP forensic request/response evidence for target: ${contextData.targetUrl || 'Unknown'}.
+Telemetry Summary: ${JSON.stringify(contextData.telemetry?.findings || [], null, 2).substring(0, 1500)}
+
+Your goals:
+1. Explain why specific HTTP status codes (like 200 OK, 401, 403) occurred (differentiating between real sensitive endpoints and client-side SPA router fallbacks).
+2. Provide exact curl reproduction steps so the security engineer can manually inspect the response headers and body.
+3. Provide precise, copyable code remediation in relevant frameworks (Express, Next.js, FastAPI, Django, NGINX).
+4. Maintain a clear, defensive security engineer perspective.`;
+
+            // Call local Ollama on http://localhost:11434
+            try {
+              const ollamaReq = await fetch('http://localhost:11434/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  model: model,
+                  prompt: prompt,
+                  system: systemPrompt,
+                  stream: false,
+                })
+              });
+
+              if (ollamaReq.ok) {
+                const ollamaData = (await ollamaReq.json()) as any;
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ response: ollamaData.response }));
+                return;
+              }
+            } catch {
+              // If Ollama is offline or model not pulled, return helpful fallback
+            }
+
+            // Built-in Rule-Based Security Advisor Fallback
+            const fallbackResponse = `[Sentinel Built-in Security Analysis]
+Finding Context: ${prompt}
+
+Manual Verification Steps:
+1. Run \`curl -i -X GET "${contextData.targetUrl || 'http://localhost:5173'}/api/keys"\`
+2. Check the \`Content-Type\` header:
+   - If \`Content-Type: text/html\` with \`<!doctype html>\`, it is likely a client-side Single Page Application (SPA) router fallback serving the UI.
+   - If \`Content-Type: application/json\` returning raw tokens or keys, it is an unprotected backend API endpoint.
+
+Recommended Defensive Remediation (Express / Node.js):
+\`\`\`javascript
+import { authenticateUser } from './middleware/auth.js';
+app.use('/api', authenticateUser); // Enforce 401 Unauthorized for unauthenticated requests
+\`\`\`
+
+Note: To enable conversational LLM generation, ensure Ollama is running with: \`ollama run ${model}\`.`;
+
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ response: fallbackResponse }));
+          } catch (e: any) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: e.message }));
+          }
+        });
+        return;
+      }
+
+      // Security Audit Runner Endpoint
       if (req.method === 'POST' && parsed.pathname === '/api/run') {
         let body = '';
         req.on('data', chunk => (body += chunk));

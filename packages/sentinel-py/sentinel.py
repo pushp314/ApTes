@@ -150,10 +150,16 @@ def run_full_audit(url: str, output_json: bool = False):
             report["total_critical"] += 1
             report["findings"].append({
                 "category": "Authentication",
-                "severity": "CRITICAL",
-                "title": f"Unauthenticated Endpoint Access: {ep['route']}",
-                "message": f"Endpoint returned HTTP {ep['status_code']} OK with sensitive keys without authentication.",
-                "remediation": "Enforce authentication middleware (JWT / Session token check) on this route."
+                "severity": ep.get("severity", "CRITICAL"),
+                "title": f"Unauthenticated Route Access: {ep['route']}",
+                "route": ep["route"],
+                "url": ep["url"],
+                "status_code": ep["status_code"],
+                "content_type": ep.get("content_type", "unknown"),
+                "body_snippet": ep.get("body_snippet", ""),
+                "curl_command": ep.get("curl_command", f"curl -i '{ep['url']}'"),
+                "message": ep["message"],
+                "remediation": ep["remediation"]
             })
             if not output_json:
                 print(f"     ❌ {Colors.RED}{ep['route']}{Colors.RESET} (HTTP {ep['status_code']} OK without auth)")

@@ -1,5 +1,6 @@
 """
 API Access Control & Auth Bypass Prober
+Probes sensitive endpoints and captures full HTTP forensic evidence.
 """
 
 import urllib.request
@@ -29,7 +30,7 @@ def probe_endpoints(
     timeout: int = 5
 ) -> Dict[str, Any]:
     """
-    Probes endpoints for missing authentication and access control enforcement.
+    Probes endpoints for missing authentication and captures forensic HTTP request/response evidence.
     """
     if not routes:
         routes = DEFAULT_SENSITIVE_ROUTES
@@ -45,6 +46,7 @@ def probe_endpoints(
         "vulnerable_endpoints": [],
         "protected_endpoints": [],
         "not_found_endpoints": [],
+        "spa_fallbacks": [],
     }
 
     for route in routes:
@@ -55,7 +57,7 @@ def probe_endpoints(
             target_url,
             headers={
                 "Accept": "application/json, text/plain, */*",
-                "User-Agent": "Sentinel-Python-Security-Auditor/1.0",
+                "User-Agent": "Sentinel-Forensic-Auditor/1.0",
             },
             method="GET",
         )
@@ -63,15 +65,34 @@ def probe_endpoints(
         try:
             with urllib.request.urlopen(req, timeout=timeout, context=ctx) as response:
                 status = response.status
+                content_type = response.headers.get("Content-Type", "")
+                raw_body = response.read(1024).decode('utf-8', errors='ignore')
+                body_snippet = raw_body[:300].strip()
+
+                is_html_spa = "text/html" in content_type.lower() and ("<!doctype html" in body_snippet.lower() or "<html" in body_snippet.lower())
+
                 if 200 <= status < 300:
-                    results["vulnerable_endpoints"].append({
-                        "route": clean_route,
-                        "url": target_url,
-                        "status_code": status,
-                        "severity": "CRITICAL" if "admin" in clean_route or "billing" in clean_route else "HIGH",
-                        "message": f"Endpoint responded with HTTP {status} OK without authentication credentials.",
-                        "remediation": "Apply authentication middleware (e.g. JWT token verification, session check) to this route."
-                    })
+                    if is_html_spa and not clean_route.startswith("/api"):
+                        # Client-side SPA routing fallback (e.g. Vite/Next.js root page)
+                        results["spa_fallbacks"].append({
+                            "route": clean_route,
+                            "status_code": status,
+                            "content_type": content_type,
+                            "body_snippet": body_snippet
+                        })
+                    else:
+                        results["vulnerable_endpoints"].append({
+                            "route": clean_route,
+                            "url": target_url,
+                            "status_code": status,
+                            "content_type": content_type,
+                            "body_snippet": body_snippet,
+                            "is_spa_fallback": is_html_spa,
+                            "curl_command": f"curl -i -X GET '{target_url}'",
+                            "severity": "CRITICAL" if "admin" in clean_route or "billing" in clean_route or "key" in clean_route else "HIGH",
+                            "message": f"Endpoint responded with HTTP {status} OK without authentication (Content-Type: {content_type or 'unknown'}).",
+                            "remediation": "Enforce backend authentication middleware (e.g. JWT token verification, session guard) to reject unauthenticated requests with HTTP 401/403."
+                        })
                 else:
                     results["protected_endpoints"].append({"route": clean_route, "status_code": status})
         except urllib.error.HTTPError as e:
@@ -82,7 +103,6 @@ def probe_endpoints(
             else:
                 results["protected_endpoints"].append({"route": clean_route, "status_code": e.code})
         except Exception:
-            # Ignore network timeouts / unreachable endpoints
             pass
 
     return results
