@@ -4,7 +4,6 @@
  */
 
 import http from 'node:http';
-import url from 'node:url';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { auditSecurityHeaders, inspectJwtToken } from './pentest/security-tools.js';
@@ -603,10 +602,23 @@ const HTML_PAGE = `<!DOCTYPE html>
 </body>
 </html>`;
 
-export function startDashboardServer(port = 3333): Promise<number> {
+export function openInBrowser(targetUrl: string) {
+  import('node:child_process').then(({ spawn }) => {
+    const platform = process.platform;
+    if (platform === 'darwin') {
+      spawn('open', [targetUrl], { detached: true, stdio: 'ignore' }).unref();
+    } else if (platform === 'win32') {
+      spawn('cmd', ['/c', 'start', '', targetUrl], { detached: true, stdio: 'ignore' }).unref();
+    } else {
+      spawn('xdg-open', [targetUrl], { detached: true, stdio: 'ignore' }).unref();
+    }
+  });
+}
+
+export function startDashboardServer(port = 3333, autoOpen = true): Promise<number> {
   return new Promise((resolve, reject) => {
     const server = http.createServer(async (req, res) => {
-      const parsed = url.parse(req.url || '', true);
+      const parsed = new URL(req.url || '', `http://localhost:${port}`);
 
       if (req.method === 'GET' && (parsed.pathname === '/' || parsed.pathname === '/index.html')) {
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -666,6 +678,9 @@ export function startDashboardServer(port = 3333): Promise<number> {
     });
 
     server.listen(port, () => {
+      if (autoOpen) {
+        openInBrowser(`http://localhost:${port}`);
+      }
       resolve(port);
     });
 

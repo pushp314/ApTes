@@ -370,15 +370,42 @@ program
 
 program
   .command('ui')
-  .description('Launch the local Web-based Mission Control Dashboard GUI')
+  .description('Launch the local Web-based Mission Control Dashboard GUI and open in default browser')
   .option('-p, --port <number>', 'Port to run the dashboard server on', '3333')
   .action(async (options) => {
     const { startDashboardServer } = await import('./dashboard-server.js');
     const port = parseInt(options.port, 10) || 3333;
-    await startDashboardServer(port);
+    await startDashboardServer(port, true);
     console.log(`\n🚀 Sentinel Mission Control Web GUI is live at: http://localhost:${port}\n`);
   });
 
+program
+  .command('docs')
+  .description('Launch the Sentinel VitePress Documentation server and open in default browser')
+  .option('-p, --port <number>', 'Port to run docs server on', '5173')
+  .action(async (options) => {
+    const { spawn } = await import('node:child_process');
+    const { fileURLToPath } = await import('node:url');
+    const { openInBrowser } = await import('./dashboard-server.js');
+    const currentDir = path.dirname(fileURLToPath(import.meta.url));
+    const repoRoot = path.resolve(currentDir, '../../../');
+    const docsDir = path.resolve(repoRoot, 'packages/docs');
+    const port = options.port || '5173';
+
+    console.log(`\n📖 Launching Sentinel Documentation Website on http://localhost:${port}...\n`);
+    const child = spawn('npx', ['vitepress', 'dev', docsDir, '--port', port], {
+      cwd: repoRoot,
+      stdio: 'inherit'
+    });
+
+    setTimeout(() => {
+      openInBrowser(`http://localhost:${port}`);
+    }, 1200);
+
+    child.on('exit', code => process.exit(code ?? 0));
+  });
+
 program.parse(process.argv);
+
 
 
