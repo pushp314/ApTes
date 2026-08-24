@@ -2,8 +2,16 @@
 
 All notable changes to the Sentinel platform are documented in this file.
 
-## [0.1.0] - 2026-08-23
+## [0.2.0-beta] - 2026-08-24
 
+### Added
+- **Interactive CLI Wizard:** Added a highly intuitive `sentinel` wrapper with Express and Advanced modes. The CLI features dynamic loaders, granular progress trackers, and real-time ETAs.
+- **Enterprise Mission Control UI:** A fully redesigned, monochrome (black-and-white), Tier-1 cybersecurity aesthetic Web UI dashboard featuring a live multi-stage execution pipeline stepper.
+- **Full-Screen AI Copilot:** Moved the AI Copilot out of a cramped drawer into a dedicated, context-aware, full-screen interactive page with syntax highlighting and rich Markdown support.
+- **Gemini 1.5 Flash API Integration:** Supercharged the AI engine with optional native Google Gemini API support configured for strict schemas, lowest temperature, and minimum token usage.
+- **Active Pentesting Modules:** Deployed the Admin Panel & Hidden API Route Discovery scanner via a multi-threaded Python engine (`packages/sentinel-py`) capable of running 130 probes in parallel.
+
+## [0.1.0] - 2026-08-23
 ### Added
 - **Tri-Boundary Orchestrator:** Initial release of the `@sentinel/platform` orchestrator capable of concurrent engine execution and mathematical correlation (e.g., `platform-mcp-exposure`).
 - **WebSentinel Engine:** Implementation of the Playwright-based crawler. Added rules for `broken-images`, `web-console-errors`, `security-headers`, and heuristic `ai-widget` detection.

@@ -67,6 +67,7 @@ export default defineConfig({
           { text: 'Installation', link: '/getting-started/installation' },
           { text: 'Quick Start', link: '/getting-started/quick-start' },
           { text: 'First Scan', link: '/getting-started/first-scan' },
+          { text: 'Dashboard Guide', link: '/getting-started/dashboard-guide' },
           { text: 'FAQ', link: '/getting-started/faq' }
         ]
       },
@@ -78,7 +79,8 @@ export default defineConfig({
           { text: 'Package Architecture', link: '/architecture/package-architecture' },
           { text: 'Scan Lifecycle', link: '/architecture/scan-lifecycle' },
           { text: 'Finding Model', link: '/architecture/finding-model' },
-          { text: 'Data Flow', link: '/architecture/data-flow' }
+          { text: 'Data Flow', link: '/architecture/data-flow' },
+          { text: 'AI Engine', link: '/architecture/ai-engine' }
         ]
       },
       {
@@ -93,7 +95,8 @@ export default defineConfig({
         items: [
           { text: 'CodeSentinel', link: '/engines/codesentinel' },
           { text: 'WebSentinel', link: '/engines/websentinel' },
-          { text: 'MCPSentinel', link: '/engines/mcpsentinel' }
+          { text: 'MCPSentinel', link: '/engines/mcpsentinel' },
+          { text: 'Active DAST Engine', link: '/engines/dast' }
         ]
       },
       {
@@ -132,6 +135,7 @@ export default defineConfig({
       {
         text: 'CLI Reference',
         items: [
+          { text: 'Interactive Wizard', link: '/cli-reference/interactive-wizard' },
           { text: 'Overview & Options', link: '/cli-reference/overview' },
           { text: 'Examples', link: '/cli-reference/examples' }
         ]
