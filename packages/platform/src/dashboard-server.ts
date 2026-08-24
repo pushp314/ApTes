@@ -926,6 +926,17 @@ const HTML_PAGE = `<!DOCTYPE html>
           <span style="font-family: 'JetBrains Mono', monospace;" id="telemetry-elapsed">LATENCY: 0.00s</span>
         </div>
 
+        <!-- Dynamic Progress Bar & ETA -->
+        <div id="progress-container" style="display: flex; flex-direction: column; gap: 0.4rem; background: var(--surface-elevated); border: 1px solid var(--border); border-radius: 4px; padding: 0.75rem 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; font-family: 'JetBrains Mono', monospace;">
+            <span id="progress-label" style="color: #fff; font-weight: 700;">STATUS: READY FOR ASSESSMENT</span>
+            <span id="progress-eta" style="color: var(--text-muted);">ESTIMATED DURATION: ~2.5s</span>
+          </div>
+          <div style="background: #000; border: 1px solid var(--border); border-radius: 3px; height: 8px; overflow: hidden; width: 100%;">
+            <div id="progress-fill" style="background: #fff; height: 100%; width: 0%; transition: width 0.15s ease;"></div>
+          </div>
+        </div>
+
         <!-- 5-Stage Stepper -->
         <div class="pipeline-grid">
           <div class="pipe-step" id="step-1">
@@ -1134,34 +1145,55 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
       if (status === 'completed') step.classList.add('completed');
     }
 
+    function setProgress(percent, labelText, etaText) {
+      const fill = document.getElementById('progress-fill');
+      const label = document.getElementById('progress-label');
+      const eta = document.getElementById('progress-eta');
+      if (fill) fill.style.width = Math.min(100, percent) + '%';
+      if (label) label.innerText = labelText + ' (' + Math.min(100, Math.round(percent)) + '%)';
+      if (eta && etaText) eta.innerText = etaText;
+    }
+
     async function executeAudit() {
       const targetUrl = document.getElementById('target-url').value;
       const jwtToken = document.getElementById('jwt-token').value;
       const startTime = performance.now();
 
       for (let i = 1; i <= 5; i++) updateStep(i, '');
+      setProgress(5, 'INITIALIZING DIAGNOSTIC DAEMONS', 'ESTIMATED TIME: ~2.5s');
       addConsoleLog('⚡ Dispatched perimeter assessment for: ' + targetUrl, 'active');
 
       updateStep(1, 'active');
+      setProgress(15, 'STAGE 1/5: TLS HANDSHAKE & RECON', 'ESTIMATED TIME: ~2.0s');
       addConsoleLog('→ [Stage 1/5] Establishing TLS connection & resolving root endpoints...');
 
-      const stepTimer1 = setTimeout(() => {
-        updateStep(1, 'completed');
-        updateStep(2, 'active');
-        addConsoleLog('→ [Stage 2/5] Auditing security policies (HSTS, CSP, X-Frame-Options)...');
-      }, 250);
+      let currentPercent = 15;
+      const progressInterval = setInterval(() => {
+        const elapsed = (performance.now() - startTime) / 1000;
+        document.getElementById('telemetry-elapsed').innerText = 'LATENCY: ' + elapsed.toFixed(2) + 's';
 
-      const stepTimer2 = setTimeout(() => {
-        updateStep(2, 'completed');
-        updateStep(3, 'active');
-        addConsoleLog('→ [Stage 3/5] Testing CORS boundary reflection, unauthenticated routes & cookie flags...');
-      }, 550);
-
-      const stepTimer3 = setTimeout(() => {
-        updateStep(3, 'completed');
-        updateStep(4, 'active');
-        addConsoleLog('→ [Stage 4/5] Injected 33 XSS probes, 15 redirect params & 13 sensitive file checks...');
-      }, 950);
+        if (elapsed < 0.4) {
+          currentPercent = 25;
+          updateStep(1, 'completed');
+          updateStep(2, 'active');
+          setProgress(currentPercent, 'STAGE 2/5: AUDITING SECURITY DIRECTIVES', 'ESTIMATED TIME: ~1.8s');
+        } else if (elapsed < 0.8) {
+          currentPercent = 45;
+          updateStep(2, 'completed');
+          updateStep(3, 'active');
+          setProgress(currentPercent, 'STAGE 3/5: IDENTITY, CORS & AUTH PROBES', 'ESTIMATED TIME: ~1.2s');
+        } else if (elapsed < 1.6) {
+          currentPercent = Math.min(85, currentPercent + 4);
+          updateStep(3, 'completed');
+          updateStep(4, 'active');
+          const remaining = Math.max(0.2, (2.5 - elapsed)).toFixed(1);
+          setProgress(currentPercent, 'STAGE 4/5: EXPLOITS & SENSITIVE PATHS', 'ESTIMATED TIME: ~' + remaining + 's');
+        } else {
+          currentPercent = Math.min(92, currentPercent + 1);
+          updateStep(4, 'active');
+          setProgress(currentPercent, 'STAGE 4/5: PARALLEL PROBING (FINAL CHECKS)', 'ESTIMATED TIME: ~0.5s');
+        }
+      }, 100);
 
       try {
         const res = await fetch('/api/run', {
@@ -1173,23 +1205,25 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
         rawPayload = data;
         document.getElementById('raw-json-box').innerText = JSON.stringify(data, null, 2);
 
-        clearTimeout(stepTimer1);
-        clearTimeout(stepTimer2);
-        clearTimeout(stepTimer3);
+        clearInterval(progressInterval);
 
         for (let i = 1; i <= 4; i++) updateStep(i, 'completed');
         updateStep(5, 'active');
+        setProgress(95, 'STAGE 5/5: AI EVIDENCE CORRELATION', 'ESTIMATED TIME: ~0.2s');
         addConsoleLog('→ [Stage 5/5] Correlating evidence across boundaries & synthesizing AI risk rating...');
 
         setTimeout(() => {
           updateStep(5, 'completed');
+          setProgress(100, 'AUDIT COMPLETE: 100%', 'DIAGNOSTICS FINISHED');
           const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
           document.getElementById('telemetry-elapsed').innerText = 'LATENCY: ' + elapsed + 's';
           addConsoleLog('✅ Assessment completed in ' + elapsed + 's. Security scorecard updated.', 'ok');
           renderResults(data);
-        }, 200);
+        }, 150);
 
       } catch (err) {
+        clearInterval(progressInterval);
+        setProgress(0, 'EXECUTION ERROR', 'FAILED');
         addConsoleLog('❌ Execution error: ' + err.message, 'alert');
       } finally {
         document.getElementById('telemetry-timestamp').innerText = 'LAST RUN: ' + new Date().toLocaleTimeString();
