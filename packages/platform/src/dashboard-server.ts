@@ -938,8 +938,14 @@ const HTML_PAGE = `<!DOCTYPE html>
 
       <!-- Domain Navigation Panel -->
       <div class="panel-card">
-        <div class="nav-section-title">Orchestrated Assessments</div>
-        <button class="nav-item active" onclick="setModule('audit')">
+        <div class="nav-section-title" style="color: var(--accent); margin-top: 0;">AI Threat Intelligence</div>
+        <button class="nav-item" id="nav-btn-copilot" onclick="setAppView('copilot')" style="border-left: 2px solid var(--accent); background: rgba(0, 255, 170, 0.05);">
+          <span>🤖 Sentinel AI Copilot</span>
+          <span class="item-tag" style="background: var(--accent); color: #000;">CHAT</span>
+        </button>
+
+        <div class="nav-section-title" style="margin-top: 1.5rem;">Orchestrated Assessments</div>
+        <button class="nav-item active" id="nav-btn-audit" onclick="setModule('audit'); setAppView('scanner')">
           <span>360° Unified Assessment</span>
           <span class="item-tag">ALL</span>
         </button>
@@ -991,7 +997,8 @@ const HTML_PAGE = `<!DOCTYPE html>
     </div>
 
     <!-- Right Workspace Canvas -->
-    <div class="workspace">
+    <!-- Scanner Page View -->
+    <div class="workspace" id="scanner-page-container">
       <!-- Enterprise KPI Row -->
       <div class="kpi-row">
         <div class="kpi-box">
@@ -1089,7 +1096,6 @@ const HTML_PAGE = `<!DOCTYPE html>
         <div class="tab-header">
           <div class="tab-group">
             <button class="nav-tab active" id="tab-findings-btn" onclick="switchView('findings')">Findings & Forensic Evidence</button>
-            <button class="nav-tab" id="tab-copilot-btn" onclick="switchView('copilot')">🤖 AI Copilot Chat (dolphin-llama3)</button>
             <button class="nav-tab" id="tab-matrix-btn" onclick="switchView('matrix')">Verification Matrix</button>
             <button class="nav-tab" id="tab-raw-btn" onclick="switchView('raw')">Raw Telemetry JSON</button>
           </div>
@@ -1108,40 +1114,6 @@ const HTML_PAGE = `<!DOCTYPE html>
             <div class="finding-desc">
               Sentinel Enterprise Gateway is online. Enter your target URL and execute an assessment to inspect active defenses and detect potential attack vectors.
             </div>
-          </div>
-        </div>
-
-        <!-- Tab 2: AI Copilot Chat Panel -->
-        <div class="copilot-panel" id="ai-chat-container">
-          <div class="copilot-top">
-            <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">
-              <span>LOCAL LLM MODEL:</span>
-              <select class="model-selector" id="ollama-model-select">
-                <option value="dolphin-llama3:latest" selected>dolphin-llama3:latest (Local Ollama)</option>
-                <option value="llama3:latest">llama3:latest</option>
-                <option value="mistral:latest">mistral:latest</option>
-                <option value="deepseek-coder:latest">deepseek-coder:latest</option>
-              </select>
-            </div>
-            <span style="font-size: 0.72rem; color: #fff; font-family: 'JetBrains Mono', monospace;">● OLLAMA LOCAL GATEWAY READY</span>
-          </div>
-
-          <div class="chat-flow" id="chat-messages">
-            <div class="chat-card ai">Hello! I am your <strong>Sentinel AI Security Copilot</strong> powered by <code>dolphin-llama3:latest</code>.
-I have access to your full diagnostic audit telemetry, HTTP forensic headers, and response payloads. 
-Ask me how to manually verify any finding with <code>curl</code>, evaluate potential exploit paths safely, or generate framework code remediation (Express, Next.js, FastAPI, Django).</div>
-          </div>
-
-          <div class="copilot-prompt-chips">
-            <span class="prompt-chip" onclick="setChatPrompt('Explain why sensitive endpoints returned 200 OK and if it is an SPA router fallback.')">⚡ Explain 200 OK</span>
-            <span class="prompt-chip" onclick="setChatPrompt('Provide Node.js / Express authentication middleware to protect all /api routes.')">🛡️ Express Fix</span>
-            <span class="prompt-chip" onclick="setChatPrompt('Provide Python / FastAPI dependency to enforce JWT Bearer auth.')">🐍 FastAPI Fix</span>
-            <span class="prompt-chip" onclick="setChatPrompt('Show curl manual reproduction commands to verify response headers and bodies.')">🔬 cURL Verification</span>
-          </div>
-
-          <div class="chat-compose">
-            <input type="text" class="chat-box-input" id="chat-user-input" placeholder="Ask AI Copilot (e.g. 'Analyze why /api/keys returned 200 OK and give remediation code')..." onkeydown="if(event.key==='Enter') sendChatMessage()">
-            <button class="chat-submit-btn" onclick="sendChatMessage()">Send</button>
           </div>
         </div>
 
@@ -1197,18 +1169,93 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
           </table>
         </div>
 
-        <!-- Tab 4: Raw JSON Telemetry -->
-        <div id="raw-json-box" style="display: none; background: #000; border: 1px solid var(--border); border-radius: 4px; padding: 1.15rem; font-family: monospace; font-size: 0.78rem; color: #a1a1aa; height: 520px; overflow-y: auto; white-space: pre-wrap;"></div>
+        <!-- Tab 4: Raw JSON Output -->
+        <div id="raw-container" style="display: none;">
+          <pre id="raw-json-box">{}</pre>
+        </div>
       </div>
     </div>
-  </main>
+
+    <!-- Copilot Page View -->
+    <div class="workspace" id="copilot-page-container" style="display: none;">
+      <div class="executive-card" style="margin-bottom: 1rem; border-color: var(--accent);">
+        <div class="executive-top">
+          <span class="executive-tag" style="color: var(--accent);">Sentinel AI Security Copilot</span>
+          <span class="framework-badge" style="border-color: var(--accent); color: var(--accent);">OLLAMA LOCAL LLM INTEGRATION</span>
+        </div>
+        <div class="executive-summary" style="color: #fff;">
+          Full-context AI assistant for security remediation, validation, and vulnerability triage.
+        </div>
+      </div>
+
+      <div class="canvas-card" style="flex: 1; display: flex; flex-direction: column; padding: 1.5rem;">
+        <div class="copilot-panel" id="ai-chat-container" style="display: flex; height: 100%;">
+          <div class="copilot-top" style="margin-bottom: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">
+              <span>LOCAL LLM MODEL:</span>
+              <select class="model-selector" id="ollama-model-select">
+                <option value="dolphin-llama3:latest" selected>dolphin-llama3:latest (Local Ollama)</option>
+                <option value="llama3:latest">llama3:latest</option>
+                <option value="mistral:latest">mistral:latest</option>
+                <option value="deepseek-coder:latest">deepseek-coder:latest</option>
+              </select>
+            </div>
+            <span style="font-size: 0.72rem; color: #fff; font-family: 'JetBrains Mono', monospace;">● OLLAMA LOCAL GATEWAY READY</span>
+          </div>
+
+          <div class="chat-flow" id="chat-messages" style="flex: 1; max-height: unset;">
+            <div class="chat-card ai">Hello! I am your <strong>Sentinel AI Security Copilot</strong> powered by <code>dolphin-llama3:latest</code>.
+I have access to your full diagnostic audit telemetry, HTTP forensic headers, and response payloads. 
+Ask me how to manually verify any finding with <code>curl</code>, evaluate potential exploit paths safely, or generate framework code remediation (Express, Next.js, FastAPI, Django).</div>
+          </div>
+
+          <div class="copilot-prompt-chips" style="margin-top: 1rem;">
+            <span class="prompt-chip" onclick="setChatPrompt('Explain why sensitive endpoints returned 200 OK and if it is an SPA router fallback.')">⚡ Explain 200 OK</span>
+            <span class="prompt-chip" onclick="setChatPrompt('Provide Node.js / Express authentication middleware to protect all /api routes.')">🛡️ Express Fix</span>
+            <span class="prompt-chip" onclick="setChatPrompt('Provide Python / FastAPI dependency to enforce JWT Bearer auth.')">🐍 FastAPI Fix</span>
+            <span class="prompt-chip" onclick="setChatPrompt('Show curl manual reproduction commands to verify response headers and bodies.')">🔬 cURL Verification</span>
+          </div>
+
+          <div class="chat-compose" style="margin-top: 1rem;">
+            <input type="text" class="chat-box-input" id="chat-user-input" placeholder="Ask AI Copilot (e.g. 'Analyze why /api/keys returned 200 OK and give remediation code')..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+            <button class="chat-submit-btn" onclick="sendChatMessage()">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
 
   <script>
     let activeModule = 'audit';
-    let currentView = 'findings';
-    let rawPayload = {};
-    let currentFindingsList = [];
+    let rawPayload = null;
     let chatHistory = [];
+
+    function setAppView(view) {
+      document.getElementById('scanner-page-container').style.display = view === 'scanner' ? 'flex' : 'none';
+      document.getElementById('copilot-page-container').style.display = view === 'copilot' ? 'flex' : 'none';
+      
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      if (view === 'copilot') {
+        document.getElementById('nav-btn-copilot').classList.add('active');
+      } else {
+        document.getElementById('nav-btn-audit').classList.add('active'); // fallback
+        setModule(activeModule);
+      }
+    }
+
+    function switchView(view) {
+      const isFindings = view === 'findings';
+      const isMatrix = view === 'matrix';
+      const isRaw = view === 'raw';
+      
+      document.getElementById('findings-container').style.display = isFindings ? 'flex' : 'none';
+      document.getElementById('matrix-container').style.display = isMatrix ? 'block' : 'none';
+      document.getElementById('raw-container').style.display = isRaw ? 'block' : 'none';
+
+      document.getElementById('tab-findings-btn').className = 'nav-tab' + (isFindings ? ' active' : '');
+      document.getElementById('tab-matrix-btn').className = 'nav-tab' + (isMatrix ? ' active' : '');
+      document.getElementById('tab-raw-btn').className = 'nav-tab' + (isRaw ? ' active' : '');
+    }
 
     function setUrl(val) { document.getElementById('target-url').value = val; }
     function setSampleJwt() {
@@ -1216,6 +1263,7 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
     }
 
     function setModule(mod) {
+      if (typeof setAppView === 'function') setAppView('scanner');
       activeModule = mod;
       document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
       event.currentTarget.classList.add('active');
