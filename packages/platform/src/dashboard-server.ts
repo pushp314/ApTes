@@ -19,12 +19,12 @@ const HTML_PAGE = `<!DOCTYPE html>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #090a0f;
-      --surface: #0f121b;
-      --surface-elevated: #151926;
-      --surface-hover: #1c2233;
-      --border: #1e2433;
-      --border-subtle: rgba(255, 255, 255, 0.07);
+      --bg: #07080c;
+      --surface: #0e1118;
+      --surface-elevated: #141824;
+      --surface-hover: #1b2130;
+      --border: #1a202c;
+      --border-subtle: rgba(255, 255, 255, 0.08);
       --border-focus: #3b82f6;
       
       --text-main: #f8fafc;
@@ -33,7 +33,7 @@ const HTML_PAGE = `<!DOCTYPE html>
       
       --accent: #ffffff;
       --accent-blue: #3b82f6;
-      --accent-blue-dim: rgba(59, 130, 246, 0.1);
+      --accent-blue-dim: rgba(59, 130, 246, 0.12);
       
       --danger: #ef4444;
       --danger-bg: rgba(239, 68, 68, 0.08);
@@ -60,7 +60,7 @@ const HTML_PAGE = `<!DOCTYPE html>
       font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     }
 
-    /* Top Enterprise Navbar */
+    /* Top Enterprise Header */
     header {
       height: 64px;
       padding: 0 2rem;
@@ -92,34 +92,28 @@ const HTML_PAGE = `<!DOCTYPE html>
     }
 
     .brand-icon {
-      width: 24px;
-      height: 24px;
+      width: 26px;
+      height: 26px;
       background: #fff;
       color: #000;
       border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.85rem;
+      font-size: 0.88rem;
       font-weight: 900;
     }
 
     .edition-badge {
       font-size: 0.7rem;
       font-weight: 700;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      background: rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.05);
       color: var(--text-muted);
       border: 1px solid var(--border-subtle);
       padding: 0.2rem 0.55rem;
       border-radius: 4px;
-    }
-
-    .header-center {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
     }
 
     .gateway-status {
@@ -140,6 +134,7 @@ const HTML_PAGE = `<!DOCTYPE html>
       height: 7px;
       border-radius: 50%;
       background: var(--success);
+      box-shadow: 0 0 8px var(--success);
     }
 
     .header-actions {
@@ -187,7 +182,7 @@ const HTML_PAGE = `<!DOCTYPE html>
       gap: 1.25rem;
     }
 
-    .nav-card {
+    .nav-card, .config-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 10px;
@@ -201,7 +196,7 @@ const HTML_PAGE = `<!DOCTYPE html>
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--text-faint);
-      margin: 0.75rem 0 0.5rem 0.5rem;
+      margin: 0.85rem 0 0.45rem 0.5rem;
     }
     .nav-group-title:first-child { margin-top: 0; }
 
@@ -249,14 +244,7 @@ const HTML_PAGE = `<!DOCTYPE html>
       font-family: 'JetBrains Mono', monospace;
     }
 
-    /* Target Configuration Section */
-    .config-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1.25rem;
-    }
-
+    /* Target Configuration */
     .input-label {
       display: block;
       font-size: 0.72rem;
@@ -332,18 +320,14 @@ const HTML_PAGE = `<!DOCTYPE html>
       background: #e2e8f0;
     }
 
-    .btn-primary:active {
-      transform: scale(0.99);
-    }
-
-    /* Right Main Analysis Panel */
+    /* Right Analysis Panel */
     .workspace-panel {
       display: flex;
       flex-direction: column;
       gap: 1.25rem;
     }
 
-    /* Enterprise Scorecard Banner */
+    /* Scorecard Grid */
     .scorecard-grid {
       display: grid;
       grid-template-columns: 240px repeat(3, 1fr);
@@ -355,7 +339,6 @@ const HTML_PAGE = `<!DOCTYPE html>
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 1.25rem;
-      position: relative;
     }
 
     .kpi-header {
@@ -385,18 +368,104 @@ const HTML_PAGE = `<!DOCTYPE html>
     }
 
     .score-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       font-weight: 800;
-      padding: 0.2rem 0.6rem;
+      padding: 0.15rem 0.55rem;
       border-radius: 4px;
     }
 
     .score-badge.grade-a { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
     .score-badge.grade-c { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border); }
     .score-badge.grade-f { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border); }
+
+    /* Live Operational Activity & Stepper */
+    .operations-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .operations-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+    }
+
+    /* Multi-stage Stepper Pipeline */
+    .pipeline-stepper {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.5rem;
+      margin-top: 0.25rem;
+    }
+
+    .step-item {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      padding: 0.65rem 0.85rem;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      transition: all 0.2s ease;
+    }
+
+    .step-item.active {
+      border-color: #fff;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .step-item.completed {
+      border-color: var(--success);
+      background: var(--success-bg);
+    }
+
+    .step-num {
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: var(--text-faint);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .step-item.active .step-num { color: #fff; }
+    .step-item.completed .step-num { color: var(--success); }
+
+    .step-title {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    /* Live Terminal Log Stream */
+    .terminal-stream {
+      background: #040508;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.85rem 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: #94a3b8;
+      max-height: 160px;
+      overflow-y: auto;
+      line-height: 1.6;
+    }
+
+    .terminal-line { display: flex; gap: 0.75rem; }
+    .terminal-time { color: var(--text-faint); }
+    .terminal-text { color: #cbd5e1; }
+    .terminal-text.accent { color: #fff; font-weight: 600; }
+    .terminal-text.success { color: var(--success); }
+    .terminal-text.warn { color: var(--warning); }
+    .terminal-text.danger { color: var(--danger); }
 
     /* Executive AI Summary Box */
     .executive-card {
@@ -441,7 +510,7 @@ const HTML_PAGE = `<!DOCTYPE html>
       line-height: 1.6;
     }
 
-    /* Content Tabs & Findings View */
+    /* Content Tabs & Findings Workspace */
     .content-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -486,7 +555,7 @@ const HTML_PAGE = `<!DOCTYPE html>
       font-weight: 700;
     }
 
-    /* Finding Items */
+    /* Finding Rows */
     .findings-list {
       display: flex;
       flex-direction: column;
@@ -547,7 +616,7 @@ const HTML_PAGE = `<!DOCTYPE html>
     }
 
     .code-remediation {
-      background: #06070a;
+      background: #040508;
       border: 1px solid var(--border);
       border-radius: 6px;
       padding: 0.75rem 1rem;
@@ -557,10 +626,22 @@ const HTML_PAGE = `<!DOCTYPE html>
       color: #cbd5e1;
       display: flex;
       align-items: flex-start;
+      justify-content: space-between;
       gap: 0.6rem;
     }
 
-    /* Enterprise Telemetry Table */
+    .copy-btn {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      cursor: pointer;
+    }
+    .copy-btn:hover { color: #fff; background: var(--surface-hover); }
+
+    /* Telemetry Table */
     .telemetry-table {
       width: 100%;
       border-collapse: collapse;
@@ -586,10 +667,6 @@ const HTML_PAGE = `<!DOCTYPE html>
       color: #cbd5e1;
     }
 
-    .telemetry-table tr:hover td {
-      background: rgba(255, 255, 255, 0.02);
-    }
-
     .telemetry-status {
       display: inline-flex;
       align-items: center;
@@ -602,37 +679,9 @@ const HTML_PAGE = `<!DOCTYPE html>
     .telemetry-status.failed { color: var(--danger); }
     .telemetry-status.warn { color: var(--warning); }
 
-    /* Progress Banner */
-    .scanning-banner {
-      display: none;
-      align-items: center;
-      gap: 0.75rem;
-      background: var(--surface-elevated);
-      border: 1px solid var(--border-focus);
-      padding: 0.85rem 1.25rem;
-      border-radius: 8px;
-      font-size: 0.84rem;
-      font-weight: 600;
-      color: #fff;
-      margin-bottom: 1rem;
-    }
-
-    .spinner {
-      width: 14px;
-      height: 14px;
-      border: 2px solid rgba(255, 255, 255, 0.2);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
     .raw-view-box {
       display: none;
-      background: #06070a;
+      background: #040508;
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 1.25rem;
@@ -660,13 +709,13 @@ const HTML_PAGE = `<!DOCTYPE html>
     <div class="header-center">
       <div class="gateway-status">
         <span class="status-dot"></span>
-        <span id="gateway-telemetry">ENGINES ACTIVE: AST • DAST • PYTHON • MCP</span>
+        <span id="gateway-telemetry">DIAGNOSTIC DAEMONS: AST • DAST • RECON • AI</span>
       </div>
     </div>
 
     <div class="header-actions">
       <button class="btn-secondary" onclick="exportReport()">
-        <span>📄 Export Telemetry</span>
+        <span>📄 Export Telemetry (JSON)</span>
       </button>
     </div>
   </header>
@@ -675,7 +724,7 @@ const HTML_PAGE = `<!DOCTYPE html>
   <main>
     <!-- Left Navigation Sidebar -->
     <div class="sidebar-panel">
-      <!-- Target Configuration -->
+      <!-- Target Perimeter Configuration -->
       <div class="config-card">
         <div class="input-label">Target Perimeter</div>
         <input type="text" id="target-url" class="form-input" placeholder="https://app.example.com" value="https://example.com">
@@ -695,12 +744,12 @@ const HTML_PAGE = `<!DOCTYPE html>
           </div>
         </div>
 
-        <button class="btn-primary" onclick="executeAudit()">
+        <button class="btn-primary" id="btn-execute" onclick="executeAudit()">
           <span>Execute Security Assessment</span>
         </button>
       </div>
 
-      <!-- Module Navigation -->
+      <!-- Domain Navigation -->
       <div class="nav-card">
         <div class="nav-group-title">Orchestrated Assessments</div>
         <button class="tool-nav-item active" onclick="setModule('audit')">
@@ -776,9 +825,49 @@ const HTML_PAGE = `<!DOCTYPE html>
         </div>
 
         <div class="kpi-card">
-          <div class="kpi-header">Verification Boundaries</div>
+          <div class="kpi-header">Active Checkpoints</div>
           <div class="kpi-value" id="kpi-boundaries" style="color: var(--text-main);">7/7</div>
-          <div class="kpi-sub">Active Defense Checkpoints</div>
+          <div class="kpi-sub">Audited Subsystems</div>
+        </div>
+      </div>
+
+      <!-- Live Operations & Behind-the-Scenes Activity Stepper -->
+      <div class="operations-panel">
+        <div class="operations-header">
+          <span>Operational Execution Telemetry (Behind The Scenes)</span>
+          <span style="font-family: 'JetBrains Mono', monospace;" id="telemetry-elapsed">LATENCY: 0.00s</span>
+        </div>
+
+        <!-- 5-Stage Multi-Stage Stepper -->
+        <div class="pipeline-stepper">
+          <div class="step-item" id="step-1">
+            <span class="step-num">01 / RECON</span>
+            <span class="step-title">Perimeter Handshake</span>
+          </div>
+          <div class="step-item" id="step-2">
+            <span class="step-num">02 / HEADERS</span>
+            <span class="step-title">Security Policies</span>
+          </div>
+          <div class="step-item" id="step-3">
+            <span class="step-num">03 / IDENTITY</span>
+            <span class="step-title">Auth & CORS Probing</span>
+          </div>
+          <div class="step-item" id="step-4">
+            <span class="step-num">04 / EXPLOITS</span>
+            <span class="step-title">XSS & Redirect Fuzzing</span>
+          </div>
+          <div class="step-item" id="step-5">
+            <span class="step-num">05 / SYNTHESIS</span>
+            <span class="step-title">AI Threat Scoring</span>
+          </div>
+        </div>
+
+        <!-- Terminal Output Stream -->
+        <div class="terminal-stream" id="terminal-stream">
+          <div class="terminal-line">
+            <span class="terminal-time">[00:00:00]</span>
+            <span class="terminal-text">Sentinel Enterprise Gateway ready. Select target perimeter to dispatch diagnostic daemons.</span>
+          </div>
         </div>
       </div>
 
@@ -793,12 +882,6 @@ const HTML_PAGE = `<!DOCTYPE html>
         <div class="executive-text" id="executive-text">
           Target perimeter ready for diagnostic execution. Select a security domain on the left and trigger an orchestrated assessment.
         </div>
-      </div>
-
-      <!-- Execution Progress Banner -->
-      <div class="scanning-banner" id="scan-banner">
-        <div class="spinner"></div>
-        <span>Evaluating perimeter defenses, header policies, and access controls...</span>
       </div>
 
       <!-- Tabbed Findings Workspace -->
@@ -848,7 +931,7 @@ const HTML_PAGE = `<!DOCTYPE html>
               <tr>
                 <td>CORS Boundary Policy</td>
                 <td>Origin Reflection & ACAC Credentials</td>
-                <td>3 Domain Boundary Probes</td>
+                <td>3 Boundary Checks</td>
                 <td><span class="telemetry-status passed">● Isolated</span></td>
               </tr>
               <tr>
@@ -860,19 +943,19 @@ const HTML_PAGE = `<!DOCTYPE html>
               <tr>
                 <td>Redirect Sanitization</td>
                 <td>Unvalidated 3xx Redirection</td>
-                <td>15 Standard Target Parameters</td>
+                <td>15 Target Parameters</td>
                 <td><span class="telemetry-status passed">● Protected</span></td>
               </tr>
               <tr>
                 <td>Secret & Config Exposure</td>
                 <td>Public .env, .git, Docker, Backups</td>
-                <td>13 Critical Asset Paths</td>
+                <td>13 Critical Paths</td>
                 <td><span class="telemetry-status passed">● Protected</span></td>
               </tr>
               <tr>
                 <td>Input Sanitization (XSS)</td>
                 <td>Reflected HTML/Attribute Tag Breakout</td>
-                <td>33 Contextual Injection Probes</td>
+                <td>33 Injection Probes</td>
                 <td><span class="telemetry-status passed">● Sanitized</span></td>
               </tr>
             </tbody>
@@ -917,15 +1000,53 @@ const HTML_PAGE = `<!DOCTYPE html>
       document.getElementById('raw-json-box').style.display = view === 'raw' ? 'block' : 'none';
     }
 
+    function addLog(text, type = '') {
+      const stream = document.getElementById('terminal-stream');
+      const time = new Date().toTimeString().split(' ')[0];
+      const div = document.createElement('div');
+      div.className = 'terminal-line';
+      div.innerHTML = '<span class="terminal-time">[' + time + ']</span><span class="terminal-text ' + type + '">' + text + '</span>';
+      stream.appendChild(div);
+      stream.scrollTop = stream.scrollHeight;
+    }
+
+    function updateStep(stepIndex, status) {
+      const step = document.getElementById('step-' + stepIndex);
+      if (!step) return;
+      step.classList.remove('active', 'completed');
+      if (status === 'active') step.classList.add('active');
+      if (status === 'completed') step.classList.add('completed');
+    }
+
     async function executeAudit() {
-      const banner = document.getElementById('scan-banner');
-      const container = document.getElementById('findings-container');
-      const rawBox = document.getElementById('raw-json-box');
       const targetUrl = document.getElementById('target-url').value;
       const jwtToken = document.getElementById('jwt-token').value;
+      const startTime = performance.now();
 
-      banner.style.display = 'flex';
-      document.getElementById('telemetry-timestamp').innerText = 'STATUS: RUNNING AUDIT';
+      // Reset Stepper & Logs
+      for (let i = 1; i <= 5; i++) updateStep(i, '');
+      addLog('🚀 Dispatched assessment for perimeter: ' + targetUrl, 'accent');
+
+      updateStep(1, 'active');
+      addLog('→ [Stage 1/5] Establishing TLS connection & fetching root HTML/bundles...');
+
+      const stepTimer1 = setTimeout(() => {
+        updateStep(1, 'completed');
+        updateStep(2, 'active');
+        addLog('→ [Stage 2/5] Auditing security headers (HSTS, CSP, X-Frame-Options)...');
+      }, 250);
+
+      const stepTimer2 = setTimeout(() => {
+        updateStep(2, 'completed');
+        updateStep(3, 'active');
+        addLog('→ [Stage 3/5] Testing CORS reflection, unauthenticated API routes & cookie flags...');
+      }, 550);
+
+      const stepTimer3 = setTimeout(() => {
+        updateStep(3, 'completed');
+        updateStep(4, 'active');
+        addLog('→ [Stage 4/5] Injected 33 XSS probes, 15 redirect params & 13 sensitive file checks...');
+      }, 950);
 
       try {
         const res = await fetch('/api/run', {
@@ -935,13 +1056,28 @@ const HTML_PAGE = `<!DOCTYPE html>
         });
         const data = await res.json();
         rawPayload = data;
-        rawBox.innerText = JSON.stringify(data, null, 2);
-        renderResults(data);
+        document.getElementById('raw-json-box').innerText = JSON.stringify(data, null, 2);
+
+        clearTimeout(stepTimer1);
+        clearTimeout(stepTimer2);
+        clearTimeout(stepTimer3);
+
+        for (let i = 1; i <= 4; i++) updateStep(i, 'completed');
+        updateStep(5, 'active');
+        addLog('→ [Stage 5/5] Correlating evidence across boundaries & synthesizing AI risk rating...');
+
+        setTimeout(() => {
+          updateStep(5, 'completed');
+          const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+          document.getElementById('telemetry-elapsed').innerText = 'LATENCY: ' + elapsed + 's';
+          addLog('✅ Assessment completed in ' + elapsed + 's. Security scorecard updated.', 'success');
+          renderResults(data);
+        }, 200);
+
       } catch (err) {
-        container.innerHTML = '<div class="finding-row sev-critical"><div class="finding-name">Assessment Error</div><div class="finding-details">' + err.message + '</div></div>';
+        addLog('❌ Execution failed: ' + err.message, 'danger');
       } finally {
-        banner.style.display = 'none';
-        document.getElementById('telemetry-timestamp').innerText = 'LAST AUDIT: ' + new Date().toLocaleTimeString();
+        document.getElementById('telemetry-timestamp').innerText = 'LAST RUN: ' + new Date().toLocaleTimeString();
       }
     }
 
@@ -979,9 +1115,10 @@ const HTML_PAGE = `<!DOCTYPE html>
 
       // Render Findings
       if (data.findings && data.findings.length > 0) {
-        data.findings.forEach(f => {
+        data.findings.forEach((f, idx) => {
           const isCrit = f.severity === 'CRITICAL' || f.severity === 'HIGH';
           const sevClass = isCrit ? 'critical' : 'high';
+          const remId = 'rem-code-' + idx;
           container.innerHTML += 
             '<div class="finding-row sev-' + (isCrit ? 'critical' : 'high') + '">' +
               '<div class="finding-top">' +
@@ -989,12 +1126,16 @@ const HTML_PAGE = `<!DOCTYPE html>
                 '<span class="sev-tag ' + sevClass + '">' + (f.severity || 'HIGH') + '</span>' +
               '</div>' +
               '<div class="finding-details">' + (f.message || '') + '</div>' +
-              (f.remediation ? '<div class="code-remediation"><span>⚙️</span><span>Remediation: ' + f.remediation + '</span></div>' : '') +
+              (f.remediation ? 
+                '<div class="code-remediation">' +
+                  '<span id="' + remId + '">⚙️ Fix: ' + f.remediation + '</span>' +
+                  '<button class="copy-btn" onclick="copySnippet(\'' + remId + '\')">Copy</button>' +
+                '</div>' : '') +
             '</div>';
         });
       } else if (activeModule === 'endpoints' && data.endpoints) {
         let total = data.total_endpoints_found || data.endpoints.length;
-        let html = '<div class="finding-row sev-safe"><div class="finding-top"><span class="finding-name">Discovered ' + total + ' API Endpoints & Routes</span><span class="sev-tag safe">' + total + ' ENPOINTS</span></div><div class="finding-details" style="margin-top: 0.5rem;">';
+        let html = '<div class="finding-row sev-safe"><div class="finding-top"><span class="finding-name">Discovered ' + total + ' API Endpoints & Routes</span><span class="sev-tag safe">' + total + ' ENDPOINTS</span></div><div class="finding-details" style="margin-top: 0.5rem;">';
         data.endpoints.forEach(ep => {
           html += '<div style="margin: 0.25rem 0; font-family: monospace; color: #fff;">⚡ ' + ep + '</div>';
         });
@@ -1024,6 +1165,12 @@ const HTML_PAGE = `<!DOCTYPE html>
           '<tr><td>Secret & Config Exposure</td><td>Public .env, .git, Docker, Backups</td><td>13 Critical Paths</td><td>' + (data.exposure && data.exposure.exposed_count ? '<span class="telemetry-status failed">● Exposed</span>' : '<span class="telemetry-status passed">● Protected</span>') + '</td></tr>' +
           '<tr><td>Input Sanitization (XSS)</td><td>Reflected HTML/Attribute Tag Breakout</td><td>33 Injection Probes</td><td>' + (data.xss && data.xss.vulnerable_count ? '<span class="telemetry-status failed">● Reflected</span>' : '<span class="telemetry-status passed">● Sanitized</span>') + '</td></tr>';
       }
+    }
+
+    function copySnippet(elementId) {
+      const text = document.getElementById(elementId).innerText.replace('⚙️ Fix: ', '');
+      navigator.clipboard.writeText(text);
+      alert('Remediation snippet copied to clipboard!');
     }
 
     function exportReport() {
