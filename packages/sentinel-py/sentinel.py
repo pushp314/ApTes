@@ -18,6 +18,7 @@ from tools.redirect_scanner import audit_open_redirect
 from tools.cookie_auditor import audit_cookies
 from tools.exposure_scanner import audit_exposure
 from tools.xss_scanner import audit_xss
+from tools.admin_scanner import scan_admin_panels
 
 
 # ANSI Terminal Colors
@@ -142,7 +143,7 @@ def run_full_audit(url: str, output_json: bool = False):
 
     # 7. Auth Probing
     if not output_json:
-        print(f"\n{Colors.BOLD}🔓 [7/7] Probing Common API Routes for Unauthenticated Access...{Colors.RESET}")
+        print(f"\n{Colors.BOLD}🔓 [7/8] Probing Common API Routes for Unauthenticated Access...{Colors.RESET}")
     auth_res = probe_endpoints(url)
     report["auth"] = auth_res
     if auth_res.get("vulnerable_endpoints"):
@@ -163,6 +164,18 @@ def run_full_audit(url: str, output_json: bool = False):
             })
             if not output_json:
                 print(f"     ❌ {Colors.RED}{ep['route']}{Colors.RESET} (HTTP {ep['status_code']} OK without auth)")
+
+    # 8. Admin Panel & Hidden API Discovery
+    if not output_json:
+        print(f"\n{Colors.BOLD}🏛️  [8/8] Scanning for Admin Panels & Hidden API Routes...{Colors.RESET}")
+    admin_res = scan_admin_panels(url)
+    report["admin_discovery"] = admin_res
+    if admin_res.get("findings"):
+        for f in admin_res["findings"]:
+            report["total_critical"] += 1
+            report["findings"].append(f)
+            if not output_json:
+                print(f"     ❌ {Colors.RED}{f['title']}{Colors.RESET}: {f['message']}")
 
     # Compute Overall Score
     score = 100 - (report["total_critical"] * 20) - (report["total_warnings"] * 5)
@@ -237,6 +250,13 @@ def main():
     xss_parser = subparsers.add_parser("xss", help="Probe parameters for Reflected XSS injection")
     xss_parser.add_argument("url", help="Target URL to test")
 
+    # Command: admin (Admin Panel & Hidden API Discovery)
+    admin_panel_parser = subparsers.add_parser("admin", help="Discover accessible admin panels and hidden API routes")
+    admin_panel_parser.add_argument("url", help="Target URL to scan")
+    admin_panel_parser.add_argument("--no-api", action="store_true", help="Skip hidden API route probing")
+    admin_panel_parser.add_argument("--paths", help="Comma-separated custom paths to probe (e.g. /my-admin,/backoffice)")
+    admin_panel_parser.add_argument("--json", action="store_true", help="Output results as JSON")
+
     # Command: dashboard
     subparsers.add_parser("dashboard", help="Launch the interactive Mission Control Dashboard")
 
@@ -300,6 +320,36 @@ def main():
                 print(f"\n📑 {Colors.BOLD}Discovered API Documentation & Specs:{Colors.RESET}")
                 for s in res["specs_discovered"]:
                     print(f"  👉 {Colors.YELLOW}{s['type']}{Colors.RESET}: {s['url']}")
+            print(f"\n{Colors.BLUE}========================================================{Colors.RESET}")
+    elif args.command == "admin":
+        custom = [p.strip() for p in args.paths.split(",")] if args.paths else None
+        res = scan_admin_panels(args.url, include_api=not args.no_api, custom_paths=custom)
+        if args.json:
+            print(json.dumps(res, indent=2))
+        else:
+            print_banner()
+            print(f"{Colors.CYAN}Admin Panel & Hidden API Discovery for:{Colors.RESET} {args.url}\n")
+            print(f"📊 {Colors.BOLD}Probed {res['total_probed']} paths{Colors.RESET}\n")
+            if res['open_panels']:
+                print(f"  🔓 {Colors.RED}{Colors.BOLD}OPEN ADMIN PANELS ({len(res['open_panels'])}):{Colors.RESET}")
+                for p in res['open_panels']:
+                    title = f" — {p['page_title']}" if p.get('page_title') else ''
+                    print(f"     ❌ {Colors.RED}{p['path']}{Colors.RESET} (HTTP {p['status_code']}{title})")
+            if res['open_apis']:
+                print(f"\n  🔓 {Colors.RED}{Colors.BOLD}OPEN API ROUTES ({len(res['open_apis'])}):{Colors.RESET}")
+                for p in res['open_apis']:
+                    print(f"     ❌ {Colors.RED}{p['path']}{Colors.RESET} (HTTP {p['status_code']}, {p['content_type'] or 'unknown'})")
+            if res['login_gates']:
+                print(f"\n  🔐 {Colors.GREEN}LOGIN-GATED ({len(res['login_gates'])}):{Colors.RESET}")
+                for p in res['login_gates']:
+                    print(f"     ✅ {Colors.GREEN}{p['path']}{Colors.RESET} (has login form)")
+            if res['protected']:
+                print(f"\n  🛡️  {Colors.GREEN}PROTECTED 401/403 ({len(res['protected'])}):{Colors.RESET}")
+                for p in res['protected']:
+                    print(f"     ✅ {Colors.GREEN}{p['path']}{Colors.RESET} (HTTP {p['status_code']})")
+            print(f"\n  📂 Not Found (404): {len(res['not_found'])} paths")
+            print(f"  🔀 Redirects (3xx): {len(res['redirects'])} paths")
+            print(f"  🖥️  SPA Fallbacks: {len(res['spa_fallbacks'])} paths")
             print(f"\n{Colors.BLUE}========================================================{Colors.RESET}")
     else:
         parser.print_help()

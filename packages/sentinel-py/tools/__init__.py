@@ -7,6 +7,7 @@ from .jwt_analyzer import analyze_jwt
 from .headers_scanner import audit_headers
 from .auth_prober import probe_endpoints
 from .api_finder import find_api_endpoints
+from .admin_scanner import scan_admin_panels
 from .redirect_scanner import audit_open_redirect
 from .cookie_auditor import audit_cookies
 from .exposure_scanner import audit_exposure
@@ -18,6 +19,7 @@ __all__ = [
     "audit_headers",
     "probe_endpoints",
     "find_api_endpoints",
+    "scan_admin_panels",
     "audit_open_redirect",
     "audit_cookies",
     "audit_exposure",

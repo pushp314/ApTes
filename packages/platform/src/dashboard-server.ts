@@ -983,6 +983,10 @@ const HTML_PAGE = `<!DOCTYPE html>
           <span>JWT Cryptographic Audit</span>
           <span class="item-tag">TOKEN</span>
         </button>
+        <button class="nav-item" onclick="setModule('admin')">
+          <span>Admin Panel Discovery</span>
+          <span class="item-tag">RECON</span>
+        </button>
       </div>
     </div>
 
@@ -1729,7 +1733,7 @@ Note: To enable conversational LLM generation, ensure Ollama is running with: \`
               const pythonScript = path.resolve(currentDir, '../../sentinel-py/sentinel.py');
 
               let pyArgs = [pythonScript, tool, targetUrl];
-              if (tool === 'audit' || tool === 'endpoints') {
+              if (tool === 'audit' || tool === 'endpoints' || tool === 'admin') {
                 pyArgs.push('--json');
               }
 
