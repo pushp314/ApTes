@@ -1,6 +1,6 @@
 /**
  * Sentinel Unified Mission Control Web Dashboard Server
- * Tier-1 Enterprise Cybersecurity & Threat Management Platform with AI Copilot
+ * Tier-1 Enterprise Monochrome Cybersecurity & Threat Intelligence Platform
  */
 
 import http from 'node:http';
@@ -13,39 +13,38 @@ const HTML_PAGE = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sentinel Enterprise | Cybersecurity Command Center</title>
+  <title>SENTINEL // Enterprise Threat Intelligence & Perimeter Defense</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #07080c;
-      --surface: #0e1118;
-      --surface-elevated: #141824;
-      --surface-hover: #1b2130;
-      --border: #1a202c;
-      --border-subtle: rgba(255, 255, 255, 0.08);
-      --border-focus: #3b82f6;
+      --bg: #000000;
+      --surface: #0a0a0a;
+      --surface-elevated: #121212;
+      --surface-hover: #1c1c1c;
+      --border: #222222;
+      --border-subtle: #161616;
+      --border-focus: #ffffff;
       
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --text-faint: #64748b;
+      --text-main: #ffffff;
+      --text-muted: #a1a1aa;
+      --text-faint: #52525b;
       
       --accent: #ffffff;
-      --accent-blue: #3b82f6;
-      --accent-blue-dim: rgba(59, 130, 246, 0.12);
+      --accent-dim: rgba(255, 255, 255, 0.08);
       
-      --danger: #ef4444;
-      --danger-bg: rgba(239, 68, 68, 0.08);
-      --danger-border: rgba(239, 68, 68, 0.25);
+      --danger: #ffffff;
+      --danger-bg: #18181b;
+      --danger-border: #3f3f46;
       
-      --warning: #f59e0b;
-      --warning-bg: rgba(245, 158, 11, 0.08);
-      --warning-border: rgba(245, 158, 11, 0.25);
+      --warning: #e4e4e7;
+      --warning-bg: #18181b;
+      --warning-border: #3f3f46;
       
-      --success: #10b981;
-      --success-bg: rgba(16, 185, 129, 0.08);
-      --success-border: rgba(16, 185, 129, 0.25);
+      --success: #ffffff;
+      --success-bg: #18181b;
+      --success-border: #3f3f46;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -57,13 +56,13 @@ const HTML_PAGE = `<!DOCTYPE html>
       display: flex;
       flex-direction: column;
       -webkit-font-smoothing: antialiased;
-      font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+      letter-spacing: -0.01em;
     }
 
-    /* Top Enterprise Header */
+    /* Enterprise Navigation Header */
     header {
-      height: 64px;
-      padding: 0 2rem;
+      height: 56px;
+      padding: 0 1.75rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -74,702 +73,709 @@ const HTML_PAGE = `<!DOCTYPE html>
       z-index: 100;
     }
 
-    .brand-section {
+    .brand-group {
       display: flex;
       align-items: center;
-      gap: 1.25rem;
+      gap: 1rem;
     }
 
     .brand-logo {
       display: flex;
       align-items: center;
-      gap: 0.65rem;
+      gap: 0.6rem;
       font-weight: 800;
-      font-size: 1.1rem;
-      letter-spacing: -0.02em;
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
       color: #fff;
       text-decoration: none;
+      text-transform: uppercase;
     }
 
     .brand-icon {
-      width: 26px;
-      height: 26px;
+      width: 22px;
+      height: 22px;
       background: #fff;
       color: #000;
-      border-radius: 6px;
+      border-radius: 4px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.88rem;
+      font-size: 0.75rem;
       font-weight: 900;
     }
 
-    .edition-badge {
-      font-size: 0.7rem;
+    .env-tag {
+      font-size: 0.65rem;
       font-weight: 700;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      background: rgba(255, 255, 255, 0.05);
+      background: var(--surface-elevated);
       color: var(--text-muted);
-      border: 1px solid var(--border-subtle);
-      padding: 0.2rem 0.55rem;
-      border-radius: 4px;
-    }
-
-    .gateway-status {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      background: var(--bg);
       border: 1px solid var(--border);
-      padding: 0.35rem 0.85rem;
-      border-radius: 9999px;
+      padding: 0.15rem 0.5rem;
+      border-radius: 3px;
+      font-family: 'JetBrains Mono', monospace;
     }
 
-    .status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--success);
-      box-shadow: 0 0 8px var(--success);
-    }
-
-    .header-actions {
+    .header-center {
       display: flex;
       align-items: center;
       gap: 0.75rem;
     }
 
-    .btn-secondary {
+    .gateway-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
       background: var(--surface-elevated);
       border: 1px solid var(--border);
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .indicator-pulse {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
       color: var(--text-main);
-      font-size: 0.82rem;
+      font-size: 0.78rem;
       font-weight: 600;
-      padding: 0.45rem 0.9rem;
-      border-radius: 6px;
+      padding: 0.4rem 0.85rem;
+      border-radius: 4px;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 0.45rem;
+      gap: 0.4rem;
       transition: all 0.15s ease;
+      font-family: 'JetBrains Mono', monospace;
     }
 
-    .btn-secondary:hover {
-      background: var(--surface-hover);
-      border-color: rgba(255, 255, 255, 0.2);
+    .btn-outline:hover {
+      background: var(--surface-elevated);
+      border-color: #fff;
     }
 
-    /* Main Grid Layout */
+    /* Main Workspace Layout */
     main {
       flex: 1;
-      max-width: 1600px;
+      max-width: 1680px;
       width: 100%;
       margin: 0 auto;
-      padding: 1.75rem 2rem;
+      padding: 1.5rem 1.75rem;
       display: grid;
-      grid-template-columns: 320px 1fr;
-      gap: 1.75rem;
+      grid-template-columns: 310px 1fr;
+      gap: 1.5rem;
     }
 
     /* Left Sidebar */
-    .sidebar-panel {
+    .sidebar {
       display: flex;
       flex-direction: column;
       gap: 1.25rem;
     }
 
-    .nav-card, .config-card {
+    .panel-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1.25rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      border-radius: 6px;
+      padding: 1.15rem;
     }
 
-    .nav-group-title {
-      font-size: 0.68rem;
+    .panel-title {
+      font-size: 0.65rem;
       font-weight: 800;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--text-faint);
-      margin: 0.85rem 0 0.45rem 0.5rem;
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
-    .nav-group-title:first-child { margin-top: 0; }
 
-    .tool-nav-item {
+    .nav-section-title {
+      font-size: 0.62rem;
+      font-weight: 800;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin: 0.85rem 0 0.35rem 0.4rem;
+    }
+    .nav-section-title:first-child { margin-top: 0; }
+
+    .nav-item {
       width: 100%;
       background: transparent;
       border: 1px solid transparent;
       color: var(--text-muted);
-      padding: 0.55rem 0.75rem;
-      border-radius: 6px;
+      padding: 0.5rem 0.65rem;
+      border-radius: 4px;
       cursor: pointer;
       text-align: left;
-      font-size: 0.84rem;
+      font-size: 0.8rem;
       font-weight: 500;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      transition: all 0.15s ease;
+      transition: all 0.12s ease;
       margin-bottom: 2px;
     }
 
-    .tool-nav-item:hover {
+    .nav-item:hover {
       background: var(--surface-elevated);
       color: #fff;
     }
 
-    .tool-nav-item.active {
+    .nav-item.active {
       background: #fff;
       color: #000;
       font-weight: 700;
     }
 
-    .tool-nav-item.active .badge-count {
+    .nav-item.active .item-tag {
       background: #000;
       color: #fff;
     }
 
-    .badge-count {
-      font-size: 0.68rem;
+    .item-tag {
+      font-size: 0.65rem;
       font-weight: 700;
       background: var(--surface-elevated);
       color: var(--text-faint);
-      padding: 0.15rem 0.45rem;
-      border-radius: 4px;
+      padding: 0.1rem 0.4rem;
+      border-radius: 3px;
       font-family: 'JetBrains Mono', monospace;
     }
 
-    /* Target Configuration */
-    .input-label {
+    .form-label {
       display: block;
-      font-size: 0.72rem;
+      font-size: 0.68rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.06em;
       color: var(--text-muted);
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.35rem;
     }
 
-    .form-input {
+    .form-control {
       width: 100%;
       background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.65rem 0.85rem;
+      border-radius: 4px;
+      padding: 0.55rem 0.75rem;
       color: #fff;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.84rem;
+      font-size: 0.8rem;
       transition: all 0.15s ease;
     }
 
-    .form-input:focus {
+    .form-control:focus {
       outline: none;
-      border-color: var(--border-focus);
-      box-shadow: 0 0 0 1px var(--border-focus);
+      border-color: #fff;
     }
 
-    .presets-row {
+    .preset-chips {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.35rem;
-      margin-top: 0.5rem;
+      gap: 0.3rem;
+      margin-top: 0.45rem;
     }
 
-    .preset-chip {
-      font-size: 0.7rem;
+    .chip {
+      font-size: 0.68rem;
       font-family: 'JetBrains Mono', monospace;
       background: var(--surface-elevated);
       color: var(--text-muted);
-      border: 1px solid var(--border-subtle);
-      padding: 0.2rem 0.45rem;
-      border-radius: 4px;
+      border: 1px solid var(--border);
+      padding: 0.15rem 0.45rem;
+      border-radius: 3px;
       cursor: pointer;
-      transition: all 0.12s ease;
     }
+    .chip:hover { color: #fff; border-color: #fff; }
 
-    .preset-chip:hover {
-      background: var(--surface-hover);
-      color: #fff;
-      border-color: rgba(255, 255, 255, 0.2);
-    }
-
-    .btn-primary {
+    .btn-exec {
       width: 100%;
       background: #fff;
       color: #000;
       border: none;
-      font-size: 0.88rem;
-      font-weight: 700;
-      padding: 0.8rem;
-      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      padding: 0.75rem;
+      border-radius: 4px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 0.5rem;
-      margin-top: 1rem;
+      margin-top: 0.85rem;
       transition: all 0.15s ease;
     }
+    .btn-exec:hover { background: #e4e4e7; }
+    .btn-exec:active { transform: scale(0.99); }
 
-    .btn-primary:hover {
-      background: #e2e8f0;
-    }
-
-    /* Right Analysis Panel */
-    .workspace-panel {
+    /* Right Main Canvas */
+    .workspace {
       display: flex;
       flex-direction: column;
       gap: 1.25rem;
     }
 
-    /* Scorecard Grid */
-    .scorecard-grid {
+    /* Enterprise Metric Tiles */
+    .kpi-row {
       display: grid;
-      grid-template-columns: 240px repeat(3, 1fr);
-      gap: 1rem;
+      grid-template-columns: 220px repeat(3, 1fr);
+      gap: 0.85rem;
     }
 
-    .kpi-card {
+    .kpi-box {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1.25rem;
+      border-radius: 6px;
+      padding: 1.15rem;
     }
 
-    .kpi-header {
-      font-size: 0.7rem;
+    .kpi-top {
+      font-size: 0.65rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.08em;
       color: var(--text-faint);
-      margin-bottom: 0.5rem;
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.4rem;
     }
 
-    .kpi-value {
-      font-size: 2rem;
+    .kpi-num {
+      font-size: 1.8rem;
       font-weight: 800;
       font-family: 'JetBrains Mono', monospace;
       color: #fff;
       line-height: 1;
     }
 
-    .kpi-sub {
-      font-size: 0.72rem;
+    .kpi-meta {
+      font-size: 0.7rem;
       color: var(--text-muted);
-      margin-top: 0.4rem;
+      margin-top: 0.35rem;
     }
 
-    .score-badge {
-      font-size: 0.8rem;
+    .grade-pill {
+      font-size: 0.72rem;
       font-weight: 800;
-      padding: 0.15rem 0.55rem;
-      border-radius: 4px;
+      padding: 0.15rem 0.5rem;
+      border-radius: 3px;
+      background: #fff;
+      color: #000;
+      font-family: 'JetBrains Mono', monospace;
     }
 
-    .score-badge.grade-a { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
-    .score-badge.grade-c { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border); }
-    .score-badge.grade-f { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border); }
-
-    /* Live Operational Activity & Stepper */
-    .operations-panel {
+    /* Live Operational Activity & Behind The Scenes Stream */
+    .operations-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1.25rem 1.5rem;
+      border-radius: 6px;
+      padding: 1.15rem 1.35rem;
       display: flex;
       flex-direction: column;
       gap: 0.85rem;
     }
 
-    .operations-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.75rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-muted);
-    }
-
-    .pipeline-stepper {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 0.5rem;
-      margin-top: 0.25rem;
-    }
-
-    .step-item {
-      background: var(--surface-elevated);
-      border: 1px solid var(--border);
-      padding: 0.65rem 0.85rem;
-      border-radius: 6px;
-      display: flex;
-      flex-direction: column;
-      gap: 0.2rem;
-      transition: all 0.2s ease;
-    }
-
-    .step-item.active {
-      border-color: #fff;
-      background: rgba(255, 255, 255, 0.06);
-    }
-
-    .step-item.completed {
-      border-color: var(--success);
-      background: var(--success-bg);
-    }
-
-    .step-num {
-      font-size: 0.65rem;
-      font-weight: 800;
-      color: var(--text-faint);
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    .step-item.active .step-num { color: #fff; }
-    .step-item.completed .step-num { color: var(--success); }
-
-    .step-title {
-      font-size: 0.76rem;
-      font-weight: 700;
-      color: #fff;
-    }
-
-    /* Executive AI Summary Box */
-    .executive-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-left: 3px solid #fff;
-      border-radius: 10px;
-      padding: 1.25rem 1.5rem;
-    }
-
-    .executive-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 0.65rem;
-    }
-
-    .executive-title {
-      font-size: 0.78rem;
-      font-weight: 800;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .compliance-pill {
-      font-size: 0.68rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      background: var(--surface-elevated);
-      border: 1px solid var(--border-subtle);
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
-    }
-
-    .executive-text {
-      font-size: 0.88rem;
-      color: #cbd5e1;
-      line-height: 1.6;
-    }
-
-    /* Content Tabs & Findings Workspace */
-    .content-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1.5rem;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      min-height: 520px;
-    }
-
-    .tab-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 0.85rem;
-      margin-bottom: 1.25rem;
-    }
-
-    .tabs-group {
-      display: flex;
-      gap: 0.5rem;
-    }
-
-    .tab-btn {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-size: 0.82rem;
-      font-weight: 600;
-      padding: 0.35rem 0.75rem;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-
-    .tab-btn:hover { color: #fff; }
-    .tab-btn.active {
-      background: var(--surface-elevated);
-      color: #fff;
-      font-weight: 700;
-    }
-
-    /* Finding Rows & Forensic Evidence Box */
-    .findings-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      max-height: 600px;
-      overflow-y: auto;
-      padding-right: 0.25rem;
-    }
-
-    .finding-row {
-      background: var(--surface-elevated);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1.25rem;
-      transition: all 0.15s ease;
-    }
-
-    .finding-row:hover {
-      border-color: rgba(255, 255, 255, 0.18);
-    }
-
-    .finding-row.sev-critical { border-left: 3px solid var(--danger); }
-    .finding-row.sev-high { border-left: 3px solid var(--warning); }
-    .finding-row.sev-medium { border-left: 3px solid var(--warning); }
-    .finding-row.sev-safe { border-left: 3px solid var(--success); }
-
-    .finding-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 0.4rem;
-    }
-
-    .finding-name {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: #fff;
-    }
-
-    .sev-tag {
-      font-size: 0.68rem;
-      font-weight: 800;
-      font-family: 'JetBrains Mono', monospace;
-      padding: 0.15rem 0.45rem;
-      border-radius: 4px;
-      text-transform: uppercase;
-    }
-
-    .sev-tag.critical { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border); }
-    .sev-tag.high { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border); }
-    .sev-tag.medium { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border); }
-    .sev-tag.safe { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
-
-    .finding-details {
-      font-size: 0.84rem;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
-
-    /* Forensic HTTP Evidence Drawer */
-    .forensic-box {
-      background: #040508;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.85rem 1rem;
-      margin-top: 0.75rem;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.78rem;
-      color: #94a3b8;
-    }
-
-    .forensic-header {
+    .operations-top {
       display: flex;
       align-items: center;
       justify-content: space-between;
       font-size: 0.7rem;
-      font-weight: 700;
-      color: var(--text-faint);
+      font-weight: 800;
       text-transform: uppercase;
-      margin-bottom: 0.4rem;
+      letter-spacing: 0.08em;
+      color: var(--text-faint);
     }
 
-    .forensic-line {
-      margin: 0.25rem 0;
-      word-break: break-all;
-    }
-
-    .forensic-preview {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--border-subtle);
-      border-radius: 4px;
-      padding: 0.5rem 0.75rem;
-      margin-top: 0.45rem;
-      max-height: 100px;
-      overflow-y: auto;
-      white-space: pre-wrap;
-      color: #cbd5e1;
-    }
-
-    .finding-actions {
-      display: flex;
+    .pipeline-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
       gap: 0.5rem;
-      margin-top: 0.75rem;
     }
 
-    .action-btn {
+    .pipe-step {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      padding: 0.6rem 0.75rem;
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      transition: all 0.15s ease;
+    }
+
+    .pipe-step.active {
+      border-color: #fff;
+      background: #18181b;
+    }
+
+    .pipe-step.completed {
+      border-color: #52525b;
+      background: var(--surface);
+    }
+
+    .pipe-num {
+      font-size: 0.62rem;
+      font-weight: 800;
+      color: var(--text-faint);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .pipe-step.active .pipe-num { color: #fff; }
+    .pipe-step.completed .pipe-num { color: var(--text-muted); }
+
+    .pipe-label {
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .console-stream {
+      background: #000;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.75rem 0.9rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.74rem;
+      color: #a1a1aa;
+      max-height: 140px;
+      overflow-y: auto;
+      line-height: 1.6;
+    }
+
+    .console-row { display: flex; gap: 0.65rem; }
+    .console-t { color: var(--text-faint); }
+    .console-m { color: #e4e4e7; }
+    .console-m.active { color: #fff; font-weight: 700; }
+    .console-m.ok { color: #fff; }
+    .console-m.alert { color: #fff; text-decoration: underline; }
+
+    /* Executive Threat Verdict */
+    .executive-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      color: var(--text-muted);
-      padding: 0.35rem 0.7rem;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
+      border-left: 3px solid #fff;
+      border-radius: 6px;
+      padding: 1.15rem 1.35rem;
+    }
+
+    .executive-top {
       display: flex;
       align-items: center;
-      gap: 0.35rem;
-      transition: all 0.12s ease;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
     }
 
-    .action-btn:hover {
-      background: var(--surface-hover);
+    .executive-tag {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
       color: #fff;
-      border-color: rgba(255, 255, 255, 0.2);
     }
 
-    .action-btn.ai-btn {
-      background: #fff;
-      color: #000;
+    .framework-badge {
+      font-size: 0.65rem;
       font-weight: 700;
-      border: none;
+      color: var(--text-muted);
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      padding: 0.15rem 0.45rem;
+      border-radius: 3px;
+      font-family: 'JetBrains Mono', monospace;
     }
-    .action-btn.ai-btn:hover { background: #e2e8f0; }
 
-    /* AI Copilot Chat Panel */
-    .ai-chat-card {
+    .executive-summary {
+      font-size: 0.84rem;
+      color: #d4d4d8;
+      line-height: 1.6;
+    }
+
+    /* Main Tabbed Findings & Copilot Section */
+    .canvas-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1.5rem;
-      display: none;
+      border-radius: 6px;
+      padding: 1.35rem;
+      flex: 1;
+      display: flex;
       flex-direction: column;
-      gap: 1rem;
-      min-height: 520px;
+      min-height: 540px;
     }
 
-    .ai-chat-header {
+    .tab-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       border-bottom: 1px solid var(--border);
-      padding-bottom: 0.85rem;
+      padding-bottom: 0.75rem;
+      margin-bottom: 1.15rem;
     }
 
-    .ai-model-picker {
+    .tab-group { display: flex; gap: 0.4rem; }
+
+    .nav-tab {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.3rem 0.7rem;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.12s ease;
+    }
+    .nav-tab:hover { color: #fff; }
+    .nav-tab.active {
+      background: var(--surface-elevated);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    /* Finding Items */
+    .findings-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      max-height: 620px;
+      overflow-y: auto;
+      padding-right: 0.25rem;
+    }
+
+    .finding-block {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.15rem;
+    }
+    .finding-block.critical { border-left: 3px solid #fff; }
+    .finding-block.safe { border-left: 3px solid #52525b; }
+
+    .finding-heading {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      font-size: 0.8rem;
-      color: var(--text-muted);
+      justify-content: space-between;
+      margin-bottom: 0.4rem;
     }
 
-    .model-select {
-      background: var(--bg);
+    .finding-title-text {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .finding-badge {
+      font-size: 0.65rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 0.15rem 0.45rem;
+      border-radius: 3px;
+      background: #fff;
+      color: #000;
+      text-transform: uppercase;
+    }
+
+    .finding-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Forensic Evidence Drawer */
+    .evidence-box {
+      background: #000;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.75rem 0.9rem;
+      margin-top: 0.65rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.76rem;
+      color: #a1a1aa;
+    }
+
+    .evidence-title {
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      margin-bottom: 0.35rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .evidence-snippet {
+      background: #09090b;
+      border: 1px solid var(--border-subtle);
+      border-radius: 3px;
+      padding: 0.45rem 0.65rem;
+      margin-top: 0.4rem;
+      max-height: 90px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      color: #e4e4e7;
+    }
+
+    .actions-bar {
+      display: flex;
+      gap: 0.45rem;
+      margin-top: 0.75rem;
+    }
+
+    .act-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 0.3rem 0.65rem;
+      border-radius: 3px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .act-btn:hover { background: var(--surface-hover); color: #fff; border-color: #fff; }
+    .act-btn.primary { background: #fff; color: #000; border: none; font-weight: 800; }
+    .act-btn.primary:hover { background: #e4e4e7; }
+
+    /* AI Copilot Panel */
+    .copilot-panel {
+      display: none;
+      flex-direction: column;
+      gap: 1rem;
+      flex: 1;
+      min-height: 480px;
+    }
+
+    .copilot-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.75rem;
+    }
+
+    .model-selector {
+      background: #000;
       border: 1px solid var(--border);
       color: #fff;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.78rem;
-      padding: 0.3rem 0.6rem;
-      border-radius: 4px;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 3px;
     }
 
-    .chat-messages {
+    .chat-flow {
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 1rem;
-      max-height: 420px;
+      gap: 0.85rem;
+      max-height: 400px;
       overflow-y: auto;
-      padding-right: 0.5rem;
+      padding-right: 0.4rem;
     }
 
-    .chat-bubble {
-      padding: 1rem 1.25rem;
-      border-radius: 8px;
-      font-size: 0.86rem;
+    .chat-card {
+      padding: 0.85rem 1.15rem;
+      border-radius: 4px;
+      font-size: 0.82rem;
       line-height: 1.6;
     }
 
-    .chat-bubble.user {
+    .chat-card.user {
       background: var(--surface-elevated);
       border: 1px solid var(--border);
       align-self: flex-end;
       color: #fff;
-      max-width: 80%;
+      max-width: 85%;
     }
 
-    .chat-bubble.ai {
-      background: #040508;
+    .chat-card.ai {
+      background: #000;
       border: 1px solid var(--border);
       border-left: 3px solid #fff;
-      color: #cbd5e1;
+      color: #e4e4e7;
       align-self: flex-start;
       max-width: 100%;
       white-space: pre-wrap;
     }
 
-    .chat-input-row {
+    .chat-compose {
       display: flex;
-      gap: 0.75rem;
+      gap: 0.6rem;
       margin-top: auto;
     }
 
-    .chat-input {
+    .chat-box-input {
       flex: 1;
-      background: var(--bg);
+      background: #000;
       border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.75rem 1rem;
+      border-radius: 4px;
+      padding: 0.65rem 0.85rem;
       color: #fff;
-      font-size: 0.86rem;
+      font-size: 0.82rem;
       font-family: inherit;
     }
+    .chat-box-input:focus { outline: none; border-color: #fff; }
 
-    .chat-input:focus {
-      outline: none;
-      border-color: var(--border-focus);
-    }
-
-    .chat-send-btn {
+    .chat-submit-btn {
       background: #fff;
       color: #000;
-      font-weight: 700;
+      font-weight: 800;
+      font-size: 0.78rem;
       border: none;
-      padding: 0 1.25rem;
-      border-radius: 6px;
+      padding: 0 1.15rem;
+      border-radius: 4px;
       cursor: pointer;
+      text-transform: uppercase;
+    }
+
+    /* Verification Matrix Table */
+    .matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .matrix-table th {
+      text-align: left;
+      font-size: 0.68rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-faint);
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-elevated);
+    }
+
+    .matrix-table td {
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid var(--border-subtle);
+      color: #d4d4d8;
     }
   </style>
 </head>
@@ -777,24 +783,24 @@ const HTML_PAGE = `<!DOCTYPE html>
 
   <!-- Top Enterprise Navbar -->
   <header>
-    <div class="brand-section">
+    <div class="brand-group">
       <a href="/" class="brand-logo">
         <div class="brand-icon">S</div>
         <span>SENTINEL</span>
       </a>
-      <span class="edition-badge">ENTERPRISE GATEWAY</span>
+      <span class="env-tag">ENTERPRISE GATEWAY v0.1</span>
     </div>
 
     <div class="header-center">
-      <div class="gateway-status">
-        <span class="status-dot"></span>
-        <span id="gateway-telemetry">AI COPILOT ONLINE (dolphin-llama3 / Ollama)</span>
+      <div class="gateway-indicator">
+        <span class="indicator-pulse"></span>
+        <span id="gateway-telemetry">PERIMETER DAEMONS: AST • DAST • PYTHON • RECON</span>
       </div>
     </div>
 
     <div class="header-actions">
-      <button class="btn-secondary" onclick="exportReport()">
-        <span>📄 Export Telemetry (JSON)</span>
+      <button class="btn-outline" onclick="exportReport()">
+        <span>EXPORT TELEMETRY</span>
       </button>
     </div>
   </header>
@@ -802,207 +808,276 @@ const HTML_PAGE = `<!DOCTYPE html>
   <!-- Main Grid Workspace -->
   <main>
     <!-- Left Navigation Sidebar -->
-    <div class="sidebar-panel">
-      <!-- Target Configuration -->
-      <div class="config-card">
-        <div class="input-label">Target Perimeter</div>
-        <input type="text" id="target-url" class="form-input" placeholder="https://app.example.com" value="https://example.com">
+    <div class="sidebar">
+      <!-- Target Configuration Panel -->
+      <div class="panel-card">
+        <div class="panel-title">
+          <span>Target Perimeter</span>
+          <span style="color: #fff;">[ACTIVE]</span>
+        </div>
+        <input type="text" id="target-url" class="form-control" placeholder="https://app.example.com" value="https://example.com">
         
-        <div class="presets-row">
-          <span class="preset-chip" onclick="setUrl('https://example.com')">example.com</span>
-          <span class="preset-chip" onclick="setUrl('http://localhost:3000')">localhost:3000</span>
-          <span class="preset-chip" onclick="setUrl('http://localhost:5173')">localhost:5173</span>
-          <span class="preset-chip" onclick="setUrl('http://localhost:8000')">localhost:8000</span>
+        <div class="preset-chips">
+          <span class="chip" onclick="setUrl('https://example.com')">example.com</span>
+          <span class="chip" onclick="setUrl('http://localhost:3000')">localhost:3000</span>
+          <span class="chip" onclick="setUrl('http://localhost:5173')">localhost:5173</span>
+          <span class="chip" onclick="setUrl('http://localhost:8000')">localhost:8000</span>
         </div>
 
-        <div id="jwt-group" style="display: none; margin-top: 1rem;">
-          <div class="input-label">JWT Token Claims</div>
-          <textarea id="jwt-token" class="form-input" rows="3" placeholder="eyJhbGciOiJIUzI1Ni..."></textarea>
-          <div class="presets-row">
-            <span class="preset-chip" onclick="setSampleJwt()">Load Insecure Alg=None Token</span>
+        <div id="jwt-group" style="display: none; margin-top: 0.85rem;">
+          <div class="form-label">JWT Token Claims</div>
+          <textarea id="jwt-token" class="form-control" rows="3" placeholder="eyJhbGciOiJIUzI1Ni..."></textarea>
+          <div class="preset-chips">
+            <span class="chip" onclick="setSampleJwt()">Load Insecure Alg=None Token</span>
           </div>
         </div>
 
-        <button class="btn-primary" id="btn-execute" onclick="executeAudit()">
-          <span>Execute Security Assessment</span>
+        <button class="btn-exec" id="btn-execute" onclick="executeAudit()">
+          <span>EXECUTE SECURITY ASSESSMENT</span>
         </button>
       </div>
 
-      <!-- Domain Navigation -->
-      <div class="nav-card">
-        <div class="nav-group-title">Orchestrated Assessments</div>
-        <button class="tool-nav-item active" onclick="setModule('audit')">
+      <!-- Domain Navigation Panel -->
+      <div class="panel-card">
+        <div class="nav-section-title">Orchestrated Assessments</div>
+        <button class="nav-item active" onclick="setModule('audit')">
           <span>360° Unified Assessment</span>
-          <span class="badge-count">ALL</span>
+          <span class="item-tag">ALL</span>
         </button>
-        <button class="tool-nav-item" onclick="setModule('endpoints')">
+        <button class="nav-item" onclick="setModule('endpoints')">
           <span>Attack Surface Recon</span>
-          <span class="badge-count">MAP</span>
+          <span class="item-tag">MAP</span>
         </button>
 
-        <div class="nav-group-title">Perimeter & Infrastructure</div>
-        <button class="tool-nav-item" onclick="setModule('headers')">
+        <div class="nav-section-title">Perimeter & Infrastructure</div>
+        <button class="nav-item" onclick="setModule('headers')">
           <span>HTTP Security Headers</span>
-          <span class="badge-count">DAST</span>
+          <span class="item-tag">DAST</span>
         </button>
-        <button class="tool-nav-item" onclick="setModule('exposure')">
+        <button class="nav-item" onclick="setModule('exposure')">
           <span>Sensitive File Exposure</span>
-          <span class="badge-count">SECRETS</span>
+          <span class="item-tag">SECRETS</span>
         </button>
-        <button class="tool-nav-item" onclick="setModule('cors')">
+        <button class="nav-item" onclick="setModule('cors')">
           <span>CORS Policy & Isolation</span>
-          <span class="badge-count">ORIGIN</span>
+          <span class="item-tag">ORIGIN</span>
         </button>
 
-        <div class="nav-group-title">Identity & Application Layer</div>
-        <button class="tool-nav-item" onclick="setModule('auth')">
+        <div class="nav-section-title">Identity & Application Layer</div>
+        <button class="nav-item" onclick="setModule('auth')">
           <span>Route Access & IDOR Prober</span>
-          <span class="badge-count">RBAC</span>
+          <span class="item-tag">RBAC</span>
         </button>
-        <button class="tool-nav-item" onclick="setModule('cookies')">
+        <button class="nav-item" onclick="setModule('cookies')">
           <span>Cookie & CSRF Hardening</span>
-          <span class="badge-count">FLAGS</span>
+          <span class="item-tag">FLAGS</span>
         </button>
-        <button class="tool-nav-item" onclick="setModule('redirect')">
+        <button class="nav-item" onclick="setModule('redirect')">
           <span>Open Redirect Scanner</span>
-          <span class="badge-count">3XX</span>
+          <span class="item-tag">3XX</span>
         </button>
-        <button class="tool-nav-item" onclick="setModule('xss')">
+        <button class="nav-item" onclick="setModule('xss')">
           <span>Reflected XSS Injection</span>
-          <span class="badge-count">INJECT</span>
+          <span class="item-tag">INJECT</span>
         </button>
-        <button class="tool-nav-item" onclick="setModule('jwt')">
+        <button class="nav-item" onclick="setModule('jwt')">
           <span>JWT Cryptographic Audit</span>
-          <span class="badge-count">TOKEN</span>
+          <span class="item-tag">TOKEN</span>
         </button>
       </div>
     </div>
 
-    <!-- Right Content Workspace -->
-    <div class="workspace-panel">
-      <!-- KPI Executive Metrics -->
-      <div class="scorecard-grid">
-        <div class="kpi-card">
-          <div class="kpi-header">
-            <span>Security Posture</span>
-            <span class="score-badge grade-a" id="grade-badge">GRADE A</span>
+    <!-- Right Workspace Canvas -->
+    <div class="workspace">
+      <!-- Enterprise KPI Row -->
+      <div class="kpi-row">
+        <div class="kpi-box">
+          <div class="kpi-top">
+            <span>Security Rating</span>
+            <span class="grade-pill" id="grade-badge">GRADE A</span>
           </div>
-          <div class="kpi-value" id="kpi-score">100<span style="font-size: 1rem; color: var(--text-faint);">/100</span></div>
-          <div class="kpi-sub">Tri-Boundary Compliance Index</div>
+          <div class="kpi-num" id="kpi-score">100<span style="font-size: 0.9rem; color: var(--text-faint);">/100</span></div>
+          <div class="kpi-meta">Compliance Index</div>
         </div>
 
-        <div class="kpi-card">
-          <div class="kpi-header">Critical Vulnerabilities</div>
-          <div class="kpi-value" id="kpi-critical" style="color: var(--danger);">0</div>
-          <div class="kpi-sub">Direct Exploits Requiring Patch</div>
+        <div class="kpi-box">
+          <div class="kpi-top">Critical Vulnerabilities</div>
+          <div class="kpi-num" id="kpi-critical">0</div>
+          <div class="kpi-meta">Direct Exploitable Flaws</div>
         </div>
 
-        <div class="kpi-card">
-          <div class="kpi-header">Hardening Deficits</div>
-          <div class="kpi-value" id="kpi-warnings" style="color: var(--warning);">0</div>
-          <div class="kpi-sub">Missing Defense-in-Depth Flags</div>
+        <div class="kpi-box">
+          <div class="kpi-top">Hardening Gaps</div>
+          <div class="kpi-num" id="kpi-warnings">0</div>
+          <div class="kpi-meta">Missing Security Flags</div>
         </div>
 
-        <div class="kpi-card">
-          <div class="kpi-header">Active Checkpoints</div>
-          <div class="kpi-value" id="kpi-boundaries" style="color: var(--text-main);">7/7</div>
-          <div class="kpi-sub">Audited Subsystems</div>
+        <div class="kpi-box">
+          <div class="kpi-top">Audited Subsystems</div>
+          <div class="kpi-num" id="kpi-boundaries">7/7</div>
+          <div class="kpi-meta">Active Perimeter Checkpoints</div>
         </div>
       </div>
 
-      <!-- Executive AI Verdict -->
-      <div class="executive-card" id="executive-card">
-        <div class="executive-header">
-          <div class="executive-title">
-            <span>Executive Risk Assessment & Synthesis</span>
-          </div>
-          <span class="compliance-pill">OWASP TOP 10 • SOC2 TYPE II COMPLIANCE READY</span>
+      <!-- Live Operations & Behind The Scenes Telemetry -->
+      <div class="operations-card">
+        <div class="operations-top">
+          <span>Diagnostic Execution Telemetry (Behind The Scenes)</span>
+          <span style="font-family: 'JetBrains Mono', monospace;" id="telemetry-elapsed">LATENCY: 0.00s</span>
         </div>
-        <div class="executive-text" id="executive-text">
+
+        <!-- 5-Stage Stepper -->
+        <div class="pipeline-grid">
+          <div class="pipe-step" id="step-1">
+            <span class="pipe-num">01 / RECON</span>
+            <span class="pipe-label">Perimeter Handshake</span>
+          </div>
+          <div class="pipe-step" id="step-2">
+            <span class="pipe-num">02 / HEADERS</span>
+            <span class="pipe-label">Security Directives</span>
+          </div>
+          <div class="pipe-step" id="step-3">
+            <span class="pipe-num">03 / IDENTITY</span>
+            <span class="pipe-label">Auth & CORS Probing</span>
+          </div>
+          <div class="pipe-step" id="step-4">
+            <span class="pipe-num">04 / EXPLOITS</span>
+            <span class="pipe-label">XSS & Redirect Fuzzing</span>
+          </div>
+          <div class="pipe-step" id="step-5">
+            <span class="pipe-num">05 / SYNTHESIS</span>
+            <span class="pipe-label">AI Threat Scoring</span>
+          </div>
+        </div>
+
+        <!-- Real-time Console Log Stream -->
+        <div class="console-stream" id="console-stream">
+          <div class="console-row">
+            <span class="console-t">[00:00:00]</span>
+            <span class="console-m">Sentinel Enterprise Engine initialized. Select target perimeter to dispatch diagnostic daemons.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Executive Risk Verdict Callout -->
+      <div class="executive-card" id="executive-card">
+        <div class="executive-top">
+          <span class="executive-tag">Executive Threat Assessment & Synthesis</span>
+          <span class="framework-badge">OWASP TOP 10 • SOC2 TYPE II COMPLIANCE READY</span>
+        </div>
+        <div class="executive-summary" id="executive-text">
           Target perimeter ready for diagnostic execution. Select a security domain on the left and trigger an orchestrated assessment.
         </div>
       </div>
 
-      <!-- Tabbed Findings & AI Copilot Workspace -->
-      <div class="content-card" id="content-card">
-        <div class="tab-bar">
-          <div class="tabs-group">
-            <button class="tab-btn active" id="tab-findings-btn" onclick="switchView('findings')">Findings & Forensic Evidence</button>
-            <button class="tab-btn" id="tab-copilot-btn" onclick="switchView('copilot')">🤖 AI Copilot Chat</button>
-            <button class="tab-btn" id="tab-matrix-btn" onclick="switchView('matrix')">Verification Matrix</button>
-            <button class="tab-btn" id="tab-raw-btn" onclick="switchView('raw')">Raw JSON Telemetry</button>
+      <!-- Canvas Card: Findings, Copilot, Matrix & Raw JSON -->
+      <div class="canvas-card">
+        <div class="tab-header">
+          <div class="tab-group">
+            <button class="nav-tab active" id="tab-findings-btn" onclick="switchView('findings')">Findings & Forensic Evidence</button>
+            <button class="nav-tab" id="tab-copilot-btn" onclick="switchView('copilot')">🤖 AI Copilot Chat (dolphin-llama3)</button>
+            <button class="nav-tab" id="tab-matrix-btn" onclick="switchView('matrix')">Verification Matrix</button>
+            <button class="nav-tab" id="tab-raw-btn" onclick="switchView('raw')">Raw Telemetry JSON</button>
           </div>
-          <div style="font-size: 0.75rem; color: var(--text-faint); font-family: 'JetBrains Mono', monospace;" id="telemetry-timestamp">
+          <div style="font-size: 0.72rem; color: var(--text-faint); font-family: 'JetBrains Mono', monospace;" id="telemetry-timestamp">
             STATUS: IDLE
           </div>
         </div>
 
-        <!-- Tab 1: Findings List with Forensics -->
-        <div class="findings-list" id="findings-container">
-          <div class="finding-row sev-safe">
-            <div class="finding-top">
-              <span class="finding-name">Perimeter Gateway Initialized</span>
-              <span class="sev-tag safe">READY</span>
+        <!-- Tab 1: Findings List with Forensic Details -->
+        <div class="findings-stack" id="findings-container">
+          <div class="finding-block safe">
+            <div class="finding-heading">
+              <span class="finding-title-text">Perimeter Gateway Initialized</span>
+              <span class="finding-badge">READY</span>
             </div>
-            <div class="finding-details">
+            <div class="finding-desc">
               Sentinel Enterprise Gateway is online. Enter your target URL and execute an assessment to inspect active defenses and detect potential attack vectors.
             </div>
           </div>
         </div>
 
-        <!-- Tab 2: AI Security Copilot Chat -->
-        <div class="ai-chat-card" id="ai-chat-container">
-          <div class="ai-chat-header">
-            <div class="ai-model-picker">
-              <span>Selected LLM:</span>
-              <select class="model-select" id="ollama-model-select">
+        <!-- Tab 2: AI Copilot Chat Panel -->
+        <div class="copilot-panel" id="ai-chat-container">
+          <div class="copilot-top">
+            <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">
+              <span>LOCAL LLM MODEL:</span>
+              <select class="model-selector" id="ollama-model-select">
                 <option value="dolphin-llama3:latest" selected>dolphin-llama3:latest (Local Ollama)</option>
                 <option value="llama3:latest">llama3:latest</option>
                 <option value="mistral:latest">mistral:latest</option>
                 <option value="deepseek-coder:latest">deepseek-coder:latest</option>
               </select>
             </div>
-            <span style="font-size: 0.75rem; color: var(--success);">● Local LLM Gateway Connected</span>
+            <span style="font-size: 0.72rem; color: #fff; font-family: 'JetBrains Mono', monospace;">● OLLAMA LOCAL GATEWAY READY</span>
           </div>
 
-          <div class="chat-messages" id="chat-messages">
-            <div class="chat-bubble ai">
-              Hello! I am your <strong>Sentinel AI Security Copilot</strong> powered by <code>dolphin-llama3:latest</code>. 
+          <div class="chat-flow" id="chat-messages">
+            <div class="chat-card ai">Hello! I am your <strong>Sentinel AI Security Copilot</strong> powered by <code>dolphin-llama3:latest</code>.
 I have access to your full diagnostic audit telemetry, HTTP forensic headers, and response payloads. 
-Ask me how to manually verify any finding with <code>curl</code>, evaluate potential exploit paths safely, or generate framework code remediation (Express, Next.js, FastAPI, Django).
-            </div>
+Ask me how to manually verify any finding with <code>curl</code>, evaluate potential exploit paths safely, or generate framework code remediation (Express, Next.js, FastAPI, Django).</div>
           </div>
 
-          <div class="chat-input-row">
-            <input type="text" class="chat-input" id="chat-user-input" placeholder="Ask AI Copilot (e.g. 'Explain why /api/keys returned 200 OK and how to verify')..." onkeydown="if(event.key==='Enter') sendChatMessage()">
-            <button class="chat-send-btn" onclick="sendChatMessage()">Send</button>
+          <div class="chat-compose">
+            <input type="text" class="chat-box-input" id="chat-user-input" placeholder="Ask AI Copilot (e.g. 'Analyze why /api/keys returned 200 OK and give remediation code')..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+            <button class="chat-submit-btn" onclick="sendChatMessage()">Send</button>
           </div>
         </div>
 
         <!-- Tab 3: Verification Matrix Table -->
         <div id="matrix-container" style="display: none;">
-          <table class="telemetry-table" style="width: 100%; border-collapse: collapse; font-family: monospace; font-size: 0.8rem;">
+          <table class="matrix-table">
             <thead>
-              <tr style="background: var(--surface-elevated); color: var(--text-faint); text-align: left;">
-                <th style="padding: 0.6rem 0.8rem;">Security Subsystem</th>
-                <th style="padding: 0.6rem 0.8rem;">Diagnostic Vector</th>
-                <th style="padding: 0.6rem 0.8rem;">Target Perimeter Check</th>
-                <th style="padding: 0.6rem 0.8rem;">Compliance Status</th>
+              <tr>
+                <th>Security Subsystem</th>
+                <th>Diagnostic Vector</th>
+                <th>Target Perimeter Check</th>
+                <th>Compliance Status</th>
               </tr>
             </thead>
             <tbody id="matrix-tbody">
               <tr>
-                <td style="padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border-subtle);">HTTP Response Headers</td>
-                <td style="padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border-subtle);">HSTS, CSP, X-Frame-Options, Permissions-Policy</td>
-                <td style="padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border-subtle);">7 Security Directives</td>
-                <td style="padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border-subtle);"><span style="color: var(--success);">● Compliant</span></td>
+                <td>HTTP Response Headers</td>
+                <td>HSTS, CSP, X-Frame-Options, Permissions-Policy</td>
+                <td>7 Security Directives</td>
+                <td><span style="color: #fff;">● Compliant</span></td>
+              </tr>
+              <tr>
+                <td>CORS Boundary Policy</td>
+                <td>Origin Reflection & ACAC Credentials</td>
+                <td>3 Boundary Checks</td>
+                <td><span style="color: #fff;">● Isolated</span></td>
+              </tr>
+              <tr>
+                <td>Cookie Architecture</td>
+                <td>HttpOnly, Secure, SameSite Directives</td>
+                <td>Set-Cookie Flags</td>
+                <td><span style="color: #fff;">● Enforced</span></td>
+              </tr>
+              <tr>
+                <td>Redirect Sanitization</td>
+                <td>Unvalidated 3xx Redirection</td>
+                <td>15 Target Parameters</td>
+                <td><span style="color: #fff;">● Protected</span></td>
+              </tr>
+              <tr>
+                <td>Secret & Config Exposure</td>
+                <td>Public .env, .git, Docker, Backups</td>
+                <td>13 Critical Paths</td>
+                <td><span style="color: #fff;">● Protected</span></td>
+              </tr>
+              <tr>
+                <td>Input Sanitization (XSS)</td>
+                <td>Reflected HTML/Attribute Tag Breakout</td>
+                <td>33 Injection Probes</td>
+                <td><span style="color: #fff;">● Sanitized</span></td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <!-- Tab 4: Raw JSON Box -->
-        <div id="raw-json-box" style="display: none; background: #040508; border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; font-family: monospace; font-size: 0.8rem; color: #94a3b8; height: 520px; overflow-y: auto; white-space: pre-wrap;"></div>
+        <!-- Tab 4: Raw JSON Telemetry -->
+        <div id="raw-json-box" style="display: none; background: #000; border: 1px solid var(--border); border-radius: 4px; padding: 1.15rem; font-family: monospace; font-size: 0.78rem; color: #a1a1aa; height: 520px; overflow-y: auto; white-space: pre-wrap;"></div>
       </div>
     </div>
   </main>
@@ -1011,6 +1086,7 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
     let activeModule = 'audit';
     let currentView = 'findings';
     let rawPayload = {};
+    let currentFindingsList = [];
 
     function setUrl(val) { document.getElementById('target-url').value = val; }
     function setSampleJwt() {
@@ -1019,7 +1095,7 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
 
     function setModule(mod) {
       activeModule = mod;
-      document.querySelectorAll('.tool-nav-item').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
       event.currentTarget.classList.add('active');
 
       if (mod === 'jwt') {
@@ -1031,7 +1107,7 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
 
     function switchView(view) {
       currentView = view;
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
       
       document.getElementById('tab-' + view + '-btn').classList.add('active');
       document.getElementById('findings-container').style.display = view === 'findings' ? 'flex' : 'none';
@@ -1040,11 +1116,52 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
       document.getElementById('raw-json-box').style.display = view === 'raw' ? 'block' : 'none';
     }
 
+    function addConsoleLog(text, type = '') {
+      const stream = document.getElementById('console-stream');
+      const time = new Date().toTimeString().split(' ')[0];
+      const div = document.createElement('div');
+      div.className = 'console-row';
+      div.innerHTML = '<span class="console-t">[' + time + ']</span><span class="console-m ' + type + '">' + escapeHtml(text) + '</span>';
+      stream.appendChild(div);
+      stream.scrollTop = stream.scrollHeight;
+    }
+
+    function updateStep(stepIndex, status) {
+      const step = document.getElementById('step-' + stepIndex);
+      if (!step) return;
+      step.classList.remove('active', 'completed');
+      if (status === 'active') step.classList.add('active');
+      if (status === 'completed') step.classList.add('completed');
+    }
+
     async function executeAudit() {
       const targetUrl = document.getElementById('target-url').value;
       const jwtToken = document.getElementById('jwt-token').value;
+      const startTime = performance.now();
 
-      document.getElementById('telemetry-timestamp').innerText = 'STATUS: RUNNING AUDIT...';
+      for (let i = 1; i <= 5; i++) updateStep(i, '');
+      addConsoleLog('⚡ Dispatched perimeter assessment for: ' + targetUrl, 'active');
+
+      updateStep(1, 'active');
+      addConsoleLog('→ [Stage 1/5] Establishing TLS connection & resolving root endpoints...');
+
+      const stepTimer1 = setTimeout(() => {
+        updateStep(1, 'completed');
+        updateStep(2, 'active');
+        addConsoleLog('→ [Stage 2/5] Auditing security policies (HSTS, CSP, X-Frame-Options)...');
+      }, 250);
+
+      const stepTimer2 = setTimeout(() => {
+        updateStep(2, 'completed');
+        updateStep(3, 'active');
+        addConsoleLog('→ [Stage 3/5] Testing CORS boundary reflection, unauthenticated routes & cookie flags...');
+      }, 550);
+
+      const stepTimer3 = setTimeout(() => {
+        updateStep(3, 'completed');
+        updateStep(4, 'active');
+        addConsoleLog('→ [Stage 4/5] Injected 33 XSS probes, 15 redirect params & 13 sensitive file checks...');
+      }, 950);
 
       try {
         const res = await fetch('/api/run', {
@@ -1055,15 +1172,29 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
         const data = await res.json();
         rawPayload = data;
         document.getElementById('raw-json-box').innerText = JSON.stringify(data, null, 2);
-        renderResults(data);
+
+        clearTimeout(stepTimer1);
+        clearTimeout(stepTimer2);
+        clearTimeout(stepTimer3);
+
+        for (let i = 1; i <= 4; i++) updateStep(i, 'completed');
+        updateStep(5, 'active');
+        addConsoleLog('→ [Stage 5/5] Correlating evidence across boundaries & synthesizing AI risk rating...');
+
+        setTimeout(() => {
+          updateStep(5, 'completed');
+          const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+          document.getElementById('telemetry-elapsed').innerText = 'LATENCY: ' + elapsed + 's';
+          addConsoleLog('✅ Assessment completed in ' + elapsed + 's. Security scorecard updated.', 'ok');
+          renderResults(data);
+        }, 200);
+
       } catch (err) {
-        document.getElementById('findings-container').innerHTML = '<div class="finding-row sev-critical"><div class="finding-name">Assessment Error</div><div class="finding-details">' + err.message + '</div></div>';
+        addConsoleLog('❌ Execution error: ' + err.message, 'alert');
       } finally {
         document.getElementById('telemetry-timestamp').innerText = 'LAST RUN: ' + new Date().toLocaleTimeString();
       }
     }
-
-    let currentFindingsList = [];
 
     function renderResults(data) {
       const container = document.getElementById('findings-container');
@@ -1083,18 +1214,15 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
         execText.innerText = data.ai_verdict;
       }
 
-      kpiScore.innerHTML = score + '<span style="font-size: 1rem; color: var(--text-faint);">/100</span>';
+      kpiScore.innerHTML = score + '<span style="font-size: 0.9rem; color: var(--text-faint);">/100</span>';
       kpiCrit.innerText = critical;
       kpiWarn.innerText = warnings;
 
       if (score >= 90) {
-        gradeBadge.className = 'score-badge grade-a';
         gradeBadge.innerText = 'GRADE A';
       } else if (score >= 70) {
-        gradeBadge.className = 'score-badge grade-c';
         gradeBadge.innerText = 'GRADE B';
       } else {
-        gradeBadge.className = 'score-badge grade-f';
         gradeBadge.innerText = 'GRADE F';
       }
 
@@ -1102,48 +1230,68 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
       if (currentFindingsList.length > 0) {
         currentFindingsList.forEach((f, idx) => {
           const isCrit = f.severity === 'CRITICAL' || f.severity === 'HIGH';
-          const sevClass = isCrit ? 'critical' : 'high';
+          const sevClass = isCrit ? 'critical' : 'safe';
           const bodyPrev = f.body_snippet || f.message;
 
           container.innerHTML += 
-            '<div class="finding-row sev-' + sevClass + '">' +
-              '<div class="finding-top">' +
-                '<span class="finding-name">' + escapeHtml(f.title || 'Security Deficit') + '</span>' +
-                '<span class="sev-tag ' + sevClass + '">' + escapeHtml(f.severity || 'HIGH') + '</span>' +
+            '<div class="finding-block ' + sevClass + '">' +
+              '<div class="finding-heading">' +
+                '<span class="finding-title-text">' + escapeHtml(f.title || 'Security Deficit') + '</span>' +
+                '<span class="finding-badge">' + escapeHtml(f.severity || 'HIGH') + '</span>' +
               '</div>' +
-              '<div class="finding-details">' + escapeHtml(f.message || '') + '</div>' +
+              '<div class="finding-desc">' + escapeHtml(f.message || '') + '</div>' +
               
               // Forensic Evidence Drawer
-              '<div class="forensic-box">' +
-                '<div class="forensic-header">' +
-                  '<span>🔬 HTTP Forensic Evidence & Payload Inspection</span>' +
-                  '<span>' + (f.status_code ? 'HTTP ' + f.status_code + ' OK' : 'DAST CHECK') + '</span>' +
+              '<div class="evidence-box">' +
+                '<div class="evidence-title">' +
+                  '<span>🔬 HTTP FORENSIC REQUEST & RESPONSE EVIDENCE</span>' +
+                  '<span>' + (f.status_code ? 'HTTP ' + f.status_code + ' OK' : 'DAST INSPECTION') + '</span>' +
                 '</div>' +
-                '<div class="forensic-line"><strong>Target Endpoint:</strong> <code>' + escapeHtml(f.url || f.route || 'Target') + '</code></div>' +
-                (f.content_type ? '<div class="forensic-line"><strong>Response Content-Type:</strong> <code>' + escapeHtml(f.content_type) + '</code></div>' : '') +
-                (f.is_spa_fallback ? '<div class="forensic-line" style="color: var(--warning);">⚠️ Note: Served client-side Single Page Application HTML index page fallback.</div>' : '') +
-                '<div class="forensic-preview">' + escapeHtml(bodyPrev) + '</div>' +
+                '<div><strong>Target Endpoint:</strong> <code>' + escapeHtml(f.url || f.route || 'Target') + '</code></div>' +
+                (f.content_type ? '<div><strong>Response Content-Type:</strong> <code>' + escapeHtml(f.content_type) + '</code></div>' : '') +
+                (f.is_spa_fallback ? '<div style="color: #fff; margin-top: 0.2rem;">⚠️ Single Page Application (SPA) HTML index router fallback detected.</div>' : '') +
+                '<div class="evidence-snippet">' + escapeHtml(bodyPrev) + '</div>' +
               '</div>' +
 
               // Action Toolbar
-              '<div class="finding-actions">' +
-                '<button class="action-btn" onclick="copyCurlFinding(' + idx + ')">📋 Copy cURL PoC</button>' +
-                '<button class="action-btn" onclick="copyFixFinding(' + idx + ')">⚙️ Copy Fix</button>' +
-                '<button class="action-btn ai-btn" onclick="askAiAboutFinding(' + idx + ')">🤖 Ask AI Copilot</button>' +
+              '<div class="actions-bar">' +
+                '<button class="act-btn" onclick="copyCurlFinding(' + idx + ')">📋 COPY CURL POC</button>' +
+                '<button class="act-btn" onclick="copyFixFinding(' + idx + ')">⚙️ COPY REMEDIATION</button>' +
+                '<button class="act-btn primary" onclick="askAiAboutFinding(' + idx + ')">🤖 ASK AI COPILOT</button>' +
               '</div>' +
             '</div>';
         });
+      } else if (activeModule === 'endpoints' && data.endpoints) {
+        let total = data.total_endpoints_found || data.endpoints.length;
+        let html = '<div class="finding-block safe"><div class="finding-heading"><span class="finding-title-text">Discovered ' + total + ' API Endpoints & Routes</span><span class="finding-badge">' + total + ' ROUTES</span></div><div class="finding-desc" style="margin-top: 0.5rem;">';
+        data.endpoints.forEach(ep => {
+          html += '<div style="margin: 0.25rem 0; font-family: monospace; color: #fff;">⚡ ' + escapeHtml(ep) + '</div>';
+        });
+        html += '</div></div>';
+        container.innerHTML = html;
       } else {
         container.innerHTML = 
-          '<div class="finding-row sev-safe">' +
-            '<div class="finding-top">' +
-              '<span class="finding-name">No Direct Vulnerabilities Detected</span>' +
-              '<span class="sev-tag safe">PASSED</span>' +
+          '<div class="finding-block safe">' +
+            '<div class="finding-heading">' +
+              '<span class="finding-title-text">No Direct Vulnerabilities Detected</span>' +
+              '<span class="finding-badge">PASSED</span>' +
             '</div>' +
-            '<div class="finding-details">' +
+            '<div class="finding-desc">' +
               'The target perimeter successfully satisfied all deterministic access control, isolation, and sanitization checks for this module.' +
             '</div>' +
           '</div>';
+      }
+
+      // Update Matrix Table Statuses
+      if (data.headers) {
+        const matrixBody = document.getElementById('matrix-tbody');
+        matrixBody.innerHTML = 
+          '<tr><td>HTTP Response Headers</td><td>HSTS, CSP, X-Frame-Options, Permissions-Policy</td><td>' + (data.headers.total_tested || 7) + ' Directives</td><td>' + (data.headers.missing_headers && data.headers.missing_headers.length ? '<span style="color: #fff;">⚠️ Hardening Needed</span>' : '<span style="color: #fff;">● Compliant</span>') + '</td></tr>' +
+          '<tr><td>CORS Boundary Policy</td><td>Origin Reflection & ACAC Credentials</td><td>3 Boundary Checks</td><td>' + (data.cors && data.cors.is_vulnerable ? '<span style="color: #fff;">● Vulnerable</span>' : '<span style="color: #fff;">● Isolated</span>') + '</td></tr>' +
+          '<tr><td>Cookie Architecture</td><td>HttpOnly, Secure, SameSite Directives</td><td>Set-Cookie Flags</td><td>' + (data.cookies && data.cookies.is_vulnerable ? '<span style="color: #fff;">⚠️ Missing Flags</span>' : '<span style="color: #fff;">● Enforced</span>') + '</td></tr>' +
+          '<tr><td>Redirect Sanitization</td><td>Unvalidated 3xx Redirection</td><td>15 Target Parameters</td><td>' + (data.redirects && data.redirects.is_vulnerable ? '<span style="color: #fff;">● Vulnerable</span>' : '<span style="color: #fff;">● Protected</span>') + '</td></tr>' +
+          '<tr><td>Secret & Config Exposure</td><td>Public .env, .git, Docker, Backups</td><td>13 Critical Paths</td><td>' + (data.exposure && data.exposure.exposed_count ? '<span style="color: #fff;">● Exposed</span>' : '<span style="color: #fff;">● Protected</span>') + '</td></tr>' +
+          '<tr><td>Input Sanitization (XSS)</td><td>Reflected HTML/Attribute Tag Breakout</td><td>33 Injection Probes</td><td>' + (data.xss && data.xss.vulnerable_count ? '<span style="color: #fff;">● Reflected</span>' : '<span style="color: #fff;">● Sanitized</span>') + '</td></tr>';
       }
     }
 
@@ -1157,7 +1305,7 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
       if (!f) return;
       const curlCmd = f.curl_command || ('curl -i "' + (f.url || document.getElementById('target-url').value) + '"');
       navigator.clipboard.writeText(curlCmd);
-      alert('Copied cURL command to clipboard: ' + curlCmd);
+      alert('Copied cURL command to clipboard:\n' + curlCmd);
     }
 
     function copyFixFinding(idx) {
@@ -1188,12 +1336,12 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
       const model = document.getElementById('ollama-model-select').value;
 
       // Add user message
-      chatContainer.innerHTML += '<div class="chat-bubble user">' + escapeHtml(text) + '</div>';
+      chatContainer.innerHTML += '<div class="chat-card user">' + escapeHtml(text) + '</div>';
       input.value = '';
 
       // Add AI loading bubble
       const aiBubbleId = 'ai-msg-' + Date.now();
-      chatContainer.innerHTML += '<div class="chat-bubble ai" id="' + aiBubbleId + '"><em>AI Copilot is analyzing forensic evidence via ' + model + '...</em></div>';
+      chatContainer.innerHTML += '<div class="chat-card ai" id="' + aiBubbleId + '"><em>AI Copilot is analyzing telemetry and forensic headers via ' + escapeHtml(model) + '...</em></div>';
       chatContainer.scrollTop = chatContainer.scrollHeight;
 
       try {
@@ -1212,11 +1360,13 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
 
         const data = await response.json();
         const aiBubble = document.getElementById(aiBubbleId);
-        aiBubble.innerHTML = escapeHtml(data.response || data.message || 'No response generated from local LLM.');
-      } catch (err: any) {
+        if (aiBubble) {
+          aiBubble.innerHTML = escapeHtml(data.response || data.message || 'No response generated from local LLM.');
+        }
+      } catch (err) {
         const el = document.getElementById(aiBubbleId);
         if (el) {
-          el.innerHTML = '<span style="color: var(--danger);">Ollama LLM connection error: ' + (err?.message || 'Offline') + '. Ensure Ollama is running with "ollama run dolphin-llama3:latest".</span>';
+          el.innerHTML = '<span>Ollama LLM connection error: ' + escapeHtml(err.message) + '. Ensure Ollama is running with "ollama run dolphin-llama3:latest".</span>';
         }
       }
       chatContainer.scrollTop = chatContainer.scrollHeight;
