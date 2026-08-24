@@ -13,6 +13,11 @@ from tools.cors_scanner import audit_cors
 from tools.jwt_analyzer import analyze_jwt
 from tools.headers_scanner import audit_headers
 from tools.auth_prober import probe_endpoints
+from tools.api_finder import find_api_endpoints
+from tools.redirect_scanner import audit_open_redirect
+from tools.cookie_auditor import audit_cookies
+from tools.exposure_scanner import audit_exposure
+from tools.xss_scanner import audit_xss
 
 
 # ANSI Terminal Colors
@@ -37,75 +42,139 @@ def print_banner():
 
 
 def run_full_audit(url: str, output_json: bool = False):
-    print_banner()
-    print(f"{Colors.CYAN}Target URL:{Colors.RESET} {url}\n")
+    if not output_json:
+        print_banner()
+        print(f"{Colors.CYAN}Target URL:{Colors.RESET} {url}\n")
 
     report: Dict[str, Any] = {
         "target": url,
-        "cors": {},
+        "overall_score": 100,
+        "total_critical": 0,
+        "total_warnings": 0,
         "headers": {},
+        "cors": {},
+        "cookies": {},
+        "redirects": {},
+        "exposure": {},
+        "xss": {},
         "auth": {},
+        "findings": [],
+        "ai_verdict": ""
     }
 
     # 1. Headers Audit
-    print(f"{Colors.BOLD}🔍 [1/3] Auditing HTTP Security Headers...{Colors.RESET}")
+    if not output_json:
+        print(f"{Colors.BOLD}🔍 [1/7] Auditing HTTP Security Headers...{Colors.RESET}")
     header_res = audit_headers(url)
     report["headers"] = header_res
     if header_res.get("missing_headers"):
-        print(f"  {Colors.YELLOW}⚠️  Missing {len(header_res['missing_headers'])} security headers:{Colors.RESET}")
         for h in header_res["missing_headers"]:
-            print(f"     ❌ {Colors.RED}{h['header']}{Colors.RESET} ({h['severity']}) - {h['description']}")
-    else:
-        print(f"  {Colors.GREEN}✅ All critical security headers present!{Colors.RESET}")
+            report["total_warnings"] += 1
+            report["findings"].append({
+                "category": "HTTP Headers",
+                "severity": h["severity"],
+                "title": f"Missing Security Header: {h['header']}",
+                "message": f"Browser missing standard protection against {h['description']}.",
+                "remediation": f"Configure web server to return '{h['header']}' response header."
+            })
+            if not output_json:
+                print(f"     ❌ {Colors.RED}{h['header']}{Colors.RESET} ({h['severity']}) - {h['description']}")
 
     # 2. CORS Audit
-    print(f"\n{Colors.BOLD}🌐 [2/5] Auditing CORS Configuration...{Colors.RESET}")
+    if not output_json:
+        print(f"\n{Colors.BOLD}🌐 [2/7] Auditing CORS Configuration...{Colors.RESET}")
     cors_res = audit_cors(url)
     report["cors"] = cors_res
     if cors_res.get("findings"):
-        print(f"  {Colors.RED}🚨 Found {len(cors_res['findings'])} CORS vulnerabilities:{Colors.RESET}")
         for f in cors_res["findings"]:
-            print(f"     ❌ {Colors.RED}{f['title']}{Colors.RESET}: {f['message']}")
-    else:
-        print(f"  {Colors.GREEN}✅ No obvious CORS reflection vulnerabilities detected.{Colors.RESET}")
+            report["total_critical"] += 1
+            report["findings"].append(f)
+            if not output_json:
+                print(f"     ❌ {Colors.RED}{f['title']}{Colors.RESET}: {f['message']}")
 
     # 3. Cookie & CSRF Audit
-    from tools.cookie_auditor import audit_cookies
-    print(f"\n{Colors.BOLD}🍪 [3/5] Auditing Cookie Security & CSRF Protections...{Colors.RESET}")
+    if not output_json:
+        print(f"\n{Colors.BOLD}🍪 [3/7] Auditing Cookie Security & CSRF Protections...{Colors.RESET}")
     cookie_res = audit_cookies(url)
     report["cookies"] = cookie_res
     if cookie_res.get("findings"):
-        print(f"  {Colors.YELLOW}⚠️  Found {len(cookie_res['findings'])} cookie security issues:{Colors.RESET}")
         for f in cookie_res["findings"]:
-            print(f"     ❌ {Colors.YELLOW}{f['title']}{Colors.RESET}: {f['message']}")
-    else:
-        print(f"  {Colors.GREEN}✅ Cookies enforce secure flags (HttpOnly, Secure, SameSite).{Colors.RESET}")
+            report["total_warnings"] += 1
+            report["findings"].append(f)
+            if not output_json:
+                print(f"     ❌ {Colors.YELLOW}{f['title']}{Colors.RESET}: {f['message']}")
 
     # 4. Open Redirect Audit
-    from tools.redirect_scanner import audit_open_redirect
-    print(f"\n{Colors.BOLD}🔀 [4/5] Probing for Open Redirect Vulnerabilities...{Colors.RESET}")
+    if not output_json:
+        print(f"\n{Colors.BOLD}🔀 [4/7] Probing for Open Redirect Vulnerabilities...{Colors.RESET}")
     redir_res = audit_open_redirect(url)
     report["redirects"] = redir_res
     if redir_res.get("findings"):
-        print(f"  {Colors.RED}🚨 Found {len(redir_res['findings'])} Open Redirect parameters:{Colors.RESET}")
         for f in redir_res["findings"]:
-            print(f"     ❌ {Colors.RED}{f['title']}{Colors.RESET}: {f['message']}")
-    else:
-        print(f"  {Colors.GREEN}✅ No open redirect vulnerabilities detected.{Colors.RESET}")
+            report["total_critical"] += 1
+            report["findings"].append(f)
+            if not output_json:
+                print(f"     ❌ {Colors.RED}{f['title']}{Colors.RESET}: {f['message']}")
 
-    # 5. Auth Probing
-    print(f"\n{Colors.BOLD}🔓 [5/5] Probing Common API Routes for Unauthenticated Access...{Colors.RESET}")
+    # 5. Sensitive File Exposure
+    if not output_json:
+        print(f"\n{Colors.BOLD}📂 [5/7] Probing Sensitive File & Directory Exposure...{Colors.RESET}")
+    exp_res = audit_exposure(url)
+    report["exposure"] = exp_res
+    if exp_res.get("findings"):
+        for f in exp_res["findings"]:
+            report["total_critical"] += 1
+            report["findings"].append(f)
+            if not output_json:
+                print(f"     ❌ {Colors.RED}{f['title']}{Colors.RESET}: {f['message']}")
+
+    # 6. Reflected XSS
+    if not output_json:
+        print(f"\n{Colors.BOLD}💉 [6/7] Probing Parameters for Reflected XSS...{Colors.RESET}")
+    xss_res = audit_xss(url)
+    report["xss"] = xss_res
+    if xss_res.get("findings"):
+        for f in xss_res["findings"]:
+            report["total_critical"] += 1
+            report["findings"].append(f)
+            if not output_json:
+                print(f"     ❌ {Colors.RED}{f['title']}{Colors.RESET}: {f['message']}")
+
+    # 7. Auth Probing
+    if not output_json:
+        print(f"\n{Colors.BOLD}🔓 [7/7] Probing Common API Routes for Unauthenticated Access...{Colors.RESET}")
     auth_res = probe_endpoints(url)
     report["auth"] = auth_res
     if auth_res.get("vulnerable_endpoints"):
-        print(f"  {Colors.RED}🚨 Detected {len(auth_res['vulnerable_endpoints'])} unauthenticated endpoints:{Colors.RESET}")
         for ep in auth_res["vulnerable_endpoints"]:
-            print(f"     ❌ {Colors.RED}{ep['route']}{Colors.RESET} (HTTP {ep['status_code']} OK without auth)")
-    else:
-        print(f"  {Colors.GREEN}✅ Probed routes properly enforce authentication/404.{Colors.RESET}")
+            report["total_critical"] += 1
+            report["findings"].append({
+                "category": "Authentication",
+                "severity": "CRITICAL",
+                "title": f"Unauthenticated Endpoint Access: {ep['route']}",
+                "message": f"Endpoint returned HTTP {ep['status_code']} OK with sensitive keys without authentication.",
+                "remediation": "Enforce authentication middleware (JWT / Session token check) on this route."
+            })
+            if not output_json:
+                print(f"     ❌ {Colors.RED}{ep['route']}{Colors.RESET} (HTTP {ep['status_code']} OK without auth)")
 
-    print(f"\n{Colors.BLUE}{Colors.BOLD}========================================================{Colors.RESET}")
-    print(f"{Colors.GREEN}Audit Complete!{Colors.RESET}\n")
+    # Compute Overall Score
+    score = 100 - (report["total_critical"] * 20) - (report["total_warnings"] * 5)
+    report["overall_score"] = max(10, min(100, score))
+
+    # Synthesize AI Verdict
+    if report["total_critical"] > 0:
+        verdict = f"HIGH RISK: The target application contains {report['total_critical']} severe vulnerabilities that could permit unauthorized data access, redirection, or server compromise. Immediate mitigation of open endpoints and sensitive file exposures is recommended."
+    elif report["total_warnings"] > 0:
+        verdict = f"MODERATE POSTURE: No critical exploits detected. However, {report['total_warnings']} security hardening gaps (missing HTTP headers or cookie flags) were identified. Apply defense-in-depth headers (CSP, HSTS, SameSite)."
+    else:
+        verdict = "EXCELLENT POSTURE: Target passed all 7 diagnostic security modules. Enforces strong access boundaries, proper cookie isolation, and resilient parameter sanitization."
+    report["ai_verdict"] = verdict
+
+    if not output_json:
+        print(f"\n{Colors.BLUE}{Colors.BOLD}========================================================{Colors.RESET}")
+        print(f"{Colors.GREEN}{Colors.BOLD}🛡️  Security Health Score: {report['overall_score']}/100{Colors.RESET}")
+        print(f"{Colors.CYAN}🧠 AI Executive Verdict:{Colors.RESET} {verdict}\n")
 
     if output_json:
         print(json.dumps(report, indent=2))
@@ -120,7 +189,7 @@ def main():
     subparsers = parser.add_subparsers(dest="command", help="Available security tools")
 
     # Command: audit (Full web audit)
-    audit_parser = subparsers.add_parser("audit", help="Run comprehensive audit (Headers + CORS + Auth)")
+    audit_parser = subparsers.add_parser("audit", help="Run comprehensive audit across all 7 security vectors")
     audit_parser.add_argument("url", help="Target URL (e.g. https://example.com)")
     audit_parser.add_argument("--json", action="store_true", help="Output results as JSON")
 
@@ -154,6 +223,14 @@ def main():
     cookie_parser = subparsers.add_parser("cookies", help="Audit Set-Cookie flags and CSRF protections")
     cookie_parser.add_argument("url", help="Target URL to test")
 
+    # Command: exposure
+    exp_parser = subparsers.add_parser("exposure", help="Probe sensitive files and leaked secrets (.env, .git, config)")
+    exp_parser.add_argument("url", help="Target URL to test")
+
+    # Command: xss
+    xss_parser = subparsers.add_parser("xss", help="Probe parameters for Reflected XSS injection")
+    xss_parser.add_argument("url", help="Target URL to test")
+
     # Command: dashboard
     subparsers.add_parser("dashboard", help="Launch the interactive Mission Control Dashboard")
 
@@ -181,12 +258,16 @@ def main():
         res = audit_headers(args.url)
         print(json.dumps(res, indent=2))
     elif args.command == "cookies":
-        from tools.cookie_auditor import audit_cookies
         res = audit_cookies(args.url)
         print(json.dumps(res, indent=2))
     elif args.command == "redirect":
-        from tools.redirect_scanner import audit_open_redirect
         res = audit_open_redirect(args.url)
+        print(json.dumps(res, indent=2))
+    elif args.command == "exposure":
+        res = audit_exposure(args.url)
+        print(json.dumps(res, indent=2))
+    elif args.command == "xss":
+        res = audit_xss(args.url)
         print(json.dumps(res, indent=2))
     elif args.command == "jwt":
         try:
@@ -200,13 +281,12 @@ def main():
         res = probe_endpoints(args.url, routes=routes)
         print(json.dumps(res, indent=2))
     elif args.command == "endpoints":
-        from tools.api_finder import find_api_endpoints
-        print_banner()
-        print(f"{Colors.CYAN}Discovering API Endpoints for:{Colors.RESET} {args.url}...\n")
         res = find_api_endpoints(args.url)
         if args.json:
             print(json.dumps(res, indent=2))
         else:
+            print_banner()
+            print(f"{Colors.CYAN}Discovering API Endpoints for:{Colors.RESET} {args.url}...\n")
             print(f"📊 {Colors.BOLD}Discovered {res['total_endpoints_found']} API Endpoints:{Colors.RESET}")
             for ep in res["endpoints"]:
                 print(f"  ⚡ {Colors.GREEN}{ep}{Colors.RESET}")
