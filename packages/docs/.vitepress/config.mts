@@ -57,7 +57,8 @@ export default defineConfig({
           { text: 'Architectural Methodology', link: '/research/methodology' },
           { text: 'Formal Security Guarantees', link: '/research/security-guarantees' },
           { text: 'Correlation Algorithms', link: '/research/correlation' },
-          { text: 'Heuristic Algorithms', link: '/research/algorithms' }
+          { text: 'Heuristic Algorithms', link: '/research/algorithms' },
+          { text: 'Benchmarks & Performance', link: '/research/benchmarks' }
         ]
       },
       {
@@ -98,7 +99,15 @@ export default defineConfig({
           { text: 'CodeSentinel', link: '/engines/codesentinel' },
           { text: 'WebSentinel', link: '/engines/websentinel' },
           { text: 'MCPSentinel', link: '/engines/mcpsentinel' },
-          { text: 'Active DAST Engine', link: '/engines/dast' }
+          { text: 'Active DAST Engine', link: '/engines/dast' },
+          {
+            text: 'Supported Technologies',
+            items: [
+              { text: 'Node.js', link: '/engines/supported-tech/node' },
+              { text: 'Python', link: '/engines/supported-tech/python' },
+              { text: 'React & SPA', link: '/engines/supported-tech/react' }
+            ]
+          }
         ]
       },
       {
@@ -107,7 +116,14 @@ export default defineConfig({
           { text: 'Orchestrator', link: '/platform/orchestrator' },
           { text: 'Correlation', link: '/platform/correlation' },
           { text: 'Reporting', link: '/platform/reporting' },
-          { text: 'Configuration', link: '/platform/configuration' }
+          { text: 'Configuration', link: '/platform/configuration' },
+          {
+            text: 'Internals',
+            items: [
+              { text: 'Memory Management', link: '/platform/internals/memory-management' },
+              { text: 'Orchestrator Event Loop', link: '/platform/internals/orchestrator-loop' }
+            ]
+          }
         ]
       },
       {
