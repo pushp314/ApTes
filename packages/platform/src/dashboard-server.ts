@@ -691,16 +691,16 @@ const HTML_PAGE = `<!DOCTYPE html>
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 0.85rem;
-      max-height: 400px;
+      gap: 1rem;
+      max-height: 440px;
       overflow-y: auto;
-      padding-right: 0.4rem;
+      padding-right: 0.5rem;
     }
 
     .chat-card {
-      padding: 0.85rem 1.15rem;
-      border-radius: 4px;
-      font-size: 0.82rem;
+      padding: 1rem 1.25rem;
+      border-radius: 6px;
+      font-size: 0.84rem;
       line-height: 1.6;
     }
 
@@ -713,19 +713,116 @@ const HTML_PAGE = `<!DOCTYPE html>
     }
 
     .chat-card.ai {
-      background: #000;
-      border: 1px solid var(--border);
-      border-left: 3px solid #fff;
+      background: #06070a;
+      border: 1px solid #27272a;
+      border-left: 3px solid #38bdf8;
       color: #e4e4e7;
       align-self: flex-start;
       max-width: 100%;
-      white-space: pre-wrap;
+    }
+
+    /* Markdown Code Blocks & Syntax Styling */
+    .code-container {
+      background: #09090b;
+      border: 1px solid #27272a;
+      border-radius: 6px;
+      margin: 0.65rem 0;
+      overflow: hidden;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.35rem 0.75rem;
+      background: #141417;
+      border-bottom: 1px solid #27272a;
+      font-size: 0.68rem;
+    }
+
+    .code-lang-tag {
+      color: #38bdf8;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .copy-code-btn {
+      background: #1e1e24;
+      border: 1px solid #2e2e38;
+      color: #a1a1aa;
+      font-size: 0.68rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 3px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.12s ease;
+    }
+    .copy-code-btn:hover { background: #2a2a35; color: #fff; border-color: #fff; }
+
+    .code-body {
+      padding: 0.75rem 1rem;
+      margin: 0;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      overflow-x: auto;
+      color: #f4f4f5;
+    }
+
+    .md-inline-code {
+      background: #18181b;
+      border: 1px solid #27272a;
+      color: #38bdf8;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.76rem;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+    }
+
+    .md-h2 { font-size: 1.05rem; font-weight: 800; color: #fff; margin: 0.6rem 0 0.3rem 0; border-bottom: 1px solid #27272a; padding-bottom: 0.2rem; }
+    .md-h3 { font-size: 0.95rem; font-weight: 700; color: #f8fafc; margin: 0.5rem 0 0.25rem 0; }
+    .md-h4 { font-size: 0.88rem; font-weight: 700; color: #e2e8f0; margin: 0.45rem 0 0.2rem 0; }
+    .md-bold { color: #fff; font-weight: 700; }
+    .md-italic { color: #cbd5e1; font-style: italic; }
+
+    .md-list-item {
+      display: flex;
+      gap: 0.5rem;
+      margin: 0.35rem 0;
+      line-height: 1.5;
+    }
+    .md-list-num { color: #38bdf8; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+    .md-list-bullet { color: #38bdf8; font-size: 0.75rem; }
+
+    /* Quick Prompt Chips */
+    .copilot-prompt-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.5rem;
+    }
+
+    .prompt-chip {
+      font-size: 0.7rem;
+      background: var(--surface-elevated);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 0.25rem 0.55rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.12s ease;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .prompt-chip:hover {
+      background: #18181b;
+      color: #fff;
+      border-color: #38bdf8;
     }
 
     .chat-compose {
       display: flex;
       gap: 0.6rem;
-      margin-top: auto;
+      margin-top: 0.5rem;
     }
 
     .chat-box-input {
@@ -738,7 +835,7 @@ const HTML_PAGE = `<!DOCTYPE html>
       font-size: 0.82rem;
       font-family: inherit;
     }
-    .chat-box-input:focus { outline: none; border-color: #fff; }
+    .chat-box-input:focus { outline: none; border-color: #38bdf8; }
 
     .chat-submit-btn {
       background: #fff;
@@ -750,7 +847,9 @@ const HTML_PAGE = `<!DOCTYPE html>
       border-radius: 4px;
       cursor: pointer;
       text-transform: uppercase;
+      transition: all 0.12s ease;
     }
+    .chat-submit-btn:hover { background: #38bdf8; color: #000; }
 
     /* Verification Matrix Table */
     .matrix-table {
@@ -1027,6 +1126,13 @@ const HTML_PAGE = `<!DOCTYPE html>
             <div class="chat-card ai">Hello! I am your <strong>Sentinel AI Security Copilot</strong> powered by <code>dolphin-llama3:latest</code>.
 I have access to your full diagnostic audit telemetry, HTTP forensic headers, and response payloads. 
 Ask me how to manually verify any finding with <code>curl</code>, evaluate potential exploit paths safely, or generate framework code remediation (Express, Next.js, FastAPI, Django).</div>
+          </div>
+
+          <div class="copilot-prompt-chips">
+            <span class="prompt-chip" onclick="setChatPrompt('Explain why sensitive endpoints returned 200 OK and if it is an SPA router fallback.')">⚡ Explain 200 OK</span>
+            <span class="prompt-chip" onclick="setChatPrompt('Provide Node.js / Express authentication middleware to protect all /api routes.')">🛡️ Express Fix</span>
+            <span class="prompt-chip" onclick="setChatPrompt('Provide Python / FastAPI dependency to enforce JWT Bearer auth.')">🐍 FastAPI Fix</span>
+            <span class="prompt-chip" onclick="setChatPrompt('Show curl manual reproduction commands to verify response headers and bodies.')">🔬 cURL Verification</span>
           </div>
 
           <div class="chat-compose">
@@ -1361,6 +1467,77 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
       sendChatMessage();
     }
 
+    function setChatPrompt(text) {
+      const input = document.getElementById('chat-user-input');
+      input.value = text;
+      sendChatMessage();
+    }
+
+    function renderMarkdownToHtml(md) {
+      if (!md) return '';
+      
+      const codeBlocks = [];
+      const fenceRegex = new RegExp('\\x60\\x60\\x60([a-zA-Z0-9_-]*)[\\r\\n]([\\s\\S]*?)\\x60\\x60\\x60', 'g');
+      let formatted = md.replace(fenceRegex, function(match, lang, code) {
+        const placeholder = '___CODE_BLOCK_' + codeBlocks.length + '___';
+        const langLabel = (lang || 'CODE').toUpperCase();
+        const cleanCode = (code || '').trim();
+        const highlighted = highlightCodeSyntax(cleanCode, lang);
+        const blockHtml = 
+          '<div class="code-container">' +
+            '<div class="code-header">' +
+              '<span class="code-lang-tag">' + escapeHtml(langLabel) + '</span>' +
+              '<button class="copy-code-btn" onclick="copySnippetCode(this)">📋 Copy Code</button>' +
+            '</div>' +
+            '<pre class="code-body"><code>' + highlighted + '</code></pre>' +
+            '<textarea style="display:none;" class="raw-code-store">' + escapeHtml(cleanCode) + '</textarea>' +
+          '</div>';
+        codeBlocks.push(blockHtml);
+        return placeholder;
+      });
+
+      formatted = escapeHtml(formatted);
+      formatted = formatted.replace(/^### (.*$)/gim, '<h4 class="md-h4">$1</h4>');
+      formatted = formatted.replace(/^## (.*$)/gim, '<h3 class="md-h3">$1</h3>');
+      formatted = formatted.replace(/^# (.*$)/gim, '<h2 class="md-h2">$1</h2>');
+      formatted = formatted.replace(/\\*\\*(.*?)\\*\\*/g, '<strong class="md-bold">$1</strong>');
+      formatted = formatted.replace(/\\*(.*?)\\*/g, '<em class="md-italic">$1</em>');
+      
+      const inlineCodeRegex = new RegExp('\\x60([^\\x60]+)\\x60', 'g');
+      formatted = formatted.replace(inlineCodeRegex, '<code class="md-inline-code">$1</code>');
+      
+      formatted = formatted.replace(/^\\s*(\\d+)\\.\\s+(.*$)/gim, '<div class="md-list-item"><span class="md-list-num">$1.</span><span>$2</span></div>');
+      formatted = formatted.replace(/^\\s*[\\-\\*]\\s+(.*$)/gim, '<div class="md-list-item"><span class="md-list-bullet">●</span><span>$1</span></div>');
+      formatted = formatted.replace(/\\n/g, '<br>');
+
+      codeBlocks.forEach(function(block, i) {
+        formatted = formatted.replace('___CODE_BLOCK_' + i + '___', block);
+      });
+
+      return formatted;
+    }
+
+    function highlightCodeSyntax(code, lang) {
+      let escaped = escapeHtml(code);
+      escaped = escaped.replace(/(["'])(?:(?=(\\\\?))\\2.)*?\\1/g, '<span style="color: #34d399;">$&</span>');
+      const kwRegex = new RegExp('\\\\b(const|let|var|function|return|import|export|from|if|else|switch|case|break|class|def|async|await|try|catch|throw|while|for|in|of|new|this|extends|type|interface|app|use|get|post|put|delete|req|res|next)\\\\b', 'g');
+      escaped = escaped.replace(kwRegex, '<span style="color: #38bdf8; font-weight: 600;">$&</span>');
+      escaped = escaped.replace(/(\\/\\/[^\\n]*|#[^\\n]*)/g, '<span style="color: #94a3b8; font-style: italic;">$&</span>');
+      escaped = escaped.replace(new RegExp('\\\\b(true|false|null|undefined|\\\\d+)\\\\b', 'g'), '<span style="color: #fbbf24;">$&</span>');
+      return escaped;
+    }
+
+    function copySnippetCode(btn) {
+      const container = btn.closest('.code-container');
+      const textarea = container ? container.querySelector('.raw-code-store') : null;
+      if (textarea) {
+        navigator.clipboard.writeText(textarea.value);
+        const orig = btn.innerText;
+        btn.innerText = '✅ Copied!';
+        setTimeout(() => btn.innerText = orig, 1500);
+      }
+    }
+
     async function sendChatMessage() {
       const input = document.getElementById('chat-user-input');
       const text = input.value.trim();
@@ -1395,7 +1572,7 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
         const data = await response.json();
         const aiBubble = document.getElementById(aiBubbleId);
         if (aiBubble) {
-          aiBubble.innerHTML = escapeHtml(data.response || data.message || 'No response generated from local LLM.');
+          aiBubble.innerHTML = renderMarkdownToHtml(data.response || data.message || 'No response generated from local LLM.');
         }
       } catch (err) {
         const el = document.getElementById(aiBubbleId);
