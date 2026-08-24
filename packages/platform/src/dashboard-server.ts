@@ -1305,7 +1305,7 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
       if (!f) return;
       const curlCmd = f.curl_command || ('curl -i "' + (f.url || document.getElementById('target-url').value) + '"');
       navigator.clipboard.writeText(curlCmd);
-      alert('Copied cURL command to clipboard:\n' + curlCmd);
+      alert('Copied cURL command to clipboard: ' + curlCmd);
     }
 
     function copyFixFinding(idx) {
