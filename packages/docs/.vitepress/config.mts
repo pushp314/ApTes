@@ -10,6 +10,7 @@ function escapeHtml(str: string) {
 }
 
 export default defineConfig({
+  outDir: 'dist',
   markdown: {
     config(md) {
       const defaultFence = md.renderer.rules.fence!;
