@@ -1063,6 +1063,8 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
       }
     }
 
+    let currentFindingsList = [];
+
     function renderResults(data) {
       const container = document.getElementById('findings-container');
       const execText = document.getElementById('executive-text');
@@ -1075,6 +1077,7 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
       let score = data.overall_score !== undefined ? data.overall_score : 100;
       let critical = data.total_critical || 0;
       let warnings = data.total_warnings || 0;
+      currentFindingsList = data.findings || [];
 
       if (data.ai_verdict) {
         execText.innerText = data.ai_verdict;
@@ -1096,20 +1099,19 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
       }
 
       // Render Findings with HTTP Forensic Evidence
-      if (data.findings && data.findings.length > 0) {
-        data.findings.forEach((f, idx) => {
+      if (currentFindingsList.length > 0) {
+        currentFindingsList.forEach((f, idx) => {
           const isCrit = f.severity === 'CRITICAL' || f.severity === 'HIGH';
           const sevClass = isCrit ? 'critical' : 'high';
-          const curlCmd = f.curl_command || ('curl -i \x27' + (f.url || document.getElementById('target-url').value) + '\x27');
           const bodyPrev = f.body_snippet || f.message;
 
           container.innerHTML += 
             '<div class="finding-row sev-' + sevClass + '">' +
               '<div class="finding-top">' +
-                '<span class="finding-name">' + (f.title || 'Security Deficit') + '</span>' +
-                '<span class="sev-tag ' + sevClass + '">' + (f.severity || 'HIGH') + '</span>' +
+                '<span class="finding-name">' + escapeHtml(f.title || 'Security Deficit') + '</span>' +
+                '<span class="sev-tag ' + sevClass + '">' + escapeHtml(f.severity || 'HIGH') + '</span>' +
               '</div>' +
-              '<div class="finding-details">' + (f.message || '') + '</div>' +
+              '<div class="finding-details">' + escapeHtml(f.message || '') + '</div>' +
               
               // Forensic Evidence Drawer
               '<div class="forensic-box">' +
@@ -1117,17 +1119,17 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
                   '<span>🔬 HTTP Forensic Evidence & Payload Inspection</span>' +
                   '<span>' + (f.status_code ? 'HTTP ' + f.status_code + ' OK' : 'DAST CHECK') + '</span>' +
                 '</div>' +
-                '<div class="forensic-line"><strong>Target Endpoint:</strong> <code>' + (f.url || f.route || 'Target') + '</code></div>' +
-                (f.content_type ? '<div class="forensic-line"><strong>Response Content-Type:</strong> <code>' + f.content_type + '</code></div>' : '') +
+                '<div class="forensic-line"><strong>Target Endpoint:</strong> <code>' + escapeHtml(f.url || f.route || 'Target') + '</code></div>' +
+                (f.content_type ? '<div class="forensic-line"><strong>Response Content-Type:</strong> <code>' + escapeHtml(f.content_type) + '</code></div>' : '') +
                 (f.is_spa_fallback ? '<div class="forensic-line" style="color: var(--warning);">⚠️ Note: Served client-side Single Page Application HTML index page fallback.</div>' : '') +
                 '<div class="forensic-preview">' + escapeHtml(bodyPrev) + '</div>' +
               '</div>' +
 
               // Action Toolbar
               '<div class="finding-actions">' +
-                '<button class="action-btn" onclick="copyText(\x27' + escapeAttr(curlCmd) + '\x27)">📋 Copy cURL PoC</button>' +
-                '<button class="action-btn" onclick="copyText(\x27' + escapeAttr(f.remediation || '') + '\x27)">⚙️ Copy Fix</button>' +
-                '<button class="action-btn ai-btn" onclick="askAiAboutFinding(\x27' + escapeAttr(f.title) + '\x27, \x27' + escapeAttr(curlCmd) + '\x27, \x27' + escapeAttr(bodyPrev) + '\x27)">🤖 Ask AI Copilot</button>' +
+                '<button class="action-btn" onclick="copyCurlFinding(' + idx + ')">📋 Copy cURL PoC</button>' +
+                '<button class="action-btn" onclick="copyFixFinding(' + idx + ')">⚙️ Copy Fix</button>' +
+                '<button class="action-btn ai-btn" onclick="askAiAboutFinding(' + idx + ')">🤖 Ask AI Copilot</button>' +
               '</div>' +
             '</div>';
         });
@@ -1150,20 +1152,30 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    function escapeAttr(str) {
-      if (!str) return '';
-      return String(str).replace(/'/g, "\\\\'").replace(/"/g, '&quot;');
+    function copyCurlFinding(idx) {
+      const f = currentFindingsList[idx];
+      if (!f) return;
+      const curlCmd = f.curl_command || ('curl -i "' + (f.url || document.getElementById('target-url').value) + '"');
+      navigator.clipboard.writeText(curlCmd);
+      alert('Copied cURL command to clipboard: ' + curlCmd);
     }
 
-    function copyText(val) {
-      navigator.clipboard.writeText(val);
-      alert('Copied to clipboard: ' + val);
+    function copyFixFinding(idx) {
+      const f = currentFindingsList[idx];
+      if (!f) return;
+      const fix = f.remediation || '';
+      navigator.clipboard.writeText(fix);
+      alert('Copied remediation snippet to clipboard.');
     }
 
-    function askAiAboutFinding(title, curlCmd, snippet) {
+    function askAiAboutFinding(idx) {
+      const f = currentFindingsList[idx];
+      if (!f) return;
       switchView('copilot');
       const input = document.getElementById('chat-user-input');
-      input.value = "I need advice on finding: '" + title + "'. It responded with curl: " + curlCmd + ". Evidence snippet: " + snippet.substring(0, 150) + "... How should I safely verify and remediate this?";
+      const curlCmd = f.curl_command || ('curl -i "' + (f.url || document.getElementById('target-url').value) + '"');
+      const snippet = (f.body_snippet || f.message || '').substring(0, 150);
+      input.value = "I need advice on finding: '" + f.title + "'. Endpoint: " + (f.url || f.route) + ". Request: " + curlCmd + ". Evidence: " + snippet + "... How should I safely verify and remediate this in code?";
       sendChatMessage();
     }
 

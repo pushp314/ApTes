@@ -1,0 +1,111 @@
+import {
+  insertEdge,
+  insertEdgeLabel,
+  markers_default,
+  positionEdgeLabel
+} from "./chunk-TP2EWOIQ.js";
+import {
+  insertCluster
+} from "./chunk-ONAOY26C.js";
+import {
+  insertNode
+} from "./chunk-VN3AX4UG.js";
+import {
+  labelHelper
+} from "./chunk-QPIYGUJN.js";
+import {
+  interpolateToCurve
+} from "./chunk-JAFJJLOW.js";
+import {
+  common_default,
+  getConfig
+} from "./chunk-5N5YC32G.js";
+import {
+  log
+} from "./chunk-V325GGRI.js";
+import {
+  __name
+} from "./chunk-IHMUD2WH.js";
+
+// node_modules/mermaid/dist/chunks/mermaid.core/chunk-CKBBP62Z.mjs
+var internalHelpers = {
+  common: common_default,
+  getConfig,
+  insertCluster,
+  insertEdge,
+  insertEdgeLabel,
+  insertMarkers: markers_default,
+  insertNode,
+  interpolateToCurve,
+  labelHelper,
+  log,
+  positionEdgeLabel
+};
+var layoutAlgorithms = {};
+var registerLayoutLoaders = __name((loaders) => {
+  for (const loader of loaders) {
+    layoutAlgorithms[loader.name] = loader;
+  }
+}, "registerLayoutLoaders");
+var registerDefaultLayoutLoaders = __name(() => {
+  registerLayoutLoaders([
+    {
+      name: "dagre",
+      loader: __name(async () => await import("./dagre-3AP2YEHR-ZVHYUISJ.js"), "loader")
+    },
+    {
+      name: "swimlane",
+      loader: __name(async () => await import("./swimlanes-XN3QIQJK-4NIO6KD7.js"), "loader")
+    },
+    ...true ? [
+      {
+        name: "cose-bilkent",
+        loader: __name(async () => await import("./cose-bilkent-JH36ORCC-6NTIZATZ.js"), "loader")
+      }
+    ] : []
+  ]);
+}, "registerDefaultLayoutLoaders");
+registerDefaultLayoutLoaders();
+var render = __name(async (data4Layout, svg) => {
+  if (!(data4Layout.layoutAlgorithm in layoutAlgorithms)) {
+    throw new Error(`Unknown layout algorithm: ${data4Layout.layoutAlgorithm}`);
+  }
+  if (data4Layout.diagramId) {
+    for (const node of data4Layout.nodes) {
+      const originalDomId = node.domId || node.id;
+      node.domId = `${data4Layout.diagramId}-${originalDomId}`;
+    }
+  }
+  const layoutDefinition = layoutAlgorithms[data4Layout.layoutAlgorithm];
+  const layoutRenderer = await layoutDefinition.loader();
+  const { theme, themeVariables } = data4Layout.config;
+  const { useGradient, gradientStart, gradientStop } = themeVariables;
+  const svgId = svg.attr("id");
+  svg.append("defs").append("filter").attr("id", `${svgId}-drop-shadow`).attr("height", "130%").attr("width", "130%").append("feDropShadow").attr("dx", "4").attr("dy", "4").attr("stdDeviation", 0).attr("flood-opacity", "0.06").attr("flood-color", `${(theme == null ? void 0 : theme.includes("dark")) ? "#FFFFFF" : "#000000"}`);
+  svg.append("defs").append("filter").attr("id", `${svgId}-drop-shadow-small`).attr("height", "150%").attr("width", "150%").append("feDropShadow").attr("dx", "2").attr("dy", "2").attr("stdDeviation", 0).attr("flood-opacity", "0.06").attr("flood-color", `${(theme == null ? void 0 : theme.includes("dark")) ? "#FFFFFF" : "#000000"}`);
+  if (useGradient) {
+    const gradient = svg.append("linearGradient").attr("id", svg.attr("id") + "-gradient").attr("gradientUnits", "objectBoundingBox").attr("x1", "0%").attr("y1", "0%").attr("x2", "100%").attr("y2", "0%");
+    gradient.append("svg:stop").attr("offset", "0%").attr("stop-color", gradientStart).attr("stop-opacity", 1);
+    gradient.append("svg:stop").attr("offset", "100%").attr("stop-color", gradientStop).attr("stop-opacity", 1);
+  }
+  return layoutRenderer.render(data4Layout, svg, internalHelpers, {
+    algorithm: layoutDefinition.algorithm
+  });
+}, "render");
+var getRegisteredLayoutAlgorithm = __name((algorithm = "", { fallback = "dagre" } = {}) => {
+  if (algorithm in layoutAlgorithms) {
+    return algorithm;
+  }
+  if (fallback in layoutAlgorithms) {
+    log.warn(`Layout algorithm ${algorithm} is not registered. Using ${fallback} as fallback.`);
+    return fallback;
+  }
+  throw new Error(`Both layout algorithms ${algorithm} and ${fallback} are not registered.`);
+}, "getRegisteredLayoutAlgorithm");
+
+export {
+  registerLayoutLoaders,
+  render,
+  getRegisteredLayoutAlgorithm
+};
+//# sourceMappingURL=chunk-J6JHMRGE.js.map
