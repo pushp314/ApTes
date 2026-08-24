@@ -1231,6 +1231,8 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
     let chatHistory = [];
 
     function setAppView(view) {
+      if (view === 'scanner' && document.getElementById('scanner-page-container').style.display === 'flex') return;
+
       document.getElementById('scanner-page-container').style.display = view === 'scanner' ? 'flex' : 'none';
       document.getElementById('copilot-page-container').style.display = view === 'copilot' ? 'flex' : 'none';
       
@@ -1238,8 +1240,8 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
       if (view === 'copilot') {
         document.getElementById('nav-btn-copilot').classList.add('active');
       } else {
-        document.getElementById('nav-btn-audit').classList.add('active'); // fallback
-        setModule(activeModule);
+        const activeBtn = document.querySelector('.nav-item[onclick*="setModule(\\'' + activeModule + '\\')"]');
+        if (activeBtn) activeBtn.classList.add('active');
       }
     }
 
@@ -1266,7 +1268,8 @@ Ask me how to manually verify any finding with <code>curl</code>, evaluate poten
       if (typeof setAppView === 'function') setAppView('scanner');
       activeModule = mod;
       document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-      event.currentTarget.classList.add('active');
+      const activeBtn = document.querySelector('.nav-item[onclick*="setModule(\\'' + mod + '\\')"]');
+      if (activeBtn) activeBtn.classList.add('active');
 
       if (mod === 'jwt') {
         document.getElementById('jwt-group').style.display = 'block';
