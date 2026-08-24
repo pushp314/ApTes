@@ -12,6 +12,11 @@ from .redirect_scanner import audit_open_redirect
 from .cookie_auditor import audit_cookies
 from .exposure_scanner import audit_exposure
 from .xss_scanner import audit_xss
+from .subdomain_scanner import scan_subdomains
+from .ssl_analyzer import audit_ssl
+from .tech_fingerprinter import fingerprint_target
+from .port_scanner import scan_ports
+from .csp_analyzer import audit_csp
 
 __all__ = [
     "audit_cors",
@@ -24,5 +29,9 @@ __all__ = [
     "audit_cookies",
     "audit_exposure",
     "audit_xss",
+    "scan_subdomains",
+    "audit_ssl",
+    "fingerprint_target",
+    "scan_ports",
+    "audit_csp",
 ]
-

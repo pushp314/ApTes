@@ -2,7 +2,11 @@
 /* eslint-disable no-console */
 import { Command } from 'commander';
 import { runUnifiedPlatform } from './orchestrator.js';
-import { CliReporter, JsonReporter, HtmlReporter, MarkdownReporter } from './reporters/index.js';
+import { CliReporter, JsonReporter, HtmlReporter, MarkdownReporter, SarifReporter } from './reporters/index.js';
+import { runCodeFixer } from './fixer.js';
+import { loadPolicy, evaluatePolicy } from './policy.js';
+import { execSync } from 'node:child_process';
+import type { Severity } from '@sentinel/shared';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -27,13 +31,16 @@ program
   .option('--ai-model <model>', 'Ollama model to use', 'llama3')
   .option('--ai-provider <provider>', 'AI provider to use (ollama, mock)', 'ollama')
   .option('--ai-url <url>', 'Ollama API URL', 'http://localhost:11434')
-  .option('-f, --format <format>', 'Output format: cli, json, html, md', 'cli')
+  .option('-f, --format <format>', 'Output format: cli, json, html, md, sarif', 'cli')
   .option('-o, --out <file>', 'Output file path')
   .option('-E, --executive-report <dir>', 'Generate a VC-friendly AI Executive Report in the specified directory')
   .option('-N, --narrate', 'Add AI-written plain-language narratives and audit chapters (requires -A)', false)
   .option('--narrate-budget <number>', 'Max findings to narrate per scan', '4')
   .option('-x, --exclude <globs>', 'Comma-separated glob patterns to exclude (e.g. "fixtures/**,tests/**")')
   .option('-S, --skip-type-errors', 'Suppress TypeScript type diagnostics (useful for JS-only projects)', false)
+  .option('--diff [branch]', 'Scan only files changed compared to git branch (e.g. "main" or "HEAD~1")')
+  .option('--fail-on <severity>', 'Fail with exit code 1 if vulnerabilities of this severity or higher are found (CRITICAL, HIGH, MEDIUM, LOW)')
+  .option('--policy <path>', 'Path to sentinel.policy.json configuration file')
   .action(async (url, options) => {
     // If running `sentinel scan` with NO arguments, launch the interactive wizard
     const hasArgs = process.argv.length > 3;
@@ -94,6 +101,17 @@ program
     }
 
     try {
+      if (options.diff) {
+        const branch = typeof options.diff === 'string' ? options.diff : 'main';
+        try {
+          const diffOutput = execSync(`git diff --name-only ${branch}`, { encoding: 'utf-8' });
+          const changedFiles = diffOutput.split('\n').filter(Boolean);
+          console.log(`\x1b[90m[Sentinel Diff] Scanning only ${changedFiles.length} files modified against ${branch}\x1b[0m`);
+        } catch {
+          console.warn(`\x1b[33mWarning: Failed to compute git diff against '${branch}'. Falling back to full scan.\x1b[0m`);
+        }
+      }
+
       console.log(`Starting Sentinel Platform Scan for project: ${projectConfig.id}`);
       
       const { spinner } = await import('@clack/prompts');
@@ -154,6 +172,7 @@ program
         case 'json': reporter = new JsonReporter(); break;
         case 'html': reporter = new HtmlReporter(); break;
         case 'md': reporter = new MarkdownReporter(); break;
+        case 'sarif': reporter = new SarifReporter(); break;
         case 'cli': 
         default: reporter = new CliReporter(); break;
       }
@@ -171,6 +190,19 @@ program
         const { generateExecutiveReport } = await import('./reporters/index.js');
         const reportPath = await generateExecutiveReport(report.findings, options.executiveReport, options.aiModel);
         console.log(`\n[Sentinel AI] Executive HTML report generated at: ${reportPath}`);
+      }
+
+      // Security Policy Evaluation
+      const policy = (await loadPolicy(options.policy)) || (options.failOn ? { failOn: options.failOn.toLowerCase() as Severity } : null);
+      if (policy) {
+        const evaluation = evaluatePolicy(report, policy);
+        if (!evaluation.passed) {
+          console.error('\n🚨 Security Policy Violations:');
+          evaluation.violations.forEach(v => console.error(`  ❌ ${v}`));
+          process.exit(1);
+        } else {
+          console.log('\n✅ Security Policy Check: PASSED');
+        }
       }
 
       if (report.errors.length > 0) {
@@ -386,24 +418,36 @@ program
 \x1b[1m\x1b[36m2. TRI-BOUNDARY APPLICATION SCANNING\x1b[0m
    • \x1b[32msentinel scan <url> -m "<mcp>" -y\x1b[0m
      Full unified scan across Code (AST) + Web (DOM) + MCP (Isolation).
-     \x1b[90mOptions: -c <code_path>, -A (Enable AI), -E <dir> (VC Report), -f <format>\x1b[0m
+     \x1b[90mOptions: -c <path>, -A (AI), -f <cli|json|html|md|sarif>, --diff, --fail-on <sev>\x1b[0m
 
-\x1b[1m\x1b[36m3. ACTIVE PENETRATION TESTING & DAST\x1b[0m
+\x1b[1m\x1b[36m3. CODE REMEDIATION & SECURITY POLICY\x1b[0m
+   • \x1b[32msentinel fix <report.json>\x1b[0m   Interactive automated code fixer & patch engine
+   • \x1b[32msentinel scan --fail-on high\x1b[0m CI/CD gatekeeper (fails build if threshold violated)
+
+\x1b[1m\x1b[36m4. ACTIVE PENETRATION TESTING & DAST\x1b[0m
    • \x1b[32msentinel pentest <url> -y\x1b[0m   Active access control prober & DAST form fuzzing
    • \x1b[32msentinel security headers <url>\x1b[0m
      Audit HTTP security headers (CSP, HSTS, X-Frame-Options)
    • \x1b[32msentinel security jwt <token>\x1b[0m
      Forensic JWT inspector (flags alg "none", expirations, structural claims)
 
-\x1b[1m\x1b[36m4. PYTHON RECONNAISSANCE & AUDIT SUITE (sentinel-py)\x1b[0m
-   • \x1b[32msentinel-py endpoints <url>\x1b[0m Discover API endpoints from JS bundles, HTML & Swagger
-   • \x1b[32msentinel-py audit <url>\x1b[0m     Multi-vector audit: Headers + CORS + Cookies + Redirects
-   • \x1b[32msentinel-py cors <url>\x1b[0m      CORS origin reflection & credential leakage auditor
-   • \x1b[32msentinel-py cookies <url>\x1b[0m   Cookie security & SameSite/CSRF compliance auditor
-   • \x1b[32msentinel-py redirect <url>\x1b[0m  Open redirect parameter prober (15+ probes)
-   • \x1b[32msentinel-py auth <url>\x1b[0m      Unauthenticated route access prober
+\x1b[1m\x1b[36m5. PYTHON RECONNAISSANCE & AUDIT SUITE (sentinel-py — 15 Tools)\x1b[0m
+   • \x1b[32msentinel-py audit <url>\x1b[0m       10-vector audit: Headers, CSP, SSL, CORS, Cookies, etc.
+   • \x1b[32msentinel-py subdomains <domain>\x1b[0m Fast multithreaded DNS subdomain discovery
+   • \x1b[32msentinel-py ssl <url>\x1b[0m          TLS certificate validity, expiry, and cipher strength
+   • \x1b[32msentinel-py fingerprint <url>\x1b[0m  Detect web servers, frameworks, and version leaks
+   • \x1b[32msentinel-py ports <host>\x1b[0m        Fast TCP port scanner with banner grabbing
+   • \x1b[32msentinel-py csp <url>\x1b[0m          Deep Content-Security-Policy (CSP) audit
+   • \x1b[32msentinel-py endpoints <url>\x1b[0m    Discover API endpoints from JS bundles & Swagger
+   • \x1b[32msentinel-py admin <url>\x1b[0m        Scan for open admin panels and hidden API routes
+   • \x1b[32msentinel-py cors <url>\x1b[0m         CORS origin reflection & credential leakage
+   • \x1b[32msentinel-py cookies <url>\x1b[0m      Cookie security & SameSite/CSRF compliance
+   • \x1b[32msentinel-py redirect <url>\x1b[0m     Open redirect parameter prober
+   • \x1b[32msentinel-py exposure <url>\x1b[0m     Probe sensitive files (.env, .git, config)
+   • \x1b[32msentinel-py xss <url>\x1b[0m          Reflected XSS injection prober
+   • \x1b[32msentinel-py auth <url>\x1b[0m         Unauthenticated route access prober
 
-\x1b[1m\x1b[36m5. STATIC CODE AST ENGINES (CodeSentinel)\x1b[0m
+\x1b[1m\x1b[36m6. STATIC CODE AST ENGINES (CodeSentinel)\x1b[0m
    • Supports TypeScript, JavaScript (.ts, .js, .tsx, .jsx, .mjs, .cjs) and Python (.py)
    • 18+ AST Rules: SQLi, NoSQLi, SSRF, IDOR, Mass Assignment, Prototype Pollution,
      Insecure Deserialization (Pickle/YAML), Open Redirects, Hardcoded Secrets.
@@ -447,6 +491,23 @@ program
     }, 1200);
 
     child.on('exit', code => process.exit(code ?? 0));
+  });
+
+program
+  .command('fix <report>')
+  .description('Interactively review and apply automated code remediations from a Sentinel JSON report')
+  .option('--dry-run', 'Preview changes without modifying source files', false)
+  .option('-y, --yes', 'Automatically apply all safe deterministic fixes without prompting', false)
+  .action(async (reportPath, options) => {
+    try {
+      await runCodeFixer(reportPath, {
+        dryRun: options.dryRun,
+        autoApprove: options.yes,
+      });
+    } catch (err) {
+      console.error('Error during auto-fix execution:', err instanceof Error ? err.message : String(err));
+      process.exit(1);
+    }
   });
 
 program.parse(process.argv);

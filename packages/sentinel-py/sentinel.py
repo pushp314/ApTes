@@ -19,6 +19,11 @@ from tools.cookie_auditor import audit_cookies
 from tools.exposure_scanner import audit_exposure
 from tools.xss_scanner import audit_xss
 from tools.admin_scanner import scan_admin_panels
+from tools.subdomain_scanner import scan_subdomains
+from tools.ssl_analyzer import audit_ssl
+from tools.tech_fingerprinter import fingerprint_target
+from tools.port_scanner import scan_ports
+from tools.csp_analyzer import audit_csp
 
 
 # ANSI Terminal Colors
@@ -37,7 +42,7 @@ def print_banner():
     print(f"{Colors.BLUE}{Colors.BOLD}")
     print("  ========================================================")
     print("     🛡️  Sentinel Python Security & Pentest Toolkit")
-    print("     Zero-Dependency Security Assessment Suite")
+    print("     Zero-Dependency Security Assessment Suite (15 Tools)")
     print("  ========================================================")
     print(f"{Colors.RESET}")
 
@@ -53,19 +58,23 @@ def run_full_audit(url: str, output_json: bool = False):
         "total_critical": 0,
         "total_warnings": 0,
         "headers": {},
+        "csp": {},
+        "ssl": {},
+        "fingerprint": {},
         "cors": {},
         "cookies": {},
         "redirects": {},
         "exposure": {},
         "xss": {},
         "auth": {},
+        "admin_discovery": {},
         "findings": [],
         "ai_verdict": ""
     }
 
     # 1. Headers Audit
     if not output_json:
-        print(f"{Colors.BOLD}🔍 [1/7] Auditing HTTP Security Headers...{Colors.RESET}")
+        print(f"{Colors.BOLD}🔍 [1/10] Auditing HTTP Security Headers...{Colors.RESET}")
     header_res = audit_headers(url)
     report["headers"] = header_res
     if header_res.get("missing_headers"):
@@ -81,9 +90,51 @@ def run_full_audit(url: str, output_json: bool = False):
             if not output_json:
                 print(f"     ❌ {Colors.RED}{h['header']}{Colors.RESET} ({h['severity']}) - {h['description']}")
 
-    # 2. CORS Audit
+    # 2. CSP Deep Audit
     if not output_json:
-        print(f"\n{Colors.BOLD}🌐 [2/7] Auditing CORS Configuration...{Colors.RESET}")
+        print(f"\n{Colors.BOLD}🛡️  [2/10] Auditing Content-Security-Policy (CSP)...{Colors.RESET}")
+    csp_res = audit_csp(url)
+    report["csp"] = csp_res
+    if csp_res.get("findings"):
+        for f in csp_res["findings"]:
+            if f["severity"] == "HIGH":
+                report["total_critical"] += 1
+            else:
+                report["total_warnings"] += 1
+            report["findings"].append(f)
+            if not output_json:
+                print(f"     ❌ {Colors.RED}{f['title']}{Colors.RESET}: {f['message']}")
+
+    # 3. SSL/TLS Audit
+    if not output_json:
+        print(f"\n{Colors.BOLD}🔒 [3/10] Auditing SSL/TLS Transport Security...{Colors.RESET}")
+    ssl_res = audit_ssl(url)
+    report["ssl"] = ssl_res
+    if ssl_res.get("findings"):
+        for f in ssl_res["findings"]:
+            if f["severity"] == "CRITICAL":
+                report["total_critical"] += 1
+            else:
+                report["total_warnings"] += 1
+            report["findings"].append(f)
+            if not output_json:
+                print(f"     ❌ {Colors.RED}{f['title']}{Colors.RESET}: {f['message']}")
+
+    # 4. Tech Stack Fingerprinting
+    if not output_json:
+        print(f"\n{Colors.BOLD}🔍 [4/10] Fingerprinting Technology Stack...{Colors.RESET}")
+    fp_res = fingerprint_target(url)
+    report["fingerprint"] = fp_res
+    if fp_res.get("findings"):
+        for f in fp_res["findings"]:
+            report["total_warnings"] += 1
+            report["findings"].append(f)
+            if not output_json:
+                print(f"     ⚠️  {Colors.YELLOW}{f['title']}{Colors.RESET}: {f['message']}")
+
+    # 5. CORS Audit
+    if not output_json:
+        print(f"\n{Colors.BOLD}🌐 [5/10] Auditing CORS Configuration...{Colors.RESET}")
     cors_res = audit_cors(url)
     report["cors"] = cors_res
     if cors_res.get("findings"):
@@ -93,9 +144,9 @@ def run_full_audit(url: str, output_json: bool = False):
             if not output_json:
                 print(f"     ❌ {Colors.RED}{f['title']}{Colors.RESET}: {f['message']}")
 
-    # 3. Cookie & CSRF Audit
+    # 6. Cookie & CSRF Audit
     if not output_json:
-        print(f"\n{Colors.BOLD}🍪 [3/7] Auditing Cookie Security & CSRF Protections...{Colors.RESET}")
+        print(f"\n{Colors.BOLD}🍪 [6/10] Auditing Cookie Security & CSRF Protections...{Colors.RESET}")
     cookie_res = audit_cookies(url)
     report["cookies"] = cookie_res
     if cookie_res.get("findings"):
@@ -105,9 +156,9 @@ def run_full_audit(url: str, output_json: bool = False):
             if not output_json:
                 print(f"     ❌ {Colors.YELLOW}{f['title']}{Colors.RESET}: {f['message']}")
 
-    # 4. Open Redirect Audit
+    # 7. Open Redirect Audit
     if not output_json:
-        print(f"\n{Colors.BOLD}🔀 [4/7] Probing for Open Redirect Vulnerabilities...{Colors.RESET}")
+        print(f"\n{Colors.BOLD}🔀 [7/10] Probing for Open Redirect Vulnerabilities...{Colors.RESET}")
     redir_res = audit_open_redirect(url)
     report["redirects"] = redir_res
     if redir_res.get("findings"):
@@ -117,9 +168,9 @@ def run_full_audit(url: str, output_json: bool = False):
             if not output_json:
                 print(f"     ❌ {Colors.RED}{f['title']}{Colors.RESET}: {f['message']}")
 
-    # 5. Sensitive File Exposure
+    # 8. Sensitive File Exposure
     if not output_json:
-        print(f"\n{Colors.BOLD}📂 [5/7] Probing Sensitive File & Directory Exposure...{Colors.RESET}")
+        print(f"\n{Colors.BOLD}📂 [8/10] Probing Sensitive File & Directory Exposure...{Colors.RESET}")
     exp_res = audit_exposure(url)
     report["exposure"] = exp_res
     if exp_res.get("findings"):
@@ -129,9 +180,9 @@ def run_full_audit(url: str, output_json: bool = False):
             if not output_json:
                 print(f"     ❌ {Colors.RED}{f['title']}{Colors.RESET}: {f['message']}")
 
-    # 6. Reflected XSS
+    # 9. Reflected XSS
     if not output_json:
-        print(f"\n{Colors.BOLD}💉 [6/7] Probing Parameters for Reflected XSS...{Colors.RESET}")
+        print(f"\n{Colors.BOLD}💉 [9/10] Probing Parameters for Reflected XSS...{Colors.RESET}")
     xss_res = audit_xss(url)
     report["xss"] = xss_res
     if xss_res.get("findings"):
@@ -141,9 +192,9 @@ def run_full_audit(url: str, output_json: bool = False):
             if not output_json:
                 print(f"     ❌ {Colors.RED}{f['title']}{Colors.RESET}: {f['message']}")
 
-    # 7. Auth Probing
+    # 10. Auth Probing
     if not output_json:
-        print(f"\n{Colors.BOLD}🔓 [7/8] Probing Common API Routes for Unauthenticated Access...{Colors.RESET}")
+        print(f"\n{Colors.BOLD}🔓 [10/10] Probing Common API Routes for Unauthenticated Access...{Colors.RESET}")
     auth_res = probe_endpoints(url)
     report["auth"] = auth_res
     if auth_res.get("vulnerable_endpoints"):
@@ -165,20 +216,8 @@ def run_full_audit(url: str, output_json: bool = False):
             if not output_json:
                 print(f"     ❌ {Colors.RED}{ep['route']}{Colors.RESET} (HTTP {ep['status_code']} OK without auth)")
 
-    # 8. Admin Panel & Hidden API Discovery
-    if not output_json:
-        print(f"\n{Colors.BOLD}🏛️  [8/8] Scanning for Admin Panels & Hidden API Routes...{Colors.RESET}")
-    admin_res = scan_admin_panels(url)
-    report["admin_discovery"] = admin_res
-    if admin_res.get("findings"):
-        for f in admin_res["findings"]:
-            report["total_critical"] += 1
-            report["findings"].append(f)
-            if not output_json:
-                print(f"     ❌ {Colors.RED}{f['title']}{Colors.RESET}: {f['message']}")
-
     # Compute Overall Score
-    score = 100 - (report["total_critical"] * 20) - (report["total_warnings"] * 5)
+    score = 100 - (report["total_critical"] * 15) - (report["total_warnings"] * 3)
     report["overall_score"] = max(10, min(100, score))
 
     # Synthesize AI Verdict
@@ -187,7 +226,7 @@ def run_full_audit(url: str, output_json: bool = False):
     elif report["total_warnings"] > 0:
         verdict = f"MODERATE POSTURE: No critical exploits detected. However, {report['total_warnings']} security hardening gaps (missing HTTP headers or cookie flags) were identified. Apply defense-in-depth headers (CSP, HSTS, SameSite)."
     else:
-        verdict = "EXCELLENT POSTURE: Target passed all 7 diagnostic security modules. Enforces strong access boundaries, proper cookie isolation, and resilient parameter sanitization."
+        verdict = "EXCELLENT POSTURE: Target passed all 10 diagnostic security modules. Enforces strong access boundaries, proper cookie isolation, and resilient parameter sanitization."
     report["ai_verdict"] = verdict
 
     if not output_json:
@@ -208,7 +247,7 @@ def main():
     subparsers = parser.add_subparsers(dest="command", help="Available security tools")
 
     # Command: audit (Full web audit)
-    audit_parser = subparsers.add_parser("audit", help="Run comprehensive audit across all 7 security vectors")
+    audit_parser = subparsers.add_parser("audit", help="Run comprehensive audit across all 10 security vectors")
     audit_parser.add_argument("url", help="Target URL (e.g. https://example.com)")
     audit_parser.add_argument("--json", action="store_true", help="Output results as JSON")
 
@@ -219,6 +258,27 @@ def main():
     # Command: headers
     headers_parser = subparsers.add_parser("headers", help="Audit HTTP security headers")
     headers_parser.add_argument("url", help="Target URL to test")
+
+    # Command: csp
+    csp_parser = subparsers.add_parser("csp", help="Deeply audit Content-Security-Policy (CSP) directives")
+    csp_parser.add_argument("url", help="Target URL to test")
+
+    # Command: ssl
+    ssl_parser = subparsers.add_parser("ssl", help="Inspect SSL/TLS certificates and cipher strength")
+    ssl_parser.add_argument("target", help="Target domain or URL (e.g. example.com or https://example.com)")
+    ssl_parser.add_argument("--port", type=int, default=443, help="Port to connect to (default: 443)")
+
+    # Command: fingerprint
+    fp_parser = subparsers.add_parser("fingerprint", help="Fingerprint web server and frameworks")
+    fp_parser.add_argument("url", help="Target URL to fingerprint")
+
+    # Command: subdomains
+    sub_parser = subparsers.add_parser("subdomains", help="Enumerate subdomains via DNS discovery")
+    sub_parser.add_argument("domain", help="Base domain or URL (e.g. example.com)")
+
+    # Command: ports
+    port_parser = subparsers.add_parser("ports", help="Scan common TCP ports and grab banners")
+    port_parser.add_argument("host", help="Target hostname or IP (e.g. example.com)")
 
     # Command: jwt
     jwt_parser = subparsers.add_parser("jwt", help="Inspect and audit a JWT token")
@@ -282,6 +342,21 @@ def main():
         print(json.dumps(res, indent=2))
     elif args.command == "headers":
         res = audit_headers(args.url)
+        print(json.dumps(res, indent=2))
+    elif args.command == "csp":
+        res = audit_csp(args.url)
+        print(json.dumps(res, indent=2))
+    elif args.command == "ssl":
+        res = audit_ssl(args.target, port=args.port)
+        print(json.dumps(res, indent=2))
+    elif args.command == "fingerprint":
+        res = fingerprint_target(args.url)
+        print(json.dumps(res, indent=2))
+    elif args.command == "subdomains":
+        res = scan_subdomains(args.domain)
+        print(json.dumps(res, indent=2))
+    elif args.command == "ports":
+        res = scan_ports(args.host)
         print(json.dumps(res, indent=2))
     elif args.command == "cookies":
         res = audit_cookies(args.url)

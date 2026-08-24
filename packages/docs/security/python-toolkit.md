@@ -2,28 +2,36 @@
 
 The **Sentinel Python Security Toolkit** is a zero-dependency, standalone security assessment and penetration testing suite written in pure Python 3 (`packages/sentinel-py/`).
 
-It runs on any machine with standard Python 3 (3.8+) with no third-party packages required, leveraging Python's standard library (`urllib.request`, `http.client`, `ssl`, `json`, `base64`, `argparse`).
+It runs on any machine with standard Python 3 (3.8+) with no third-party packages required, leveraging Python's standard library (`urllib.request`, `http.client`, `ssl`, `socket`, `json`, `base64`, `argparse`, `concurrent.futures`).
 
 ---
 
-## 🛠️ Included Python Security Tools
+## 🛠️ Complete Suite of 15 Python Security Tools
 
-| Tool | Script | Description |
+| Tool | Script / Command | Description |
 | :--- | :--- | :--- |
-| **Full Web Audit** | `sentinel.py audit` | Multi-vector audit: Headers + CORS + Cookies + Redirects + Auth |
-| **API Discovery** | `tools/api_finder.py` | Crawls HTML, extracts JS bundle routes, probes Swagger/OpenAPI |
-| **Open Redirect Prober** | `tools/redirect_scanner.py` | Tests 15+ URL query parameters for unvalidated 3xx redirects |
-| **Cookie & CSRF Auditor** | `tools/cookie_auditor.py` | Audits `Set-Cookie` for `HttpOnly`, `Secure`, and `SameSite` compliance |
-| **CORS Misconfiguration** | `tools/cors_scanner.py` | Probes dynamic origin reflection and credential exposure |
-| **JWT Token Inspector** | `tools/jwt_analyzer.py` | Audits JWT headers, flags algorithm `none`, and checks expiration |
-| **Auth & IDOR Prober** | `tools/auth_prober.py` | Probes sensitive API routes to detect unauthenticated data leaks |
+| **Full 10-Vector Audit** | `sentinel.py audit` | Complete automated audit: Headers, CSP, SSL, CORS, Cookies, Redirects, Exposure, XSS, Auth, Admin |
+| **Subdomain Scanner** | `sentinel.py subdomains` | Fast multithreaded DNS discovery of 50+ common subdomains |
+| **SSL/TLS Analyzer** | `sentinel.py ssl` | Certificate expiration, cipher strength, self-signed detection, and protocol version check |
+| **Tech Fingerprinter** | `sentinel.py fingerprint` | Detects backend frameworks, web servers, and version disclosures |
+| **TCP Port Scanner** | `sentinel.py ports` | Fast multithreaded TCP port scanner with automatic banner grabbing |
+| **CSP Deep Auditor** | `sentinel.py csp` | Analyzes Content-Security-Policy directives for XSS and clickjacking bypasses |
+| **Admin & API Discovery** | `sentinel.py admin` | Probes 30+ common admin panels (`/admin`, `/wp-admin`, `/dashboard`) and internal APIs |
+| **API Endpoint Discovery** | `sentinel.py endpoints` | Crawls HTML, extracts JS bundle routes, and parses Swagger/OpenAPI specs |
+| **Open Redirect Prober** | `sentinel.py redirect` | Tests 15+ URL query parameters for unvalidated 3xx redirects |
+| **Cookie & CSRF Auditor** | `sentinel.py cookies` | Audits `Set-Cookie` for `HttpOnly`, `Secure`, and `SameSite` compliance |
+| **CORS Misconfiguration** | `sentinel.py cors` | Probes dynamic origin reflection and credential exposure |
+| **JWT Token Inspector** | `sentinel.py jwt` | Audits JWT headers, flags algorithm `none`, and checks expiration |
+| **Auth & IDOR Prober** | `sentinel.py auth` | Probes sensitive API routes to detect unauthenticated data leaks |
+| **Sensitive File Exposure** | `sentinel.py exposure` | Detects leaked `.env`, `.git`, backups, and configuration files |
+| **Reflected XSS Prober** | `sentinel.py xss` | Injects harmless canary probes to test parameter reflection and HTML encoding |
 
 ---
 
-## 🚀 CLI Usage & Commands
+## 🚀 CLI Usage & Examples
 
-### 1. Comprehensive Web Audit
-Runs all diagnostics against the target and provides a formatted, colored security scorecard.
+### 1. Comprehensive 10-Vector Web Audit
+Runs all diagnostic modules against the target and provides a formatted security scorecard.
 
 ```bash
 python3 packages/sentinel-py/sentinel.py audit https://example.com
@@ -36,85 +44,63 @@ python3 packages/sentinel-py/sentinel.py audit https://example.com --json
 
 ---
 
-### 2. Discover API Endpoints & Attack Surface
+### 2. Fast DNS Subdomain Discovery
+Enumerates subdomains in parallel using standard library socket lookups.
+
+```bash
+python3 packages/sentinel-py/sentinel.py subdomains example.com
+```
+
+---
+
+### 3. SSL/TLS Certificate & Transport Security
+Inspects TLS cipher suites, certificate chains, expiration timestamps, and deprecations.
+
+```bash
+python3 packages/sentinel-py/sentinel.py ssl https://example.com
+```
+
+---
+
+### 4. Technology Stack & Version Leak Fingerprinting
+Identifies underlying web servers, JavaScript frameworks (React, Next.js, Vue), and backend engines.
+
+```bash
+python3 packages/sentinel-py/sentinel.py fingerprint https://example.com
+```
+
+---
+
+### 5. TCP Port Scanner with Banner Grabbing
+Probes common application and database ports (MySQL, Redis, PostgreSQL, MongoDB, Elasticsearch, etc.).
+
+```bash
+python3 packages/sentinel-py/sentinel.py ports example.com
+```
+
+---
+
+### 6. Deep Content Security Policy (CSP) Audit
+Analyzes `Content-Security-Policy` headers for `unsafe-inline`, `unsafe-eval`, wildcards, and missing clickjacking protections.
+
+```bash
+python3 packages/sentinel-py/sentinel.py csp https://example.com
+```
+
+---
+
+### 7. Discover API Endpoints & Attack Surface
 Extracts API endpoints from web pages, JavaScript files, and public documentation definitions.
 
 ```bash
 python3 packages/sentinel-py/sentinel.py endpoints https://example.com
 ```
 
-**How It Works:**
-1. Crawls root HTML for `<script src="...">` tags and inline API references.
-2. Downloads and inspects client-side JavaScript bundles (`.js`) using AST regex patterns matching `fetch()`, `axios.get()`, and `/api/...` paths.
-3. Probes standard OpenAPI / Swagger paths (`/openapi.json`, `/swagger.json`, `/api-docs`) and automatically parses path dictionaries.
-4. Parses `robots.txt` for disallow directives.
-
 ---
 
-### 3. Open Redirect Probing
-Probes parameters (`?redirect=`, `?next=`, `?return_to=`, `?dest=`, `?url=`) for unvalidated redirects to external attacker domains.
+### 8. Admin Panel & Hidden API Probing
+Scans for exposed backoffice consoles, admin logins, and unauthenticated API endpoints.
 
 ```bash
-python3 packages/sentinel-py/sentinel.py redirect https://example.com/login
-```
-
----
-
-### 4. Cookie Security & CSRF Auditor
-Audits `Set-Cookie` headers for security best practices.
-
-```bash
-python3 packages/sentinel-py/sentinel.py cookies https://example.com
-```
-
-Checks for:
-- ❌ Missing `HttpOnly` (Vulnerable to XSS session theft)
-- ❌ Missing `Secure` flag on HTTPS connections
-- ❌ Weak or missing `SameSite` (Vulnerable to Cross-Site Request Forgery)
-
----
-
-### 5. CORS Misconfiguration Auditor
-Tests CORS configuration by sending preflight and cross-origin probes.
-
-```bash
-python3 packages/sentinel-py/sentinel.py cors https://example.com
-```
-
-Detects:
-- Arbitrary Origin Reflection: `Access-Control-Allow-Origin: https://evil.com`
-- Null Origin Trust: `Access-Control-Allow-Origin: null`
-- Credential Leakage: `Access-Control-Allow-Credentials: true` with wildcard or reflected origin
-
----
-
-### 6. Forensic JWT Inspector
-Inspects and diagnoses JSON Web Tokens without requiring third-party libraries.
-
-```bash
-python3 packages/sentinel-py/sentinel.py jwt <YOUR_JWT_TOKEN>
-```
-
-Flags:
-- Insecure signature algorithm `"alg": "none"`
-- Expired tokens (`exp` timestamp comparison against UTC)
-- Header and payload claim inspection
-
----
-
-### 7. Active Auth & IDOR Prober
-Probes common sensitive endpoints to verify if authentication middleware is active.
-
-```bash
-python3 packages/sentinel-py/sentinel.py auth https://example.com --routes /api/admin,/api/users,/api/billing
-```
-
----
-
-## 🧪 Automated Testing
-
-Sentinel Python Toolkit includes an automated test suite with an in-memory HTTP server fixture:
-
-```bash
-python3 -m unittest discover -s packages/sentinel-py/tests
+python3 packages/sentinel-py/sentinel.py admin https://example.com
 ```
