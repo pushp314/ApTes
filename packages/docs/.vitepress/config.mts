@@ -22,24 +22,36 @@ export default defineConfig({
       };
     }
   },
+  lastUpdated: true,
   title: "Sentinel",
-  description: "Deterministic security analysis for code, web targets, and MCP systems.",
+  description: "Deterministic security analysis for code, web targets, and active network reconnaissance.",
   head: [
     ['meta', { property: 'og:title', content: 'Sentinel | Deterministic Security Platform' }],
-    ['meta', { property: 'og:description', content: 'The first tri-boundary security orchestrator for the AI agentic web.' }],
+    ['meta', { property: 'og:description', content: 'A unified correlation layer for the modern web.' }],
     ['meta', { property: 'og:image', content: 'https://sentinel-security.dev/og-image.jpg' }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
     ['link', { rel: 'icon', href: '/favicon.ico' }]
   ],
   themeConfig: {
+    logo: '/favicon.ico',
+    editLink: {
+      pattern: 'https://github.com/pushp314/ApTes/edit/main/packages/docs/:path',
+      text: 'Edit this page on GitHub'
+    },
     nav: [
       { text: 'Home', link: '/' },
-      { text: 'Vision (For VCs)', link: '/vision/the-problem' },
-      { text: 'Research (For Academics)', link: '/research/methodology' },
       { text: 'Documentation', link: '/getting-started/introduction' },
-      { text: 'API', link: '/api-reference/README' }
+      { text: 'API', link: '/api-reference/README' },
+      { text: 'Enterprise', link: '/enterprise/overview' }
     ],
-    search: {
+    search: process.env.USE_ALGOLIA ? {
+      provider: 'algolia',
+      options: {
+        appId: process.env.ALGOLIA_APP_ID || 'YOUR_APP_ID',
+        apiKey: process.env.ALGOLIA_API_KEY || 'YOUR_SEARCH_API_KEY',
+        indexName: process.env.ALGOLIA_INDEX_NAME || 'sentinel'
+      }
+    } : {
       provider: 'local'
     },
     sidebar: [
@@ -57,6 +69,7 @@ export default defineConfig({
           { text: 'Architectural Methodology', link: '/research/methodology' },
           { text: 'Formal Security Guarantees', link: '/research/security-guarantees' },
           { text: 'Correlation Algorithms', link: '/research/correlation' },
+          { text: 'Empirical Evaluation Harness', link: '/research/eval-harness' },
           { text: 'Heuristic Algorithms', link: '/research/algorithms' },
           { text: 'Benchmarks & Performance', link: '/research/benchmarks' }
         ]
@@ -98,7 +111,8 @@ export default defineConfig({
         items: [
           { text: 'CodeSentinel', link: '/engines/codesentinel' },
           { text: 'WebSentinel', link: '/engines/websentinel' },
-          { text: 'MCPSentinel', link: '/engines/mcpsentinel' },
+          { text: 'ReconSentinel', link: '/engines/recon' },
+          { text: 'MCPSentinel (Optional)', link: '/engines/mcpsentinel' },
           { text: 'Active DAST Engine', link: '/engines/dast' },
           {
             text: 'Supported Technologies',
@@ -175,11 +189,26 @@ export default defineConfig({
           { text: 'Limitations', link: '/project-status/limitations' },
           { text: 'Roadmap', link: '/project-status/roadmap' }
         ]
+      },
+      {
+        text: 'Enterprise',
+        items: [
+          { text: 'Enterprise Overview', link: '/enterprise/overview' },
+          { text: 'Deployment & Air-gapped', link: '/enterprise/deployment' },
+          { text: 'SSO & RBAC', link: '/enterprise/sso-rbac' },
+          { text: 'Security & Compliance', link: '/enterprise/compliance' }
+        ]
       }
     ],
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/pushp314/ApTes' }
-    ]
+      { icon: 'github', link: 'https://github.com/pushp314/ApTes' },
+      { icon: 'x', link: 'https://twitter.com/SentinelSec' },
+      { icon: 'linkedin', link: 'https://linkedin.com/company/sentinel-sec' }
+    ],
+    footer: {
+      message: 'Released under the MIT License.',
+      copyright: 'Copyright © 2026 Sentinel Security Inc.'
+    }
   }
 })
 

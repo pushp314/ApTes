@@ -7,7 +7,7 @@
   </div>
 </div>
 
-Sentinel is designed as a modular security platform consisting of three independent engines coordinated by a central orchestrator, with optional AI augmentation.
+Sentinel is designed as a modular security platform consisting of three primary engines (Code, Web, Recon) coordinated by a central orchestrator, with an optional AI augmentation and Agent security module (MCP).
 
 ## High-Level Architecture
 
@@ -35,16 +35,19 @@ flowchart TD
     subgraph Engines["Analysis Engines"]
         CS["CodeSentinel\n(ts-morph + tree-sitter)"]
         WS["WebSentinel\n(Playwright)"]
-        MS["MCPSentinel\n(stdio JSON-RPC)"]
+        RS["ReconSentinel\n(Nmap, Nuclei)"]
+        MS["MCPSentinel\n(Optional)"]
     end
     
     ORCH --> CS
     ORCH --> WS
-    ORCH --> MS
+    ORCH --> RS
+    ORCH -.-> MS
     
     CS --> SHARED["@sentinel/shared\n(Finding Model)"]
     WS --> SHARED
-    MS --> SHARED
+    RS --> SHARED
+    MS -.-> SHARED
     
     SHARED --> CORR
     CORR --> AIR
@@ -85,13 +88,14 @@ The single entry point that manages the entire scan lifecycle. It:
 - Generates reports in multiple formats.
 
 ### 2. The Engines
-Three independent vulnerability scanners that operate on distinct domains:
+Three primary vulnerability scanners operate on distinct domains, plus one optional agent engine:
 
 | Engine | Domain | Technology | Input | Output |
 | --- | --- | --- | --- | --- |
 | **CodeSentinel** | Source Code (AST) | `ts-morph`, `tree-sitter` | Directory path | `Finding[]` |
 | **WebSentinel** | Live Web App (DOM) | `Playwright` | URL | `Finding[]` |
-| **MCPSentinel** | AI Tool Server | `@modelcontextprotocol/sdk` | Command | `Finding[]` |
+| **ReconSentinel**| Network Attack Surface | `Nmap`, `Nuclei` | Hostname/IP | `Finding[]` |
+| **MCPSentinel** (Opt-in) | AI Tool Server | `@modelcontextprotocol/sdk` | Command | `Finding[]` |
 
 They share no internal state. Each engine outputs a standard `Finding[]` array defined in `@sentinel/shared`.
 
@@ -114,28 +118,26 @@ An optional layer that intercepts low-confidence findings and passes them to Oll
 
 ## Zero False Positives: Exact Path Correlation
 
-The true power of Sentinel is its ability to **mathematically prove** an attack path by correlating data across all three engines.
+The true power of Sentinel is its ability to **mathematically prove** an attack path by correlating data across all three primary engines.
 
 ```mermaid
 sequenceDiagram
-    participant Web as WebSentinel (Playwright)
+    participant Recon as ReconSentinel (Nmap)
     participant Orchestrator as Platform Orchestrator
+    participant Web as WebSentinel (Playwright)
     participant Code as CodeSentinel (AST)
-    participant MCP as MCPSentinel (Agent)
 
-    Web->>Web: Detect AI Chat Widget in DOM
-    Web->>Web: Inject Fuzzing Payload
-    Web->>Orchestrator: Widget talks to POST /api/chat
+    Recon->>Recon: Scan Target Ports
+    Recon->>Orchestrator: Port 8080 exposed (HTTP)
+
+    Web->>Web: Crawl http://localhost:8080
+    Web->>Orchestrator: Found missing security headers
 
     Code->>Code: Trace AST from HTTP sink to Source
-    Code->>Orchestrator: POST /api/chat missing Auth
-    Code->>Orchestrator: POST /api/chat calls MCP Tool
+    Code->>Orchestrator: Route handler missing Auth Middleware
 
-    MCP->>MCP: Analyze Tool Schema
-    MCP->>Orchestrator: Tool has arbitrary filesystem access
-
-    Orchestrator->>Orchestrator: Correlate: Web endpoint == Code route == MCP tool
-    Orchestrator-->>Developer: 🚨 P0 Attack Path (Zero False Positives)
+    Orchestrator->>Orchestrator: Correlate: Recon Open Port == Web Missing Headers == Code Missing Auth
+    Orchestrator-->>Developer: 🚨 P0 Attack Path (Critically Exposed Unauthenticated Service)
 ```
 
 ### Why This Is Revolutionary
@@ -144,7 +146,7 @@ Traditional scanners operate in isolation. A SAST tool might flag "missing auth"
 
 | Boundary | Finding | Standalone Confidence | Correlated Confidence |
 | --- | --- | --- | --- |
-| Web | AI widget sends to `/api/chat` | MEDIUM | — |
-| Code | `/api/chat` has no auth middleware | HIGH | — |
-| MCP | Tool has filesystem delete capability | HIGH | — |
-| **Correlated** | **Full attack path: Widget → Unauthed Route → Destructive Tool** | — | **CRITICAL (P0)** |
+| Recon | Port 8080 exposed and serving HTTP | LOW | — |
+| Web | Missing strict security headers on 8080 | LOW | — |
+| Code | Route handler missing authentication | HIGH | — |
+| **Correlated** | **Full attack path: Exposed port serving unauthenticated route logic** | — | **CRITICAL (P0)** |
