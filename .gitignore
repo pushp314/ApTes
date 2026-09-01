@@ -32,3 +32,8 @@ npm-debug.log*
 
 # CodeSentinel local cache
 .codesentinel-cache.json
+
+# Scan outputs
+findings.json
+scan-results.txt
+unified_output*.txt

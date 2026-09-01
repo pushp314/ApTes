@@ -82,7 +82,7 @@ export const ActiveFuzzRule: EngineRule = {
       // 4. Check for stack trace or SQL error leakage in current page DOM
       const bodyText = document.body?.innerText || '';
       const stackPatterns = [
-        /at\s+[\w\$.<>]+\s+\([^)]+:\d+:\d+\)/,
+        /at\s+[\w$.<>]+\s+\([^)]+:\d+:\d+\)/,
         /Traceback \(most recent call last\):/,
         /SyntaxError:\s+unexpected token/i,
         /SQLSTATE\[\w+\]:/i,

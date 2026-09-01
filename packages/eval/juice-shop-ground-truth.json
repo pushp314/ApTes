@@ -1,0 +1,29 @@
+{
+  "target": "OWASP Juice Shop",
+  "findings": [
+    {
+      "id": "sqli-login",
+      "description": "SQL Injection on Login",
+      "expectedCategory": "injection",
+      "expectedSeverity": "high"
+    },
+    {
+      "id": "xss-search",
+      "description": "Cross-Site Scripting (XSS) on Search",
+      "expectedCategory": "injection",
+      "expectedSeverity": "high"
+    },
+    {
+      "id": "missing-security-headers",
+      "description": "Missing Security Headers",
+      "expectedCategory": "config",
+      "expectedSeverity": "low"
+    },
+    {
+      "id": "exposed-metrics",
+      "description": "Prometheus metrics exposed without authentication",
+      "expectedCategory": "auth",
+      "expectedSeverity": "high"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "name": "@sentinel/recon",
+  "version": "0.1.0",
+  "description": "Recon engine for Sentinel platform",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --project tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@sentinel/shared": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
+  }
+}

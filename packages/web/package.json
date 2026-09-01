@@ -8,7 +8,8 @@
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "typecheck": "tsc --project tsconfig.json --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "postinstall": "playwright install --with-deps chromium"
   },
   "dependencies": {
     "@sentinel/shared": "*",

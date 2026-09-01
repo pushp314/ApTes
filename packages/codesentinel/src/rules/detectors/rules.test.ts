@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { Project } from 'ts-morph';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { TypeErrorRule } from './type-errors.js';
-import { IdorRule } from './idor.js';
-import { McpExposureRule } from './mcp-exposure.js';
 import { ConfigDriftRule } from './config-drift.js';
 import { PayloadMismatchRule } from './payload-mismatch.js';
 import { PythonInjectionRule } from './python-injection.js';
@@ -44,7 +44,6 @@ describe('CodeSentinel Rules', () => {
   }
 
   function createContext(filePath: string): CodeRuleContext {
-    const fs = require('fs');
     const project = new Project({
       useInMemoryFileSystem: true,
       compilerOptions: { allowJs: true, checkJs: true, esModuleInterop: true },
@@ -338,7 +337,7 @@ describe('CodeSentinel Rules', () => {
   it('detects missing configuration variables (ConfigDriftRule)', () => {
     // We can simulate it by providing a real targetDir to the context
     const context = createTestContext('');
-    context.targetDir = require('path').resolve(__dirname, '../../../fixtures/sample-project');
+    context.targetDir = path.resolve(__dirname, '../../../fixtures/sample-project');
     const findings = ConfigDriftRule.analyze(context);
 
     expect(findings.length).toBeGreaterThan(0);

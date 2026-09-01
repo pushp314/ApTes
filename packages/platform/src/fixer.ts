@@ -70,7 +70,7 @@ function generateDeterministicPatch(finding: Finding, originalContent: string): 
 
   // 4. Hardcoded Secrets (Redaction placeholder)
   if (finding.category === 'secrets' || finding.ruleId.includes('secret') || finding.ruleId.includes('api-key')) {
-    const secretMatch = lineContent.match(/(['"`])([a-zA-Z0-9_\-]{16,})\1/);
+    const secretMatch = lineContent.match(/(['"`])([a-zA-Z0-9_-]{16,})\1/);
     if (secretMatch && secretMatch[2]) {
       const fixedLine = lineContent.replace(secretMatch[0], 'process.env.SECRET_KEY || ""');
       const newLines = [...lines];

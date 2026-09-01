@@ -28,7 +28,7 @@ export function resolveExpression(node: Node, maxDepth = 3): Node[] {
     let defs: Node[] = [];
     try {
       defs = node.getDefinitionNodes();
-    } catch (e) {
+    } catch {
       // Language Service may crash on malformed projects
     }
     
@@ -78,7 +78,7 @@ export function resolveExpression(node: Node, maxDepth = 3): Node[] {
               let refs: Node[] = [];
               try {
                 refs = refNode.findReferencesAsNodes();
-              } catch (e) {
+              } catch {
                 // Ignore Language Service crashes
               }
               for (const ref of refs) {

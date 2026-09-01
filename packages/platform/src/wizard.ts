@@ -2,15 +2,11 @@ import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { detectStartCommand } from './auto-detect.js';
-import { GeminiProvider } from './ai/gemini-provider.js';
 import type { ProjectDefinition } from './orchestrator.js';
 
 export async function runInteractiveWizard(): Promise<ProjectDefinition> {
   console.clear();
   p.intro(`${pc.bgBlue(pc.white(' Sentinel Tri-Boundary Orchestrator '))} ${pc.dim('v0.1.0')}`);
-
-  const cwd = process.cwd();
 
   const mode = await p.select({
     message: 'How would you like to configure Sentinel?',
@@ -29,47 +25,7 @@ export async function runInteractiveWizard(): Promise<ProjectDefinition> {
   let mcpCommand = '';
   const spinner = p.spinner();
   
-  if (mode !== 'web-only') {
-    spinner.start('Analyzing workspace...');
-    const detectedCommand = await detectStartCommand(cwd);
-    spinner.stop(detectedCommand ? `Detected start command: ${pc.green(detectedCommand)}` : 'Could not auto-detect start command.');
-
-    mcpCommand = detectedCommand || '';
-
-    if (!detectedCommand) {
-      const useGemini = await p.confirm({
-        message: 'Would you like Gemini AI to analyze your workspace and suggest the start command?',
-        initialValue: true,
-      });
-
-      if (useGemini && !p.isCancel(useGemini)) {
-        const apiKey = await p.password({
-          message: 'Please enter your Gemini API Key:',
-          validate: (value) => {
-            if (!value) return 'API Key is required to use Gemini.';
-          },
-        });
-
-        if (typeof apiKey === 'string') {
-          spinner.start('Gemini is analyzing your files...');
-          const gemini = new GeminiProvider(apiKey);
-          const suggested = await gemini.analyzeWorkspaceForCommand(cwd);
-          spinner.stop('Gemini analysis complete.');
-
-          if (suggested) {
-            p.note(`Gemini suggests: ${pc.cyan(suggested)}`, 'Analysis Result');
-            const accept = await p.confirm({
-              message: 'Use this command?',
-              initialValue: true,
-            });
-            if (accept) {
-              mcpCommand = suggested;
-            }
-          }
-        }
-      }
-    }
-  }
+  // MCP is now strictly opt-in and will be configured later in the flow if requested.
 
   let webUrl = 'http://localhost:3000';
   let authorized = false;
@@ -208,6 +164,7 @@ export async function runInteractiveWizard(): Promise<ProjectDefinition> {
     aiModel: process.env.GEMINI_API_KEY ? 'gemini-1.5-flash' : 'llama3',
     aiUrl: 'http://localhost:11434',
     aiProvider: process.env.GEMINI_API_KEY ? 'gemini' : 'ollama',
+    mcpEnabled: mcpTargets.length > 0,
     mcpTargets,
   };
 

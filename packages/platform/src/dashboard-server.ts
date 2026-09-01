@@ -1783,7 +1783,7 @@ Note: To enable conversational LLM generation, ensure Ollama is running with: \`
               const currentDir = path.dirname(fileURLToPath(import.meta.url));
               const pythonScript = path.resolve(currentDir, '../../sentinel-py/sentinel.py');
 
-              let pyArgs = [pythonScript, tool, targetUrl];
+              const pyArgs = [pythonScript, tool, targetUrl];
               if (tool === 'audit' || tool === 'endpoints' || tool === 'admin') {
                 pyArgs.push('--json');
               }

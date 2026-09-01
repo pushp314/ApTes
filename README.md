@@ -1,38 +1,35 @@
 <div align="center">
   <h1>🛡️ Sentinel Security Platform</h1>
-  <p><b>The Tri-Boundary Security Orchestrator for AI-Driven Web Architectures</b></p>
+  <p><b>The Static-Dynamic Security Orchestrator for Web Architectures</b></p>
 </div>
 
 ---
 
 ## 🚀 The Zero False-Positive Security Engine
 
-Modern full-stack applications integrate complex frontends, dynamic backends, and advanced AI agent protocols (like the Model Context Protocol). Traditional static analysis tools (grep-based SAST) and dynamic scanners (DAST) operate in silos. They generate thousands of false-positive alerts by blindly flagging "missing authentication" or "hardcoded strings" without understanding if the code is actually reachable or exploitable.
+Modern full-stack applications integrate complex frontends and dynamic backends. Traditional static analysis tools (grep-based SAST) and dynamic scanners (DAST) operate in silos. They generate thousands of false-positive alerts by blindly flagging "missing authentication" or "hardcoded strings" without understanding if the code is actually reachable or exploitable.
 
 **Sentinel changes everything.**
 
-Sentinel is a revolutionary **Tri-Boundary Orchestrator**. It mathematically proves complete exploit chains across your entire architectural stack by running three distinct security engines simultaneously and correlating their findings.
+Sentinel is a revolutionary **Dual-Engine Orchestrator**. It mathematically proves complete exploit chains across your architectural stack by running two distinct security engines simultaneously and correlating their findings.
 
-### 🧠 The Three Engines
+### 🧠 The Engines
 
 1. **CodeSentinel (Static AST Analysis)**
    Uses the TypeScript Compiler API (`ts-morph`) to perform deterministic, cross-file data-flow tracking. It traces variable taint from function parameters, across ES6 imports, deep into database execution sinks.
 2. **WebSentinel (Playwright DOM Fuzzing)**
-   Actively crawls your frontend. When it detects a third-party AI Widget, it injects tracking payloads, clicks submit, captures visual screenshots, and intercepts the exact XHR/fetch network requests the widget makes.
-3. **MCPSentinel (Agent Protocol Security)**
-   Scans Model Context Protocol (MCP) servers to ensure that AI agents aren't granted unbounded privileges (like arbitrary `fs.writeFile` access) on the host machine.
+   Actively crawls your frontend. When it detects interactive components, it injects tracking payloads, clicks submit, captures visual screenshots, and intercepts the exact XHR/fetch network requests the widget makes.
 
 ### 🔗 Exact Path Correlation = Zero False Positives
 
-When all three engines run, the **Platform Orchestrator** synthesizes their data to find true architectural vulnerabilities. 
+When both engines run, the **Platform Orchestrator** synthesizes their data to find true architectural vulnerabilities. 
 
-**Example P0 Attack Chain Detected by Sentinel:**
-1. *WebSentinel* interacts with a Chat Widget and proves it talks to `/api/chat`.
-2. *CodeSentinel* statically proves that `/api/chat` is missing an authentication middleware.
-3. *CodeSentinel* statically proves that `/api/chat` invokes an MCP Client `callTool()` method.
-4. *MCPSentinel* statically proves that the target MCP Tool has unbounded, critical host access.
+**Example Drift Detection:**
+1. *WebSentinel* inspects a live endpoint returning `{userId, fullName, email}`.
+2. *CodeSentinel* statically analyzes the client expecting `{id, name, email}`.
+3. The platform correlates these findings to identify a clear **Configuration Drift** or **Schema Mismatch**.
 
-Sentinel reports this as a single, verified **`platform-p0-attack-path`**. It proves that an unauthenticated user on the frontend can achieve Remote Code Execution (RCE) via an AI widget. 
+Sentinel reports verified configuration drifts directly, removing the noise from single-source false positives.
 
 ---
 
@@ -43,6 +40,15 @@ Sentinel reports this as a single, verified **`platform-p0-attack-path`**. It pr
 - **Configuration Drift:** Compares `docker-compose.yml` environment variables against `.env.example` to ensure infrastructure parity.
 - **DOM-to-Network Correlation:** Interacts with the live DOM to mathematically prove which backend route serves which frontend component.
 - **AI Triage Integration:** Leverages Ollama (Llama 3) strictly within deterministic token budgets to classify and redact low-confidence findings.
+
+---
+
+## 🤖 Optional Third Engine: MCP Sentinel
+
+Sentinel also includes an opt-in **MCPSentinel** engine for advanced AI-driven architectures. 
+If your application uses the Model Context Protocol (MCP) to connect AI agents to backend services, MCPSentinel can scan those MCP servers to ensure agents aren't granted unbounded host privileges (like arbitrary file system access).
+
+While CodeSentinel and WebSentinel form the core, MCPSentinel can be enabled during the CLI wizard for specialized AI security testing.
 
 ---
 
@@ -64,13 +70,12 @@ npm run build
 
 ### 3. Run a Scan
 
-To run a scan, you simply invoke the platform CLI and point it to your codebase, a running frontend URL, and your MCP server execution command:
+To run a scan, you simply invoke the platform CLI and point it to your codebase and a running frontend URL:
 
 ```bash
 node packages/platform/dist/cli.js scan \
   --project "my-startup" \
-  --web "http://localhost:3000" \
-  --mcp "node packages/mcp/fixtures/server.js"
+  --web "http://localhost:3000"
 ```
 
 *For more detailed configuration options and rule customization, visit the [Documentation Website](./packages/docs).*

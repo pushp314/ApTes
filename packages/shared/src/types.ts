@@ -68,7 +68,7 @@ export function isConfidence(value: string): value is Confidence {
  * - mcp:  MCP Engine — analyzes MCP servers via introspection (requires authorization).
  * - code: Code Engine (CodeSentinel) — local source-code analysis (no authorization needed).
  */
-export type EngineType = 'web' | 'mcp' | 'code' | 'platform';
+export type EngineType = 'web' | 'mcp' | 'code' | 'platform' | 'recon';
 
 /** All valid engine type values. */
 export const ENGINE_TYPES: readonly EngineType[] = [
@@ -76,6 +76,7 @@ export const ENGINE_TYPES: readonly EngineType[] = [
   'mcp',
   'code',
   'platform',
+  'recon',
 ] as const;
 
 /** Returns true if the given string is a valid EngineType value. */

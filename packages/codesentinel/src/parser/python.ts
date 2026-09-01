@@ -1,5 +1,4 @@
 import Parser, { Tree, SyntaxNode } from 'tree-sitter';
-// @ts-ignore
 import Python from 'tree-sitter-python';
 import * as fs from 'fs';
 import * as path from 'path';

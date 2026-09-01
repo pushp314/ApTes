@@ -38,7 +38,7 @@ export interface EngineRule {
    * Which engine this rule belongs to.
    * Only "web" or "mcp" — CodeSentinel uses its own rule structure.
    */
-  engineType: 'web' | 'mcp';
+  engineType: 'web' | 'mcp' | 'recon';
 
   /**
    * Category grouping for findings produced by this rule.
@@ -87,7 +87,7 @@ export interface EngineContext {
   runId: string;
 
   /** Which engine is running. */
-  engineType: 'web' | 'mcp';
+  engineType: 'web' | 'mcp' | 'recon';
 
   /** Project ID for finding attribution. */
   projectId: string;
@@ -97,6 +97,9 @@ export interface EngineContext {
 
   /** MCP engine context — present only when engineType is "mcp". */
   mcpContext?: McpContext;
+
+  /** Recon engine context — present only when engineType is "recon". */
+  reconContext?: ReconContext;
 }
 
 // ---------------------------------------------------------------------------
@@ -134,6 +137,13 @@ export interface McpContext {
 
   /** Metadata about the target MCP server (transport, version, etc.). */
   serverMeta: ServerMetadata;
+}
+
+// ---------------------------------------------------------------------------
+// Recon Context Stubs
+// ---------------------------------------------------------------------------
+export interface ReconContext {
+  target: string;
 }
 
 // ---------------------------------------------------------------------------

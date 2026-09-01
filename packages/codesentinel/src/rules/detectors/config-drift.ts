@@ -83,7 +83,7 @@ export const ConfigDriftRule: CodeRule = {
           });
         }
       }
-    } catch (e) {
+    } catch {
       // Ignore read errors
     }
 

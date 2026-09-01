@@ -6,11 +6,13 @@
 
 ## 1. Project Description
 
-Sentinel is a single platform that tests **both layers of a modern web application**: the website itself (availability, structure, forms, links, security headers) and, where the site embeds an AI agent or chatbot, the **MCP servers that agent is actually wired to** behind the scenes.
+Sentinel is a **unified correlation layer** that takes the best purpose-built security tools (static analysis, dynamic web testing, network reconnaissance) and turns their raw outputs into one unified, prioritized, human-readable report. 
 
-These were originally two separate tools — App Tester (deterministic website QA + security scanning) and MCP Sentinel (MCP server schema/privilege scanning). They're being combined because they answer one question that neither answers alone: **"Is this application, end to end, actually safe and working — including the AI agent it talks to?"**
+While individual tools produce noise (Nmap XML dumps, Nuclei JSON lines, static analysis warnings), Sentinel's actual product is the **correlation engine**. It answers the real-world question: *"Is this theoretical code vulnerability actually exploitable in my live infrastructure?"*
 
-A site can pass every QA and security header check and still be sitting on top of a critically vulnerable MCP server. A vulnerable MCP server, tested in isolation, tells you nothing about whether it's actually exposed through a live product. Sentinel tests both and — where possible — correlates them into one finding: *"your site is fine, but the agent it calls has a critical, exploitable tool definition."* That correlation is the actual product.
+For example, CodeSentinel might flag a missing authentication check on an API route. WebSentinel might note that the web server is missing security headers. Recon (Nmap) might show the backend port is exposed to the public internet. Individually, these might be ignored. Correlated together, Sentinel proves a critical, actively exposed unauthenticated API.
+
+Sentinel also includes an optional third engine, **MCPSentinel**, for auditing Model Context Protocol servers connected to AI agents.
 
 ---
 

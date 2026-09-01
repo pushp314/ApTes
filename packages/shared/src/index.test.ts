@@ -77,9 +77,9 @@ describe('Confidence', () => {
 // ---------------------------------------------------------------------------
 
 describe('EngineType', () => {
-  it('defines four engine types', () => {
-    expect(ENGINE_TYPES).toEqual(['web', 'mcp', 'code', 'platform']);
-    expect(ENGINE_TYPES).toHaveLength(4);
+  it('defines five engine types', () => {
+    expect(ENGINE_TYPES).toEqual(['web', 'mcp', 'code', 'platform', 'recon']);
+    expect(ENGINE_TYPES).toHaveLength(5);
   });
 
   it('validates valid engine type values', () => {

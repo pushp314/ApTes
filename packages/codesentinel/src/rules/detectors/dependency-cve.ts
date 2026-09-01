@@ -23,7 +23,7 @@ export const DependencyCveRule: CodeRule = {
   analyze(context: CodeRuleContext): Finding[] {
     const findings: Finding[] = [];
     
-    let dir = path.dirname(context.sourceFile.getFilePath());
+    const dir = path.dirname(context.sourceFile.getFilePath());
     let packageJsonPath = path.join(dir, 'package.json');
     if (!fs.existsSync(packageJsonPath)) {
       packageJsonPath = path.join(dir, '..', 'package.json');
@@ -65,7 +65,7 @@ export const DependencyCveRule: CodeRule = {
             });
           }
         }
-      } catch (e) {
+      } catch {
         // Ignore parse errors for MVP
       }
     }

@@ -1,0 +1,23 @@
+{
+  "name": "@sentinel/eval",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Evaluation framework for Sentinel against benchmark corpora",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "evaluate": "node dist/runner.js"
+  },
+  "dependencies": {
+    "@sentinel/shared": "*",
+    "@sentinel/platform": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  }
+}

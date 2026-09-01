@@ -17,6 +17,7 @@
     "@clack/prompts": "^1.7.0",
     "@google/genai": "^2.18.0",
     "@sentinel/mcp": "*",
+    "@sentinel/recon": "*",
     "@sentinel/shared": "*",
     "@sentinel/web": "*",
     "commander": "^12.0.0",
