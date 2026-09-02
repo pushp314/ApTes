@@ -5,3 +5,5 @@ export * from "./adapters/nmap.js";
 export * from "./adapters/testssl.js";
 export * from "./adapters/subfinder.js";
 export * from "./adapters/theharvester.js";
+export * from "./adapters/nikto.js";
+export * from "./adapters/ffuf.js";

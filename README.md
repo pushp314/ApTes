@@ -4,7 +4,7 @@
   <p>
     <a href="https://github.com/pushp314/ApTes/actions/workflows/ci.yml"><img src="https://github.com/pushp314/ApTes/actions/workflows/ci.yml/badge.svg" alt="CI Status" /></a>
     <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" /></a>
-    <img src="https://img.shields.io/badge/Tests-159%20passing-brightgreen" alt="159 Tests Passing" />
+    <img src="https://img.shields.io/badge/Tests-164%20passing-brightgreen" alt="164 Tests Passing" />
   </p>
 </div>
 

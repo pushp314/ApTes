@@ -136,6 +136,28 @@ vi.mock("@sentinel/recon", async (importOriginal) => {
           durationMs: 10,
         };
       }
+      if (target === "mock.endpoint.test") {
+        return {
+          findings: [
+            {
+              id: "recon-ffuf-1",
+              projectId: "test",
+              runId: "test",
+              engine: "recon",
+              ruleId: "recon-ffuf-admin",
+              category: "sensitive-exposure",
+              severity: "high",
+              confidence: "high",
+              title:
+                "Exposed Administrative / Sensitive Endpoint: https://mock.endpoint.test/admin",
+              message: "Endpoint /admin returned HTTP 200",
+              location: "https://mock.endpoint.test/admin",
+              timestamp: "",
+            },
+          ],
+          durationMs: 10,
+        };
+      }
       return { findings: [], durationMs: 10 };
     }),
   };
@@ -266,5 +288,32 @@ describe("Unified Platform Orchestrator (Correlation Logic)", () => {
     expect((attack.evidence as any).discoveredHosts).toContain(
       "api.mock.subdomains.test",
     );
+  });
+
+  it("should generate platform-unmapped-sensitive-endpoint finding when active recon discovers sensitive endpoints", async () => {
+    const report = await runUnifiedPlatform({
+      id: "test-endpoint-proj",
+      webUrl: "https://mock.endpoint.test",
+      authorizationConfirmed: true,
+      authorizationConfirmedAt: new Date().toISOString(),
+      mcpTargets: [],
+      reconTargets: [
+        {
+          target: "mock.endpoint.test",
+          authorizationConfirmed: true,
+          authorizationConfirmedAt: new Date().toISOString(),
+        },
+      ],
+    });
+
+    const endpointFindings = report.findings.filter(
+      (f) => f.ruleId === "platform-unmapped-sensitive-endpoint",
+    );
+    expect(endpointFindings.length).toBe(1);
+    const finding = endpointFindings[0];
+    if (!finding) throw new Error("Missing endpoint finding");
+    expect(finding.severity).toBe("high");
+    expect(finding.title).toContain("Correlated Exposed Sensitive Endpoint");
+    expect((finding.evidence as any).reconFindingId).toBe("recon-ffuf-1");
   });
 });

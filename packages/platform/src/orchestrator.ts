@@ -236,6 +236,8 @@ export async function runUnifiedPlatform(
                 "testssl",
                 "subfinder",
                 "theharvester",
+                "nikto",
+                "ffuf",
               ],
               scanTimeoutMs: timeoutMs,
               onProgress,
@@ -376,6 +378,40 @@ export async function runUnifiedPlatform(
           "Review discovered subdomains, verify authorization, and add to project scan inventory if active.",
         timestamp: new Date().toISOString(),
       });
+    }
+
+    // 4d. Correlate: Recon (Nikto / Ffuf) discovered sensitive endpoint -> platform-unmapped-sensitive-endpoint
+    const exposedEndpointFindings = allFindings.filter(
+      (f) =>
+        f.engine === "recon" &&
+        f.category === "sensitive-exposure" &&
+        (f.ruleId.startsWith("recon-ffuf-") ||
+          f.ruleId.startsWith("recon-nikto-")),
+    );
+
+    if (exposedEndpointFindings.length > 0) {
+      for (const exposed of exposedEndpointFindings) {
+        allFindings.push({
+          id: crypto.randomUUID(),
+          projectId: project.id,
+          runId: project.id,
+          engine: "platform",
+          ruleId: "platform-unmapped-sensitive-endpoint",
+          category: "correlation",
+          severity: "high",
+          confidence: "high",
+          title: `Correlated Exposed Sensitive Endpoint: ${exposed.location || exposed.title}`,
+          message: `Active fuzzing and reconnaissance confirmed reachable sensitive route ${exposed.location || exposed.title}. The endpoint is publicly accessible without required authentication barriers.`,
+          evidence: {
+            reconFindingId: exposed.id,
+            location: exposed.location,
+            ruleId: exposed.ruleId,
+          },
+          remediation:
+            "Implement authentication middleware and IP allowlisting on this endpoint immediately.",
+          timestamp: new Date().toISOString(),
+        });
+      }
     }
   } catch (err) {
     errors.push(

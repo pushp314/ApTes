@@ -4,6 +4,8 @@ import { NmapAdapter } from "./adapters/nmap.js";
 import { TestsslAdapter } from "./adapters/testssl.js";
 import { SubfinderAdapter } from "./adapters/subfinder.js";
 import { TheHarvesterAdapter } from "./adapters/theharvester.js";
+import { NiktoAdapter } from "./adapters/nikto.js";
+import { FfufAdapter } from "./adapters/ffuf.js";
 
 export const RECON_ADAPTERS = [
   NucleiAdapter,
@@ -11,6 +13,8 @@ export const RECON_ADAPTERS = [
   TestsslAdapter,
   SubfinderAdapter,
   TheHarvesterAdapter,
+  NiktoAdapter,
+  FfufAdapter,
 ];
 
 export interface ReconRunnerOptions {
