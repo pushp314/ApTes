@@ -1,60 +1,128 @@
 <div align="center">
   <h1>🛡️ Sentinel Security Platform</h1>
-  <p><b>The Static-Dynamic Security Orchestrator for Web Architectures</b></p>
+  <p><b>The Unified Correlation Layer for Modern Web Architectures</b></p>
   <p>
     <a href="https://github.com/pushp314/ApTes/actions/workflows/ci.yml"><img src="https://github.com/pushp314/ApTes/actions/workflows/ci.yml/badge.svg" alt="CI Status" /></a>
     <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" /></a>
     <img src="https://img.shields.io/badge/Tests-164%20passing-brightgreen" alt="164 Tests Passing" />
+    <img src="https://img.shields.io/badge/Node.js-%3E%3D20.0.0-informational" alt="Node.js 20+" />
+    <img src="https://img.shields.io/badge/Telemetry-100%25%20Local-success" alt="Zero Cloud Telemetry" />
   </p>
 </div>
 
 ---
 
-## 🚀 The Zero False-Positive Security Engine
+## 🚀 Beyond Noisy Scanners: The Correlation Thesis
 
-Modern full-stack applications integrate complex frontends and dynamic backends. Traditional static analysis tools (grep-based SAST) and dynamic scanners (DAST) operate in silos. They generate thousands of false-positive alerts by blindly flagging "missing authentication" or "hardcoded strings" without understanding if the code is actually reachable or exploitable.
+Modern engineering organizations are drowning in security alert fatigue:
 
-**Sentinel changes everything.**
+- **Static Analysis (SAST)** flags hundreds of theoretical sinks in uncallable dead code paths.
+- **Dynamic Scanners (DAST)** probe frontends blind to the underlying database schemas, backend routes, or data flow.
+- **Network & OSINT Scanners** dump unreadable terminal walls and gigabytes of raw XML/JSON output.
 
-Sentinel is a revolutionary **Dual-Engine Orchestrator**. It mathematically proves complete exploit chains across your architectural stack by running two distinct security engines simultaneously and correlating their findings.
+**Sentinel rejects this paradigm.**
 
-### 🧠 The Engines
+The raw output of individual security tools is not the product. The product is **mathematical correlation**. Sentinel acts as a deterministic orchestration layer that runs specialized engines across the stack—**Static Code Analysis (AST)**, **Dynamic Browser Testing (DOM)**, and **Active Network Reconnaissance**—and correlates their signals into verified, high-confidence exploit paths with zero false positives.
 
-1. **CodeSentinel (Static AST Analysis)**
-   Uses the TypeScript Compiler API (`ts-morph`) to perform deterministic, cross-file data-flow tracking. It traces variable taint from function parameters, across ES6 imports, deep into database execution sinks.
-2. **WebSentinel (Playwright DOM Fuzzing)**
-   Actively crawls your frontend. When it detects interactive components, it injects tracking payloads, clicks submit, captures visual screenshots, and intercepts the exact XHR/fetch network requests the widget makes.
-
-### 🔗 Exact Path Correlation = Zero False Positives
-
-When both engines run, the **Platform Orchestrator** synthesizes their data to find true architectural vulnerabilities.
-
-**Example Drift Detection:**
-
-1. _WebSentinel_ inspects a live endpoint returning `{userId, fullName, email}`.
-2. _CodeSentinel_ statically analyzes the client expecting `{id, name, email}`.
-3. The platform correlates these findings to identify a clear **Configuration Drift** or **Schema Mismatch**.
-
-Sentinel reports verified configuration drifts directly, removing the noise from single-source false positives.
-
----
-
-## ✨ Features
-
-- **Structural Taint Tracking:** Follows data flow across files, bypassing the limitations of simple regex matching.
-- **Payload Schema Inference:** Automatically infers expected backend payloads and frontend `fetch()` bodies, reporting strict `Request/Response Mismatches` without needing shared TypeScript interfaces or OpenAPI specs.
-- **Configuration Drift:** Compares `docker-compose.yml` environment variables against `.env.example` to ensure infrastructure parity.
-- **DOM-to-Network Correlation:** Interacts with the live DOM to mathematically prove which backend route serves which frontend component.
-- **AI Triage Integration:** Leverages Ollama (Llama 3) strictly within deterministic token budgets to classify and redact low-confidence findings.
+```
+                  ┌─────────────────────────────────────────┐
+                  │        Static Code Analysis (AST)       │
+                  │   ts-morph • tree-sitter • Taint Sink   │
+                  └────────────────────┬────────────────────┘
+                                       │
+                                       ▼
+┌───────────────────────────┐    ┌───────────┐    ┌───────────────────────────┐
+│ Dynamic Browser DOM (DAST)│───▶│  SENTINEL │◀───│ Network & Reconnaissance  │
+│ Playwright • Form Fuzzing │    │CORRELATION│    │ Nmap • Nuclei • testssl   │
+│ DOM-to-Network Tracking   │    │  ENGINE   │    │ Subfinder • Nikto • ffuf  │
+└───────────────────────────┘    └─────┬─────┘    └───────────────────────────┘
+                                       │
+                                       ▼
+                  ┌─────────────────────────────────────────┐
+                  │    Verified High-Confidence Findings    │
+                  │  SARIF • Executive PDF • Automated Fix  │
+                  └─────────────────────────────────────────┘
+```
 
 ---
 
-## 🤖 Optional Third Engine: MCP Sentinel
+## 🔗 Signature Capabilities: Multi-Engine Correlation
 
-Sentinel also includes an opt-in **MCPSentinel** engine for advanced AI-driven architectures.
-If your application uses the Model Context Protocol (MCP) to connect AI agents to backend services, MCPSentinel can scan those MCP servers to ensure agents aren't granted unbounded host privileges (like arbitrary file system access).
+### 1. Code ↔ Web Schema & Drift Correlation
 
-While CodeSentinel and WebSentinel form the core, MCPSentinel can be enabled during the CLI wizard for specialized AI security testing.
+Traditional scanners never correlate live API responses with the client code consuming them. Sentinel statically parses the frontend client AST to determine expected response models, while WebSentinel dynamically captures the live network response:
+
+- **Client Code (AST Expectation):** Statically expects `{ id: number, name: string, email: string }`.
+- **Live Server (DOM Interception):** Dynamically returns `{ userId: number, fullName: string }`.
+- **Sentinel Finding:** Deterministic **Schema Mismatch & Configuration Drift** (`category: 'drift'`). Prevents silent UI failures, type corruption, and broken contracts before production deployment.
+
+### 2. Triple-Engine Exploit Chain Verification (`platform-exposed-service-no-auth`)
+
+When an endpoint is flagged by multiple independent engines across boundaries, Sentinel proves a complete, reachable exploit chain:
+
+1. **Recon Engine (`nmap`)** identifies an open, public TCP port running HTTP.
+2. **Web Engine (`playwright`)** confirms missing authentication controls and security headers on that service.
+3. **Code Engine (`ts-morph`)** traces backend routing to confirm missing authentication middleware.
+
+- **Sentinel Finding:** Elevated to a verified **Critical P0 Attack Path** with zero false positive doubt.
+
+### 3. Transport & Client Policy Drift (`platform-tls-and-header-drift`)
+
+- **Recon Engine (`testssl.sh`)** detects deprecated cipher suites, expired certificates, or weak TLS 1.0/1.1 protocols.
+- **Web Engine (`web`)** discovers missing HTTP Strict Transport Security (HSTS) and CSP headers in the client browser.
+- **Sentinel Finding:** Fuses transport-layer weakness with client policy degradation into a unified remediation path.
+
+### 4. Unmapped Attack Surface Discovery (`platform-unmapped-sensitive-endpoint`)
+
+- Active fuzzing via **`ffuf`** and **`nikto`** discovers exposed internal administrative panels (`/admin`, `/metrics`, `/.env`).
+- Correlated against CodeSentinel's static AST route manifest to flag shadow APIs or unauthenticated internal dashboards.
+
+---
+
+## 🧠 The Three Core Engines
+
+### 🔬 1. CodeSentinel (Static AST Engine)
+
+- **Deterministic Taint Analysis:** Traces variable taint across function arguments, module imports, and database sinks without regex guessing.
+- **Multi-Language Support:** Compiler-grade AST parsing for TypeScript & JavaScript via `ts-morph` and Python via `tree-sitter`.
+- **Built-in Vulnerability Detectors:** SQL Injection, NoSQL Injection, Server-Side Request Forgery (SSRF), IDOR, Prototype Pollution, Insecure Deserialization (Pickle/YAML), Unhandled Promises, and Hardcoded Secrets.
+
+### 🕸️ 2. WebSentinel (Dynamic DOM Engine)
+
+- **Headless Chromium Execution:** Driven via Playwright to simulate real user interactions and render client-side SPAs.
+- **Active DOM & Form Fuzzing:** Automatically injects non-destructive tracking payloads into input forms, tracks network responses, and captures DOM states.
+- **Security Policy Auditing:** Evaluates Content Security Policy (CSP), CORS reflection, Cookie flags (`SameSite`, `HttpOnly`, `Secure`), and mixed-content risks.
+
+### 📡 3. ReconSentinel (Tool Integration & Normalization Engine)
+
+Wraps and normalizes industry-standard offensive and defensive security tools into structured `Finding` contracts:
+
+- **`nmap`**: TCP port enumeration and service version fingerprinting (`-sV`).
+- **`nuclei`**: Template-based community CVE and vulnerability verification.
+- **`testssl.sh`**: Comprehensive TLS/SSL cipher, protocol, and certificate auditing.
+- **`subfinder`**: Passive DNS subdomain discovery and attack surface discovery.
+- **`theHarvester`**: OSINT email exposure and external infrastructure indexing.
+- **`nikto`**: Web server configuration auditing and dangerous file scanning.
+- **`ffuf`**: High-speed endpoint fuzzing with safe, bounded default wordlists.
+
+---
+
+## 🏢 Enterprise Features
+
+- **SIEM-Ready Structured Logging:** Built with `pino`. Emits clean, high-performance JSON logs in production environments (`JSON_LOGS=true` or `NODE_ENV=production`) for ingestion into Splunk, Datadog, or Elasticsearch.
+- **Native SARIF 2.1.0 Export:** Fully compatible with GitHub Advanced Security, Azure DevOps, and GitLab CI (`--format sarif`). Findings display directly inline in Pull Request diffs.
+- **Automated Code Remediations (`sentinel fix`):** Generates and applies deterministic unified diffs to automatically patch security header omissions and insecure configurations.
+- **Docker & Air-Gapped Deployment:** Multi-stage production `Dockerfile` and turnkey `docker-compose.yml` for self-hosted, offline enterprise deployments.
+- **Git Hooks & Quality Gates:** Enforced pre-commit linting, Prettier formatting, and Conventional Commits (`husky` + `lint-staged` + `commitlint`).
+
+---
+
+## 🤖 Optional: AI Agent & MCP Security (Opt-in)
+
+Sentinel includes an optional, fully isolated **MCPSentinel** engine for organizations deploying AI agents:
+
+- **What it does:** Audits [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) servers for unbounded filesystem access, unsafe shell execution, and capability sprawl.
+- **Explicitly Opt-in:** The core platform never runs or touches MCP unless explicitly requested via `--mcp "<command>"` or the interactive setup wizard (`mcpEnabled: false` by default).
 
 ---
 
@@ -63,31 +131,73 @@ While CodeSentinel and WebSentinel form the core, MCPSentinel can be enabled dur
 ### 1. Installation
 
 ```bash
+# Clone repository
 git clone https://github.com/pushp314/ApTes.git
 cd ApTes
+
+# Install dependencies (configures Husky hooks automatically)
 npm install
-```
 
-### 2. Build the Platform
+# Install Playwright browser dependencies (for web DOM testing)
+npx playwright install --with-deps chromium
 
-```bash
+# Compile all monorepo packages
 npm run build
 ```
 
-### 3. Run a Scan
-
-To run a scan, you simply invoke the platform CLI and point it to your codebase and a running frontend URL:
+### 2. Run a Unified Scan
 
 ```bash
-node packages/platform/dist/cli.js scan \
-  --project "my-startup" \
-  --web "http://localhost:3000"
+# Unified scan against local source code and target web service
+node packages/platform/dist/cli.js scan https://example.com -c ./src -y
+
+# Export results to SARIF for GitHub Code Scanning
+node packages/platform/dist/cli.js scan https://example.com -c ./src -y --format sarif --out results.sarif
+
+# Enforce CI/CD build gate (exit code 1 on high/critical findings)
+node packages/platform/dist/cli.js scan https://example.com -c ./src -y --fail-on high
 ```
 
-_For more detailed configuration options and rule customization, visit the [Documentation Website](./packages/docs)._
+### 3. Interactive Zero-Config Wizard
+
+If you run Sentinel with no arguments, it launches the interactive express wizard:
+
+```bash
+node packages/platform/dist/cli.js
+```
+
+### 4. Interactive Dashboards & GUIs
+
+```bash
+# Launch the Web-based Mission Control GUI
+npm run ui
+
+# Launch the Terminal TUI Dashboard
+npm run dashboard
+```
 
 ---
 
-<div align="center">
-  <i>Engineered for the next generation of AI applications.</i>
-</div>
+## 🧪 Testing & Verification
+
+Sentinel maintains strict testing discipline with fixture-backed unit tests that run deterministically in CI:
+
+```bash
+# Run all unit and integration tests (164 passing tests across 28 test suites)
+npm test
+
+# Run tests with V8 code coverage report
+npm run test:coverage
+
+# Static type check across all monorepo packages
+npm run typecheck
+
+# Lint all packages
+npm run lint
+```
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](./LICENSE).

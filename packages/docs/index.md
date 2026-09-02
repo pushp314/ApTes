@@ -26,8 +26,8 @@ features:
   - title: "🕸️ WebSentinel (Dynamic DOM)"
     details: "Drives a headless Playwright browser to execute DOM manipulation, CSRF, and injection attacks in real-time."
     icon: 🛡️
-  - title: "📡 ReconSentinel (Network Recon)"
-    details: "Wraps powerful active tools like Nmap and Nuclei. Parses their raw XML/JSON output and maps them deterministically into the unified pipeline."
+  - title: "📡 ReconSentinel (Network & OSINT Recon)"
+    details: "Wraps powerful industry scanners (Nmap, Nuclei, testssl.sh, Subfinder, theHarvester, Nikto, ffuf). Normalizes raw tool dumps into unified finding contracts."
     icon: 📡
   - title: "🔗 Correlation Engine"
     details: "Fuses static vulnerabilities, active recon, and dynamic exploits to output a single, high-confidence attack path. Eliminates 90% of false positives mathematically."
