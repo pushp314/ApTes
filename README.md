@@ -1,6 +1,11 @@
 <div align="center">
   <h1>🛡️ Sentinel Security Platform</h1>
   <p><b>The Static-Dynamic Security Orchestrator for Web Architectures</b></p>
+  <p>
+    <a href="https://github.com/pushp314/ApTes/actions/workflows/ci.yml"><img src="https://github.com/pushp314/ApTes/actions/workflows/ci.yml/badge.svg" alt="CI Status" /></a>
+    <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" /></a>
+    <img src="https://img.shields.io/badge/Tests-151%20passing-brightgreen" alt="151 Tests Passing" />
+  </p>
 </div>
 
 ---
@@ -22,11 +27,12 @@ Sentinel is a revolutionary **Dual-Engine Orchestrator**. It mathematically prov
 
 ### 🔗 Exact Path Correlation = Zero False Positives
 
-When both engines run, the **Platform Orchestrator** synthesizes their data to find true architectural vulnerabilities. 
+When both engines run, the **Platform Orchestrator** synthesizes their data to find true architectural vulnerabilities.
 
 **Example Drift Detection:**
-1. *WebSentinel* inspects a live endpoint returning `{userId, fullName, email}`.
-2. *CodeSentinel* statically analyzes the client expecting `{id, name, email}`.
+
+1. _WebSentinel_ inspects a live endpoint returning `{userId, fullName, email}`.
+2. _CodeSentinel_ statically analyzes the client expecting `{id, name, email}`.
 3. The platform correlates these findings to identify a clear **Configuration Drift** or **Schema Mismatch**.
 
 Sentinel reports verified configuration drifts directly, removing the noise from single-source false positives.
@@ -45,7 +51,7 @@ Sentinel reports verified configuration drifts directly, removing the noise from
 
 ## 🤖 Optional Third Engine: MCP Sentinel
 
-Sentinel also includes an opt-in **MCPSentinel** engine for advanced AI-driven architectures. 
+Sentinel also includes an opt-in **MCPSentinel** engine for advanced AI-driven architectures.
 If your application uses the Model Context Protocol (MCP) to connect AI agents to backend services, MCPSentinel can scan those MCP servers to ensure agents aren't granted unbounded host privileges (like arbitrary file system access).
 
 While CodeSentinel and WebSentinel form the core, MCPSentinel can be enabled during the CLI wizard for specialized AI security testing.
@@ -78,7 +84,7 @@ node packages/platform/dist/cli.js scan \
   --web "http://localhost:3000"
 ```
 
-*For more detailed configuration options and rule customization, visit the [Documentation Website](./packages/docs).*
+_For more detailed configuration options and rule customization, visit the [Documentation Website](./packages/docs)._
 
 ---
 
