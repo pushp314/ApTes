@@ -1,80 +1,129 @@
 #!/usr/bin/env node
-/* eslint-disable no-console */
-import { Command } from 'commander';
-import { runUnifiedPlatform } from './orchestrator.js';
-import { CliReporter, JsonReporter, HtmlReporter, MarkdownReporter, SarifReporter } from './reporters/index.js';
-import { runCodeFixer } from './fixer.js';
-import { loadPolicy, evaluatePolicy } from './policy.js';
-import { execSync } from 'node:child_process';
-import type { Severity } from '@sentinel/shared';
-import fs from 'node:fs/promises';
-import path from 'node:path';
+import { Command } from "commander";
+import { logger } from "@sentinel/shared";
+import { runUnifiedPlatform } from "./orchestrator.js";
+import {
+  CliReporter,
+  JsonReporter,
+  HtmlReporter,
+  MarkdownReporter,
+  SarifReporter,
+} from "./reporters/index.js";
+import { runCodeFixer } from "./fixer.js";
+import { loadPolicy, evaluatePolicy } from "./policy.js";
+import { execSync } from "node:child_process";
+import type { Severity } from "@sentinel/shared";
+import fs from "node:fs/promises";
+import path from "node:path";
 
 const program = new Command();
 
 program
-  .name('sentinel')
-  .description('Sentinel Unified Platform Scanner')
-  .version('0.1.0');
+  .name("sentinel")
+  .description("Sentinel Unified Platform Scanner")
+  .version("0.1.0");
 
 program
-  .command('scan [url]', { isDefault: true })
-  .description('Run a scan against a web application target (interactive wizard runs if no arguments are provided)')
-  .option('-p, --project <id>', 'Project ID (defaults to auto-generated)')
-  .option('-m, --mcp <command>', 'MCP server command to run (e.g. "node server.js")')
-  .option('-y, --authorized', 'Confirm that you own or have written permission to test the targets')
-  .option('--mcp-name <name>', 'Stable MCP target name for explicit Web ↔ MCP correlation')
-  .option('--allow-local', 'Allow localhost/private web targets', false)
-  .option('-c, --code <path>', 'Source code directory for backend analysis')
-  .option('-A, --ai', 'Enable AI analysis for low confidence findings', false)
-  .option('--budget <number>', 'Maximum number of AI requests per scan', '5')
-  .option('--ai-model <model>', 'Ollama model to use', 'llama3')
-  .option('--ai-provider <provider>', 'AI provider to use (ollama, mock)', 'ollama')
-  .option('--ai-url <url>', 'Ollama API URL', 'http://localhost:11434')
-  .option('-f, --format <format>', 'Output format: cli, json, html, md, sarif', 'cli')
-  .option('-o, --out <file>', 'Output file path')
-  .option('-E, --executive-report <dir>', 'Generate a VC-friendly AI Executive Report in the specified directory')
-  .option('-N, --narrate', 'Add AI-written plain-language narratives and audit chapters (requires -A)', false)
-  .option('--narrate-budget <number>', 'Max findings to narrate per scan', '4')
-  .option('-x, --exclude <globs>', 'Comma-separated glob patterns to exclude (e.g. "fixtures/**,tests/**")')
-  .option('-S, --skip-type-errors', 'Suppress TypeScript type diagnostics (useful for JS-only projects)', false)
-  .option('--diff [branch]', 'Scan only files changed compared to git branch (e.g. "main" or "HEAD~1")')
-  .option('--fail-on <severity>', 'Fail with exit code 1 if vulnerabilities of this severity or higher are found (CRITICAL, HIGH, MEDIUM, LOW)')
-  .option('--policy <path>', 'Path to sentinel.policy.json configuration file')
+  .command("scan [url]", { isDefault: true })
+  .description(
+    "Run a scan against a web application target (interactive wizard runs if no arguments are provided)",
+  )
+  .option("-p, --project <id>", "Project ID (defaults to auto-generated)")
+  .option(
+    "-m, --mcp <command>",
+    'MCP server command to run (e.g. "node server.js")',
+  )
+  .option(
+    "-y, --authorized",
+    "Confirm that you own or have written permission to test the targets",
+  )
+  .option(
+    "--mcp-name <name>",
+    "Stable MCP target name for explicit Web ↔ MCP correlation",
+  )
+  .option("--allow-local", "Allow localhost/private web targets", false)
+  .option("-c, --code <path>", "Source code directory for backend analysis")
+  .option("-A, --ai", "Enable AI analysis for low confidence findings", false)
+  .option("--budget <number>", "Maximum number of AI requests per scan", "5")
+  .option("--ai-model <model>", "Ollama model to use", "llama3")
+  .option(
+    "--ai-provider <provider>",
+    "AI provider to use (ollama, mock)",
+    "ollama",
+  )
+  .option("--ai-url <url>", "Ollama API URL", "http://localhost:11434")
+  .option(
+    "-f, --format <format>",
+    "Output format: cli, json, html, md, sarif",
+    "cli",
+  )
+  .option("-o, --out <file>", "Output file path")
+  .option(
+    "-E, --executive-report <dir>",
+    "Generate a VC-friendly AI Executive Report in the specified directory",
+  )
+  .option(
+    "-N, --narrate",
+    "Add AI-written plain-language narratives and audit chapters (requires -A)",
+    false,
+  )
+  .option("--narrate-budget <number>", "Max findings to narrate per scan", "4")
+  .option(
+    "-x, --exclude <globs>",
+    'Comma-separated glob patterns to exclude (e.g. "fixtures/**,tests/**")',
+  )
+  .option(
+    "-S, --skip-type-errors",
+    "Suppress TypeScript type diagnostics (useful for JS-only projects)",
+    false,
+  )
+  .option(
+    "--diff [branch]",
+    'Scan only files changed compared to git branch (e.g. "main" or "HEAD~1")',
+  )
+  .option(
+    "--fail-on <severity>",
+    "Fail with exit code 1 if vulnerabilities of this severity or higher are found (CRITICAL, HIGH, MEDIUM, LOW)",
+  )
+  .option("--policy <path>", "Path to sentinel.policy.json configuration file")
   .action(async (url, options) => {
     // If running `sentinel scan` with NO arguments, launch the interactive wizard
     const hasArgs = process.argv.length > 3;
     let projectConfig;
 
     if (!hasArgs) {
-      const { runInteractiveWizard } = await import('./wizard.js');
+      const { runInteractiveWizard } = await import("./wizard.js");
       projectConfig = await runInteractiveWizard();
     } else {
       if (!url) {
-        console.error('Error: missing required URL argument. Run `sentinel scan --help` or run `sentinel scan` without arguments for the interactive wizard.');
+        logger.error(
+          "Error: missing required URL argument. Run `sentinel scan --help` or run `sentinel scan` without arguments for the interactive wizard.",
+        );
         process.exit(1);
       }
-      
+
       let isAuthorized = options.authorized;
       if (!isAuthorized) {
-        const { confirm } = await import('@clack/prompts');
-        const pc = (await import('picocolors')).default;
-        
+        const { confirm } = await import("@clack/prompts");
+        const pc = (await import("picocolors")).default;
+
         isAuthorized = await confirm({
-          message: pc.red('Security Authorization Check: Do you own or have explicit written permission to security test this application?'),
+          message: pc.red(
+            "Security Authorization Check: Do you own or have explicit written permission to security test this application?",
+          ),
           initialValue: false,
         });
-        
+
         if (!isAuthorized) {
-          console.error('Authorization denied. Exiting.');
+          logger.error("Authorization denied. Exiting.");
           process.exit(1);
         }
       }
       const mcpTargets = [];
-      if (options.mcp && typeof options.mcp === 'string') {
-        const [cmd = '', ...args] = options.mcp.trim().split(' ');
+      if (options.mcp && typeof options.mcp === "string") {
+        const [cmd = "", ...args] = options.mcp.trim().split(" ");
         mcpTargets.push({
-          name: options.mcpName || 'backend',
+          name: options.mcpName || "backend",
           command: cmd,
           args,
           authorizationConfirmed: isAuthorized,
@@ -88,7 +137,9 @@ program
         authorizationConfirmed: isAuthorized,
         authorizationConfirmedAt: new Date().toISOString(),
         codePath: options.code,
-        excludePatterns: options.exclude ? options.exclude.split(',').map((s: string) => s.trim()) : [],
+        excludePatterns: options.exclude
+          ? options.exclude.split(",").map((s: string) => s.trim())
+          : [],
         skipTypeErrors: options.skipTypeErrors || false,
         allowLocalTargets: options.allowLocal,
         aiEnabled: options.ai,
@@ -102,45 +153,61 @@ program
 
     try {
       if (options.diff) {
-        const branch = typeof options.diff === 'string' ? options.diff : 'main';
+        const branch = typeof options.diff === "string" ? options.diff : "main";
         try {
-          const diffOutput = execSync(`git diff --name-only ${branch}`, { encoding: 'utf-8' });
-          const changedFiles = diffOutput.split('\n').filter(Boolean);
-          console.log(`\x1b[90m[Sentinel Diff] Scanning only ${changedFiles.length} files modified against ${branch}\x1b[0m`);
+          const diffOutput = execSync(`git diff --name-only ${branch}`, {
+            encoding: "utf-8",
+          });
+          const changedFiles = diffOutput.split("\n").filter(Boolean);
+          logger.info(
+            `\x1b[90m[Sentinel Diff] Scanning only ${changedFiles.length} files modified against ${branch}\x1b[0m`,
+          );
         } catch {
-          console.warn(`\x1b[33mWarning: Failed to compute git diff against '${branch}'. Falling back to full scan.\x1b[0m`);
+          logger.warn(
+            `\x1b[33mWarning: Failed to compute git diff against '${branch}'. Falling back to full scan.\x1b[0m`,
+          );
         }
       }
 
-      console.log(`Starting Sentinel Platform Scan for project: ${projectConfig.id}`);
-      
-      const { spinner } = await import('@clack/prompts');
+      logger.info(
+        `Starting Sentinel Platform Scan for project: ${projectConfig.id}`,
+      );
+
+      const { spinner } = await import("@clack/prompts");
       const s = spinner();
-      
-      const aiTime = projectConfig.aiEnabled ? ' (AI Analysis: ~10-15s)' : '';
-      console.log(`\x1b[90mEstimated time: ~5-10s depending on target latency${aiTime}\x1b[0m`);
-      
-      s.start('Running Diagnostic Security Engines (AST, DAST, RECON)...');
-      
+
+      const aiTime = projectConfig.aiEnabled ? " (AI Analysis: ~10-15s)" : "";
+      logger.info(
+        `\x1b[90mEstimated time: ~5-10s depending on target latency${aiTime}\x1b[0m`,
+      );
+
+      s.start("Running Diagnostic Security Engines (AST, DAST, RECON)...");
+
       const report = await runUnifiedPlatform(projectConfig, 30000, (msg) => {
         s.message(msg);
       });
-      
-      s.stop('Diagnostic scan complete!');
+
+      s.stop("Diagnostic scan complete!");
 
       // Optional AI narration (requires -A). Strictly advisory: it only
       // attaches human-readable narratives and chapters to the report.
       if (options.narrate && projectConfig.aiEnabled) {
-        const { NarrativeEngine } = await import('./ai/narrator.js');
-        const { AICache } = await import('./ai/cache.js');
-        const { MockProvider } = await import('./ai/mock-provider.js');
-        const { OllamaProvider } = await import('./ai/ollama-provider.js');
-        const { GeminiProvider } = await import('./ai/gemini-provider.js');
-        
+        const { NarrativeEngine } = await import("./ai/narrator.js");
+        const { AICache } = await import("./ai/cache.js");
+        const { MockProvider } = await import("./ai/mock-provider.js");
+        const { OllamaProvider } = await import("./ai/ollama-provider.js");
+        const { GeminiProvider } = await import("./ai/gemini-provider.js");
+
         let provider;
-        if (projectConfig.aiProvider === 'gemini' && process.env.GEMINI_API_KEY) {
-          provider = new GeminiProvider(process.env.GEMINI_API_KEY, projectConfig.aiModel);
-        } else if (projectConfig.aiProvider === 'mock') {
+        if (
+          projectConfig.aiProvider === "gemini" &&
+          process.env.GEMINI_API_KEY
+        ) {
+          provider = new GeminiProvider(
+            process.env.GEMINI_API_KEY,
+            projectConfig.aiModel,
+          );
+        } else if (projectConfig.aiProvider === "mock") {
           provider = new MockProvider();
         } else {
           provider = new OllamaProvider();
@@ -152,56 +219,81 @@ program
           {
             model: projectConfig.aiModel,
             url: projectConfig.aiUrl,
-            budget: parseInt(options.narrateBudget, 10) || 4
-          }
+            budget: parseInt(options.narrateBudget, 10) || 4,
+          },
         );
         const aiSpinner = spinner();
-        aiSpinner.start('Synthesizing AI Threat Narratives & Executive Chapters...');
-        
+        aiSpinner.start(
+          "Synthesizing AI Threat Narratives & Executive Chapters...",
+        );
+
         const narrated = await engine.narrate(report.findings);
         report.chapters = await engine.chapterize(report.findings);
-        
-        aiSpinner.stop('AI Synthesis complete.');
+
+        aiSpinner.stop("AI Synthesis complete.");
         if (narrated > 0 || report.chapters.length > 0) {
-          console.log(`[Sentinel AI] Narrated ${narrated} findings, structured ${report.chapters.length} audit chapters.`);
+          logger.info(
+            `[Sentinel AI] Narrated ${narrated} findings, structured ${report.chapters.length} audit chapters.`,
+          );
         }
       }
 
       let reporter;
       switch (options.format) {
-        case 'json': reporter = new JsonReporter(); break;
-        case 'html': reporter = new HtmlReporter(); break;
-        case 'md': reporter = new MarkdownReporter(); break;
-        case 'sarif': reporter = new SarifReporter(); break;
-        case 'cli': 
-        default: reporter = new CliReporter(); break;
+        case "json":
+          reporter = new JsonReporter();
+          break;
+        case "html":
+          reporter = new HtmlReporter();
+          break;
+        case "md":
+          reporter = new MarkdownReporter();
+          break;
+        case "sarif":
+          reporter = new SarifReporter();
+          break;
+        case "cli":
+        default:
+          reporter = new CliReporter();
+          break;
       }
 
       const output = reporter.generate(report);
 
       if (options.out) {
-        await fs.writeFile(path.resolve(options.out), output, 'utf-8');
-        console.log(`Report written to ${options.out}`);
+        await fs.writeFile(path.resolve(options.out), output, "utf-8");
+        logger.info(`Report written to ${options.out}`);
       } else {
-        console.log('\n' + output);
+        logger.info("\n" + output);
       }
 
       if (options.executiveReport) {
-        const { generateExecutiveReport } = await import('./reporters/index.js');
-        const reportPath = await generateExecutiveReport(report.findings, options.executiveReport, options.aiModel);
-        console.log(`\n[Sentinel AI] Executive HTML report generated at: ${reportPath}`);
+        const { generateExecutiveReport } =
+          await import("./reporters/index.js");
+        const reportPath = await generateExecutiveReport(
+          report.findings,
+          options.executiveReport,
+          options.aiModel,
+        );
+        logger.info(
+          `\n[Sentinel AI] Executive HTML report generated at: ${reportPath}`,
+        );
       }
 
       // Security Policy Evaluation
-      const policy = (await loadPolicy(options.policy)) || (options.failOn ? { failOn: options.failOn.toLowerCase() as Severity } : null);
+      const policy =
+        (await loadPolicy(options.policy)) ||
+        (options.failOn
+          ? { failOn: options.failOn.toLowerCase() as Severity }
+          : null);
       if (policy) {
         const evaluation = evaluatePolicy(report, policy);
         if (!evaluation.passed) {
-          console.error('\n🚨 Security Policy Violations:');
-          evaluation.violations.forEach(v => console.error(`  ❌ ${v}`));
+          logger.error("\n🚨 Security Policy Violations:");
+          evaluation.violations.forEach((v) => logger.error(`  ❌ ${v}`));
           process.exit(1);
         } else {
-          console.log('\n✅ Security Policy Check: PASSED');
+          logger.info("\n✅ Security Policy Check: PASSED");
         }
       }
 
@@ -209,85 +301,108 @@ program
         process.exit(1);
       }
     } catch (err) {
-      console.error('Fatal error during platform scan:', err);
+      logger.error({ err }, "Fatal error during platform scan");
       process.exit(1);
     }
   });
 
 program
-  .command('run <configFile>')
-  .description('Run a scan using a JSON configuration file')
-  .option('--format <format>', 'Output format: cli, json, html, md', 'cli')
-  .option('--out <file>', 'Output file path (optional)')
+  .command("run <configFile>")
+  .description("Run a scan using a JSON configuration file")
+  .option("--format <format>", "Output format: cli, json, html, md", "cli")
+  .option("--out <file>", "Output file path (optional)")
   .action(async (configFile, options) => {
     try {
-      const configStr = await fs.readFile(path.resolve(configFile), 'utf-8');
+      const configStr = await fs.readFile(path.resolve(configFile), "utf-8");
       const project = JSON.parse(configStr);
 
-      console.log(`Starting Sentinel Platform Scan from config: ${configFile}`);
+      logger.info(`Starting Sentinel Platform Scan from config: ${configFile}`);
       const report = await runUnifiedPlatform(project, 30000);
 
       let reporter;
       switch (options.format) {
-        case 'json': reporter = new JsonReporter(); break;
-        case 'html': reporter = new HtmlReporter(); break;
-        case 'md': reporter = new MarkdownReporter(); break;
-        case 'cli': 
-        default: reporter = new CliReporter(); break;
+        case "json":
+          reporter = new JsonReporter();
+          break;
+        case "html":
+          reporter = new HtmlReporter();
+          break;
+        case "md":
+          reporter = new MarkdownReporter();
+          break;
+        case "cli":
+        default:
+          reporter = new CliReporter();
+          break;
       }
 
       const output = reporter.generate(report);
 
       if (options.out) {
-        await fs.writeFile(path.resolve(options.out), output, 'utf-8');
-        console.log(`Report written to ${options.out}`);
+        await fs.writeFile(path.resolve(options.out), output, "utf-8");
+        logger.info(`Report written to ${options.out}`);
       } else {
-        console.log('\n' + output);
+        logger.info("\n" + output);
       }
 
       if (report.errors.length > 0) {
         process.exit(1);
       }
     } catch (err) {
-      console.error('Fatal error during config run:', err);
+      logger.error({ err }, "Fatal error during config run");
       process.exit(1);
     }
   });
 
 program
-  .command('init')
-  .description('Generate a sentinel.config.json interactively')
+  .command("init")
+  .description("Generate a sentinel.config.json interactively")
   .action(async () => {
     try {
-      const { runInteractiveWizard } = await import('./wizard.js');
+      const { runInteractiveWizard } = await import("./wizard.js");
       await runInteractiveWizard();
-      console.log('Use `sentinel run sentinel.config.json` to start scanning.');
+      logger.info("Use `sentinel run sentinel.config.json` to start scanning.");
     } catch (err) {
-      console.error('Fatal error during init:', err);
+      logger.error({ err }, "Fatal error during init");
       process.exit(1);
     }
   });
 
 program
-  .command('pentest [url]')
-  .description('Run active penetration testing & access control probes against an authorized target')
-  .option('-p, --project <id>', 'Project ID (defaults to auto-generated)')
-  .option('-m, --mcp <command>', 'MCP server command to run (e.g. "node server.js")')
-  .option('-y, --authorized', 'Confirm that you own or have written permission to test the targets')
-  .option('--allow-local', 'Allow localhost/private web targets', false)
-  .option('-c, --code <path>', 'Source code directory for backend route discovery')
-  .option('-A, --ai', 'Enable AI analysis for low confidence findings', false)
-  .option('-f, --format <format>', 'Output format: cli, json, html, md', 'cli')
-  .option('-o, --out <file>', 'Output file path')
+  .command("pentest [url]")
+  .description(
+    "Run active penetration testing & access control probes against an authorized target",
+  )
+  .option("-p, --project <id>", "Project ID (defaults to auto-generated)")
+  .option(
+    "-m, --mcp <command>",
+    'MCP server command to run (e.g. "node server.js")',
+  )
+  .option(
+    "-y, --authorized",
+    "Confirm that you own or have written permission to test the targets",
+  )
+  .option("--allow-local", "Allow localhost/private web targets", false)
+  .option(
+    "-c, --code <path>",
+    "Source code directory for backend route discovery",
+  )
+  .option("-A, --ai", "Enable AI analysis for low confidence findings", false)
+  .option("-f, --format <format>", "Output format: cli, json, html, md", "cli")
+  .option("-o, --out <file>", "Output file path")
   .action(async (url, options) => {
     if (!url || !options.authorized) {
-      console.error('Error: Pentest mode requires a target URL and explicit authorization (-y / --authorized).');
-      console.error('Usage: sentinel pentest <url> -y [-c ./src] [-m "node server.js"]');
+      logger.error(
+        "Error: Pentest mode requires a target URL and explicit authorization (-y / --authorized).",
+      );
+      logger.error(
+        'Usage: sentinel pentest <url> -y [-c ./src] [-m "node server.js"]',
+      );
       process.exit(1);
     }
 
-    const mcpCommand = typeof options.mcp === 'string' ? options.mcp : '';
-    const [cmd = '', ...args] = mcpCommand ? mcpCommand.split(' ') : [];
+    const mcpCommand = typeof options.mcp === "string" ? options.mcp : "";
+    const [cmd = "", ...args] = mcpCommand ? mcpCommand.split(" ") : [];
 
     const projectConfig = {
       id: options.project || `sentinel-pentest-${Date.now()}`,
@@ -298,114 +413,142 @@ program
       activePentestMode: true,
       allowLocalTargets: options.allowLocal,
       aiEnabled: options.ai,
-      mcpTargets: cmd ? [
-        {
-          command: cmd,
-          args,
-          authorizationConfirmed: options.authorized,
-          authorizationConfirmedAt: new Date().toISOString(),
-        }
-      ] : []
+      mcpTargets: cmd
+        ? [
+            {
+              command: cmd,
+              args,
+              authorizationConfirmed: options.authorized,
+              authorizationConfirmedAt: new Date().toISOString(),
+            },
+          ]
+        : [],
     };
 
     try {
-      console.log(`\n🛡️  Starting Sentinel Active Pentest Suite for: ${url}`);
+      logger.info(`\n🛡️  Starting Sentinel Active Pentest Suite for: ${url}`);
       const report = await runUnifiedPlatform(projectConfig as any, 45000);
 
       let reporter;
       switch (options.format) {
-        case 'json': reporter = new JsonReporter(); break;
-        case 'html': reporter = new HtmlReporter(); break;
-        case 'md': reporter = new MarkdownReporter(); break;
-        case 'cli': 
-        default: reporter = new CliReporter(); break;
+        case "json":
+          reporter = new JsonReporter();
+          break;
+        case "html":
+          reporter = new HtmlReporter();
+          break;
+        case "md":
+          reporter = new MarkdownReporter();
+          break;
+        case "cli":
+        default:
+          reporter = new CliReporter();
+          break;
       }
 
       const output = reporter.generate(report);
       if (options.out) {
-        await fs.writeFile(path.resolve(options.out), output, 'utf-8');
-        console.log(`Pentest report written to ${options.out}`);
+        await fs.writeFile(path.resolve(options.out), output, "utf-8");
+        logger.info(`Pentest report written to ${options.out}`);
       } else {
-        console.log('\n' + output);
+        logger.info("\n" + output);
       }
 
       if (report.errors.length > 0) {
         process.exit(1);
       }
     } catch (err) {
-      console.error('Fatal error during pentest execution:', err);
+      logger.error({ err }, "Fatal error during pentest execution");
       process.exit(1);
     }
   });
 
 const securityCmd = program
-  .command('security')
-  .description('Dedicated security utilities (JWT inspection, HTTP headers audit, and security tools)');
+  .command("security")
+  .description(
+    "Dedicated security utilities (JWT inspection, HTTP headers audit, and security tools)",
+  );
 
 securityCmd
-  .command('headers <url>')
-  .description('Audit HTTP security headers on a target URL')
+  .command("headers <url>")
+  .description("Audit HTTP security headers on a target URL")
   .action(async (targetUrl) => {
     try {
-      const { auditSecurityHeaders } = await import('./pentest/security-tools.js');
-      console.log(`Auditing security headers for: ${targetUrl}...`);
+      const { auditSecurityHeaders } =
+        await import("./pentest/security-tools.js");
+      logger.info(`Auditing security headers for: ${targetUrl}...`);
       const result = await auditSecurityHeaders(targetUrl);
-      console.log('\nHTTP Status:', result.statusCode);
-      console.log('\nMissing Security Headers:');
+      logger.info(`\nHTTP Status: ${result.statusCode}`);
+      logger.info("\nMissing Security Headers:");
       if (result.missingHeaders.length === 0) {
-        console.log('  ✅ All critical security headers are present!');
+        logger.info("  ✅ All critical security headers are present!");
       } else {
-        result.missingHeaders.forEach(h => console.log(`  ❌ ${h}`));
+        result.missingHeaders.forEach((h) => logger.info(`  ❌ ${h}`));
       }
-      console.log('\nRecommendations:');
-      result.recommendations.forEach(r => console.log(`  👉 ${r}`));
+      logger.info("\nRecommendations:");
+      result.recommendations.forEach((r) => logger.info(`  👉 ${r}`));
     } catch (err) {
-      console.error('Failed to audit headers:', err instanceof Error ? err.message : String(err));
+      logger.error(
+        { err: err instanceof Error ? err.message : String(err) },
+        "Failed to audit headers",
+      );
       process.exit(1);
     }
   });
 
 securityCmd
-  .command('jwt <token>')
-  .description('Inspect and diagnose a JWT token for security weaknesses (insecure algorithm, expiration)')
+  .command("jwt <token>")
+  .description(
+    "Inspect and diagnose a JWT token for security weaknesses (insecure algorithm, expiration)",
+  )
   .action(async (token) => {
     try {
-      const { inspectJwtToken } = await import('./pentest/security-tools.js');
+      const { inspectJwtToken } = await import("./pentest/security-tools.js");
       const result = inspectJwtToken(token);
-      console.log('\n--- JWT Inspection Report ---');
-      console.log('Algorithm:', result.algorithm);
-      console.log('Expired:', result.isExpired ? '🚨 YES' : '✅ NO');
-      console.log('\nHeader:', JSON.stringify(result.header, null, 2));
-      console.log('\nPayload:', JSON.stringify(result.payload, null, 2));
+      logger.info("\n--- JWT Inspection Report ---");
+      logger.info(`Algorithm: ${result.algorithm}`);
+      logger.info(`Expired: ${result.isExpired ? "🚨 YES" : "✅ NO"}`);
+      logger.info(`\nHeader: ${JSON.stringify(result.header, null, 2)}`);
+      logger.info(`\nPayload: ${JSON.stringify(result.payload, null, 2)}`);
       if (result.warnings.length > 0) {
-        console.log('\nSecurity Warnings:');
-        result.warnings.forEach(w => console.log(`  ⚠️  ${w}`));
+        logger.info("\nSecurity Warnings:");
+        result.warnings.forEach((w) => logger.info(`  ⚠️  ${w}`));
       } else {
-        console.log('\n✅ No immediate token format weaknesses detected.');
+        logger.info("\n✅ No immediate token format weaknesses detected.");
       }
     } catch (err) {
-      console.error('JWT inspection error:', err instanceof Error ? err.message : String(err));
+      logger.error(
+        { err: err instanceof Error ? err.message : String(err) },
+        "JWT inspection error",
+      );
       process.exit(1);
     }
   });
 
 program
-  .command('dashboard')
-  .description('Launch the interactive Terminal Mission Control Dashboard')
+  .command("dashboard")
+  .description("Launch the interactive Terminal Mission Control Dashboard")
   .action(async () => {
-    const { spawn } = await import('node:child_process');
-    const { fileURLToPath } = await import('node:url');
+    const { spawn } = await import("node:child_process");
+    const { fileURLToPath } = await import("node:url");
     const currentDir = path.dirname(fileURLToPath(import.meta.url));
-    const dashboardPy = path.resolve(currentDir, '../../sentinel-py/sentinel.py');
-    const child = spawn('python3', [dashboardPy, 'dashboard'], { stdio: 'inherit' });
-    child.on('exit', code => process.exit(code ?? 0));
+    const dashboardPy = path.resolve(
+      currentDir,
+      "../../sentinel-py/sentinel.py",
+    );
+    const child = spawn("python3", [dashboardPy, "dashboard"], {
+      stdio: "inherit",
+    });
+    child.on("exit", (code) => process.exit(code ?? 0));
   });
 
 program
-  .command('tools')
-  .description('Display complete catalog of all Sentinel CLI commands, engines, and pentest tools')
+  .command("tools")
+  .description(
+    "Display complete catalog of all Sentinel CLI commands, engines, and pentest tools",
+  )
   .action(() => {
-    console.log(`
+    logger.info(`
 \x1b[1m\x1b[34m================================================================================
    🛡️  SENTINEL MASTER CLI TOOL CATALOG & COMMAND INDEX
 ================================================================================\x1b[0m
@@ -457,47 +600,61 @@ program
   });
 
 program
-  .command('ui')
-  .description('Launch the local Web-based Mission Control Dashboard GUI and open in default browser')
-  .option('-p, --port <number>', 'Port to run the dashboard server on', '3333')
+  .command("ui")
+  .description(
+    "Launch the local Web-based Mission Control Dashboard GUI and open in default browser",
+  )
+  .option("-p, --port <number>", "Port to run the dashboard server on", "3333")
   .action(async (options) => {
-    const { startDashboardServer } = await import('./dashboard-server.js');
+    const { startDashboardServer } = await import("./dashboard-server.js");
     const port = parseInt(options.port, 10) || 3333;
     await startDashboardServer(port, true);
-    console.log(`\n🚀 Sentinel Mission Control Web GUI is live at: http://localhost:${port}\n`);
+    logger.info(
+      `\n🚀 Sentinel Mission Control Web GUI is live at: http://localhost:${port}\n`,
+    );
   });
 
 program
-  .command('docs')
-  .description('Launch the Sentinel VitePress Documentation server and open in default browser')
-  .option('-p, --port <number>', 'Port to run docs server on', '5173')
+  .command("docs")
+  .description(
+    "Launch the Sentinel VitePress Documentation server and open in default browser",
+  )
+  .option("-p, --port <number>", "Port to run docs server on", "5173")
   .action(async (options) => {
-    const { spawn } = await import('node:child_process');
-    const { fileURLToPath } = await import('node:url');
-    const { openInBrowser } = await import('./dashboard-server.js');
+    const { spawn } = await import("node:child_process");
+    const { fileURLToPath } = await import("node:url");
+    const { openInBrowser } = await import("./dashboard-server.js");
     const currentDir = path.dirname(fileURLToPath(import.meta.url));
-    const repoRoot = path.resolve(currentDir, '../../../');
-    const docsDir = path.resolve(repoRoot, 'packages/docs');
-    const port = options.port || '5173';
+    const repoRoot = path.resolve(currentDir, "../../../");
+    const docsDir = path.resolve(repoRoot, "packages/docs");
+    const port = options.port || "5173";
 
-    console.log(`\n📖 Launching Sentinel Documentation Website on http://localhost:${port}...\n`);
-    const child = spawn('npx', ['vitepress', 'dev', docsDir, '--port', port], {
+    logger.info(
+      `\n📖 Launching Sentinel Documentation Website on http://localhost:${port}...\n`,
+    );
+    const child = spawn("npx", ["vitepress", "dev", docsDir, "--port", port], {
       cwd: repoRoot,
-      stdio: 'inherit'
+      stdio: "inherit",
     });
 
     setTimeout(() => {
       openInBrowser(`http://localhost:${port}`);
     }, 1200);
 
-    child.on('exit', code => process.exit(code ?? 0));
+    child.on("exit", (code) => process.exit(code ?? 0));
   });
 
 program
-  .command('fix <report>')
-  .description('Interactively review and apply automated code remediations from a Sentinel JSON report')
-  .option('--dry-run', 'Preview changes without modifying source files', false)
-  .option('-y, --yes', 'Automatically apply all safe deterministic fixes without prompting', false)
+  .command("fix <report>")
+  .description(
+    "Interactively review and apply automated code remediations from a Sentinel JSON report",
+  )
+  .option("--dry-run", "Preview changes without modifying source files", false)
+  .option(
+    "-y, --yes",
+    "Automatically apply all safe deterministic fixes without prompting",
+    false,
+  )
   .action(async (reportPath, options) => {
     try {
       await runCodeFixer(reportPath, {
@@ -505,12 +662,12 @@ program
         autoApprove: options.yes,
       });
     } catch (err) {
-      console.error('Error during auto-fix execution:', err instanceof Error ? err.message : String(err));
+      logger.error(
+        { err: err instanceof Error ? err.message : String(err) },
+        "Error during auto-fix execution",
+      );
       process.exit(1);
     }
   });
 
 program.parse(process.argv);
-
-
-

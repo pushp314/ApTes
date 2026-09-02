@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  sentinel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sentinel/sentinel-enterprise:latest
+    container_name: sentinel-orchestrator
+    environment:
+      - NODE_ENV=production
+      - JSON_LOGS=true
+      - LOG_LEVEL=info
+    volumes:
+      # Mount local directory to scan local codebases
+      - .:/workspace
+    ports:
+      # Map the web UI port
+      - "3333:3333"
+    command: ["scan", "--help"]

@@ -23,7 +23,9 @@ export {
   isSeverity,
   isConfidence,
   isEngineType,
-} from './types.js';
+} from "./types.js";
+
+export * from "./logger.js";
 
 // Finding interface (shared data contract)
 export {
@@ -31,7 +33,7 @@ export {
   type AiAssessment,
   type FindingNarrative,
   type AuditChapter,
-} from './finding.js';
+} from "./finding.js";
 
 // Engine rule interfaces (Web + MCP execution contract)
 export {
@@ -44,7 +46,7 @@ export {
   type McpResourceInfo,
   type McpPromptInfo,
   type ServerMetadata,
-} from './engine-rule.js';
+} from "./engine-rule.js";
 
 /** Sentinel platform version */
-export const VERSION = '0.1.0';
+export const VERSION = "0.1.0";
